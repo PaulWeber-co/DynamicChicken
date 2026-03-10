@@ -29,15 +29,29 @@ struct MessageComposeView: View {
 
                     Button(action: {
                         partnerManager.sendMessage(messageText, status: statusText)
-                        dismiss()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            if !partnerManager.isSending { dismiss() }
+                        }
                     }) {
-                        Text("Senden")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(.black)
-                            .padding(.horizontal, 40).padding(.vertical, 10)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
+                        HStack(spacing: 6) {
+                            if partnerManager.isSending {
+                                ProgressView().scaleEffect(0.7).tint(.black)
+                            }
+                            Text(partnerManager.isSending ? "Wird gesendet..." : "Senden")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 40).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
                     }
-                    .disabled(messageText.isEmpty && statusText.isEmpty)
+                    .disabled((messageText.isEmpty && statusText.isEmpty) || partnerManager.isSending)
+
+                    if let error = partnerManager.lastError {
+                        Text(error)
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundColor(.red.opacity(0.8))
+                            .multilineTextAlignment(.center)
+                    }
 
                     if !partnerManager.lastReceivedMessage.isEmpty || !partnerManager.lastReceivedStatus.isEmpty {
                         Divider().background(.white.opacity(0.1))
@@ -63,3 +77,4 @@ struct MessageComposeView: View {
         }
     }
 }
+
