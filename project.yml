@@ -33,6 +33,8 @@ targets:
         DEVELOPMENT_TEAM: "8938MV67N2"
         CODE_SIGN_STYLE: Automatic
         INFOPLIST_KEY_NSSupportsLiveActivities: YES
+        CODE_SIGN_ENTITLEMENTS: DynamicKnuddl/DynamicKnuddl.entitlements
+        INFOPLIST_KEY_UIBackgroundModes: "fetch remote-notification"
     dependencies:
       - target: PetWidgetExtension
   PetWidgetExtension:

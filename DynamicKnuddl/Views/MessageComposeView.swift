@@ -33,9 +33,27 @@ struct MessageComposeView: View {
                             }
                         }
                     }
-                    Button(action: { partnerManager.sendMessage(messageText, petState: selectedState); dismiss() }) {
-                        Text("Senden").font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundColor(.black).padding(.horizontal, 40).padding(.vertical, 10).background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
-                    }.disabled(messageText.isEmpty && selectedState == nil)
+                    Button(action: {
+                        partnerManager.sendMessage(messageText, petState: selectedState)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { dismiss() }
+                    }) {
+                        HStack(spacing: 6) {
+                            if partnerManager.isSending {
+                                ProgressView().scaleEffect(0.7).tint(.black)
+                            }
+                            Text(partnerManager.isSending ? "Wird gesendet..." : "Senden")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundColor(.black).padding(.horizontal, 40).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
+                    }.disabled((messageText.isEmpty && selectedState == nil) || partnerManager.isSending)
+
+                    if let error = partnerManager.lastError {
+                        Text(error)
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundColor(.red.opacity(0.8))
+                            .multilineTextAlignment(.center)
+                    }
                     if !partnerManager.lastReceivedMessage.isEmpty {
                         Divider().background(.white.opacity(0.1))
                         VStack(spacing: 4) {
