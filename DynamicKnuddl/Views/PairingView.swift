@@ -12,25 +12,6 @@ struct PairingView: View {
                 Constants.backgroundColor.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Connection Status
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(statusColor)
-                                .frame(width: 8, height: 8)
-                            Text("CloudKit: \(partnerManager.connectionStatus.rawValue)")
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
-                        }
-                        .onAppear { partnerManager.checkCloudKitStatus() }
-
-                        if let error = partnerManager.lastError {
-                            Text(error)
-                                .font(.system(size: 11, design: .rounded))
-                                .foregroundColor(.red.opacity(0.8))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                        }
-
                         VStack(spacing: 8) {
                             Text("Dein Code").font(.system(size: 14, design: .rounded)).foregroundColor(.white.opacity(0.5))
                             Text(partnerManager.myCode).font(.system(size: 36, weight: .bold, design: .monospaced)).foregroundColor(.yellow).kerning(6)
@@ -65,18 +46,17 @@ struct PairingView: View {
                         VStack(spacing: 12) {
                             Divider().background(.white.opacity(0.1))
 
-                            Text("Verbindung testen").font(.system(size: 14, weight: .medium, design: .rounded)).foregroundColor(.white.opacity(0.5))
+                            Text("Testen").font(.system(size: 14, weight: .medium, design: .rounded)).foregroundColor(.white.opacity(0.5))
 
-                            // Local test (no CloudKit needed)
                             Button(action: {
                                 partnerManager.simulateReceivedMessage(
-                                    text: "Hallo, ich bin ein Test!",
-                                    state: .sleeping
+                                    text: "Hallo, ich vermisse dich!",
+                                    status: "denkt an dich"
                                 )
                             }) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "play.circle.fill").font(.system(size: 14))
-                                    Text("Lokal testen (ohne Internet)")
+                                    Text("Test-Nachricht empfangen")
                                         .font(.system(size: 13, weight: .medium, design: .rounded))
                                 }
                                 .foregroundColor(.white)
@@ -84,40 +64,23 @@ struct PairingView: View {
                                 .background(RoundedRectangle(cornerRadius: 12).fill(.white.opacity(0.1)))
                             }
 
-                            // CloudKit roundtrip test
-                            Button(action: {
-                                partnerManager.testCloudKitRoundtrip()
-                            }) {
-                                HStack(spacing: 6) {
-                                    if partnerManager.isSending {
-                                        ProgressView().scaleEffect(0.7).tint(.white)
-                                    } else {
-                                        Image(systemName: "cloud.fill").font(.system(size: 14))
-                                    }
-                                    Text("CloudKit testen (mit Internet)")
-                                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                                }
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 20).padding(.vertical, 10)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
-                            }
-                            .disabled(partnerManager.isSending)
-
-                            Text("Der CloudKit-Test sendet eine Nachricht an dich selbst.\nWenn sie nach ein paar Sekunden unten erscheint, funktioniert alles.")
+                            Text("Simuliert eine empfangene Nachricht\n(funktioniert ohne Server)")
                                 .font(.system(size: 10, design: .rounded))
                                 .foregroundColor(.white.opacity(0.3))
                                 .multilineTextAlignment(.center)
 
-                            if !partnerManager.lastReceivedMessage.isEmpty {
+                            if !partnerManager.lastReceivedMessage.isEmpty || !partnerManager.lastReceivedStatus.isEmpty {
                                 VStack(spacing: 4) {
                                     Text("Letzte empfangene Nachricht:")
                                         .font(.system(size: 11, design: .rounded))
                                         .foregroundColor(.white.opacity(0.4))
-                                    Text(partnerManager.lastReceivedMessage)
-                                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                                        .foregroundColor(.yellow)
-                                    if let state = partnerManager.lastReceivedPetState {
-                                        Text("Chicken-Status: \(state.displayName)")
+                                    if !partnerManager.lastReceivedMessage.isEmpty {
+                                        Text(partnerManager.lastReceivedMessage)
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.yellow)
+                                    }
+                                    if !partnerManager.lastReceivedStatus.isEmpty {
+                                        Text("Status: \(partnerManager.lastReceivedStatus)")
                                             .font(.system(size: 11, design: .rounded))
                                             .foregroundColor(.yellow.opacity(0.6))
                                     }
@@ -132,15 +95,6 @@ struct PairingView: View {
                 }
             }.navigationTitle("Partner").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .navigationBarTrailing) { Button("Fertig") { dismiss() }.foregroundColor(.yellow) } }
-        }
-    }
-
-    private var statusColor: Color {
-        switch partnerManager.connectionStatus {
-        case .connected: return .green
-        case .checking: return .orange
-        case .error: return .red
-        case .unknown: return .gray
         }
     }
 }

@@ -3,7 +3,7 @@ import SwiftUI
 struct MessageComposeView: View {
     @ObservedObject var partnerManager = PartnerManager.shared
     @State private var messageText = ""
-    @State private var selectedState: PetState? = nil
+    @State private var statusText = ""
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -14,51 +14,45 @@ struct MessageComposeView: View {
                     Text("Nachricht an \(partnerManager.partnerName)")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .foregroundColor(.white)
+
                     TextField("Kurze Nachricht...", text: $messageText)
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 300)
+
                     Text("Chicken-Status setzen (optional)")
                         .font(.system(size: 12, design: .rounded))
                         .foregroundColor(.white.opacity(0.4))
-                    HStack(spacing: 12) {
-                        ForEach(PetState.allCases, id: \.self) { state in
-                            Button(action: { selectedState = (selectedState == state) ? nil : state }) {
-                                VStack(spacing: 2) {
-                                    Image(systemName: iconFor(state)).font(.system(size: 18))
-                                    Text(state.displayName).font(.system(size: 9, design: .rounded))
-                                }
-                                .foregroundColor(selectedState == state ? .yellow : .white.opacity(0.5))
-                                .frame(width: 55, height: 45)
-                                .background(RoundedRectangle(cornerRadius: 10).fill(selectedState == state ? .yellow.opacity(0.15) : .white.opacity(0.05)))
-                            }
-                        }
-                    }
-                    Button(action: {
-                        partnerManager.sendMessage(messageText, petState: selectedState)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { dismiss() }
-                    }) {
-                        HStack(spacing: 6) {
-                            if partnerManager.isSending {
-                                ProgressView().scaleEffect(0.7).tint(.black)
-                            }
-                            Text(partnerManager.isSending ? "Wird gesendet..." : "Senden")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        }
-                        .foregroundColor(.black).padding(.horizontal, 40).padding(.vertical, 10)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
-                    }.disabled((messageText.isEmpty && selectedState == nil) || partnerManager.isSending)
 
-                    if let error = partnerManager.lastError {
-                        Text(error)
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundColor(.red.opacity(0.8))
-                            .multilineTextAlignment(.center)
+                    TextField("z.B. schlaeft, spielt, vermisst dich...", text: $statusText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 300)
+
+                    Button(action: {
+                        partnerManager.sendMessage(messageText, status: statusText)
+                        dismiss()
+                    }) {
+                        Text("Senden")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 40).padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
                     }
-                    if !partnerManager.lastReceivedMessage.isEmpty {
+                    .disabled(messageText.isEmpty && statusText.isEmpty)
+
+                    if !partnerManager.lastReceivedMessage.isEmpty || !partnerManager.lastReceivedStatus.isEmpty {
                         Divider().background(.white.opacity(0.1))
                         VStack(spacing: 4) {
                             Text("Letzte Nachricht:").font(.system(size: 11, design: .rounded)).foregroundColor(.white.opacity(0.4))
-                            Text(partnerManager.lastReceivedMessage).font(.system(size: 14, weight: .medium, design: .rounded)).foregroundColor(.yellow)
+                            if !partnerManager.lastReceivedMessage.isEmpty {
+                                Text(partnerManager.lastReceivedMessage)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundColor(.yellow)
+                            }
+                            if !partnerManager.lastReceivedStatus.isEmpty {
+                                Text("Status: \(partnerManager.lastReceivedStatus)")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundColor(.yellow.opacity(0.6))
+                            }
                         }
                     }
                     Spacer()
@@ -68,14 +62,4 @@ struct MessageComposeView: View {
             .toolbar { ToolbarItem(placement: .navigationBarTrailing) { Button("Fertig") { dismiss() }.foregroundColor(.yellow) } }
         }
     }
-
-    func iconFor(_ state: PetState) -> String {
-        switch state {
-        case .idle: return "sun.max.fill"
-        case .eating: return "leaf.fill"
-        case .sleeping: return "moon.zzz.fill"
-        case .playing: return "figure.run"
-        }
-    }
 }
-

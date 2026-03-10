@@ -170,12 +170,21 @@ struct DynamicIslandOverlay: View {
                         }
                     }
 
-                    if !partnerManager.lastReceivedMessage.isEmpty {
-                        Text(partnerManager.lastReceivedMessage)
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundColor(.yellow)
-                            .padding(.horizontal, 16).padding(.vertical, 8)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(.yellow.opacity(0.1)))
+                    if !partnerManager.lastReceivedMessage.isEmpty || !partnerManager.lastReceivedStatus.isEmpty {
+                        VStack(spacing: 4) {
+                            if !partnerManager.lastReceivedMessage.isEmpty {
+                                Text(partnerManager.lastReceivedMessage)
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundColor(.yellow)
+                            }
+                            if !partnerManager.lastReceivedStatus.isEmpty {
+                                Text("Status: \(partnerManager.lastReceivedStatus)")
+                                    .font(.system(size: 11, design: .rounded))
+                                    .foregroundColor(.yellow.opacity(0.6))
+                            }
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(.yellow.opacity(0.1)))
                     }
                 }
 
