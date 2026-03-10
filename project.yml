@@ -30,7 +30,8 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SWIFT_EMIT_LOC_STRINGS: YES
         TARGETED_DEVICE_FAMILY: "1"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "8938MV67N2"
+        CODE_SIGN_STYLE: Automatic
         INFOPLIST_KEY_NSSupportsLiveActivities: YES
     dependencies:
       - target: PetWidgetExtension
@@ -47,14 +48,18 @@ targets:
         INFOPLIST_FILE: PetWidget/Info.plist
         SWIFT_EMIT_LOC_STRINGS: YES
         TARGETED_DEVICE_FAMILY: "1"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "8938MV67N2"
+        CODE_SIGN_STYLE: Automatic
     sources:
       - PetWidget
-      - path: DynamicKnuddl/Helpers/CatSprites.swift
+      - path: DynamicKnuddl/Helpers/ChickenSprites.swift
       - path: DynamicKnuddl/Helpers/Constants.swift
       - path: DynamicKnuddl/Helpers/PixelGrid.swift
       - path: DynamicKnuddl/Model/CatState.swift
       - path: DynamicKnuddl/Model/PetActivityAttributes.swift
+
+
+
 
 
 

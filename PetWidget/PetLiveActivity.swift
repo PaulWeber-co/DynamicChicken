@@ -5,56 +5,49 @@ import SwiftUI
 struct PetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PetActivityAttributes.self) { context in
-            // Lock Screen / Banner view
-            LockScreenPetView(state: context.state)
+            LockScreenPetView(state: context.state, petName: context.attributes.petName)
                 .activityBackgroundTint(.black)
                 .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded view
-                DynamicIslandExpandedRegion(.leading) {
-                    Text(stateEmoji(context.state.catState))
-                        .font(.system(size: 20))
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    Text(stateLabel(context.state.catState))
-                        .font(.system(size: 11, design: .rounded))
-                        .foregroundColor(.white.opacity(0.7))
-                }
                 DynamicIslandExpandedRegion(.center) {
-                    MiniPixelCatView(catState: context.state.catState, frame: context.state.frame)
-                }
-                DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.attributes.petName)
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
+                    VStack(spacing: 4) {
+                        MiniPixelChickenView(petState: context.state.petState, frame: context.state.frame)
+                        HStack(spacing: 6) {
+                            Text(context.attributes.petName)
+                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.7))
+                            Text("·")
+                                .foregroundColor(.white.opacity(0.3))
+                            Text(stateLabel(context.state.petState))
+                                .font(.system(size: 11, design: .rounded))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
+                        if let msg = context.state.partnerMessage, !msg.isEmpty {
+                            Text(msg)
+                                .font(.system(size: 10, design: .rounded))
+                                .foregroundColor(.yellow.opacity(0.8))
+                                .lineLimit(2)
+                        }
+                    }
                 }
             } compactLeading: {
-                // Compact leading: tiny cat face
-                MiniCatFaceView()
+                PixelGrid(matrix: ChickenSprites.idle1, pixelSize: 1.0)
+                    .frame(width: 16, height: 14)
             } compactTrailing: {
-                // Compact trailing: state emoji
-                Text(stateEmoji(context.state.catState))
-                    .font(.system(size: 14))
+                Text(stateLabel(context.state.petState))
+                    .font(.system(size: 9, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
             } minimal: {
-                // Minimal: just the cat face
-                MiniCatFaceView()
+                PixelGrid(matrix: ChickenSprites.idle1, pixelSize: 0.8)
+                    .frame(width: 13, height: 11)
             }
-        }
-    }
-
-    private func stateEmoji(_ state: String) -> String {
-        switch state {
-        case "eating": return "🐟"
-        case "sleeping": return "💤"
-        case "playing": return "🧶"
-        default: return "😺"
         }
     }
 
     private func stateLabel(_ state: String) -> String {
         switch state {
-        case "eating": return "Essen"
+        case "eating": return "Picken"
         case "sleeping": return "Schlafen"
         case "playing": return "Spielen"
         default: return "Chillen"
@@ -62,30 +55,20 @@ struct PetLiveActivity: Widget {
     }
 }
 
-// MARK: - Mini Cat Face (for compact/minimal DI)
-struct MiniCatFaceView: View {
-    var body: some View {
-        Image(systemName: "cat.fill")
-            .font(.system(size: 14))
-            .foregroundColor(Color(red: 0.95, green: 0.65, blue: 0.25))
-    }
-}
-
-// MARK: - Mini Pixel Cat for expanded DI
-struct MiniPixelCatView: View {
-    let catState: String
+// MARK: - Mini Pixel Chicken for expanded DI
+struct MiniPixelChickenView: View {
+    let petState: String
     let frame: Int
 
     var body: some View {
-        let state = catStateFromString(catState)
-        let frames = CatSprites.frames(for: state)
+        let state = petStateFromString(petState)
+        let frames = ChickenSprites.frames(for: state)
         let safeFrame = frame % frames.count
         let sprite = frames[safeFrame]
-
-        PixelGrid(matrix: sprite, pixelSize: 2.0)
+        PixelGrid(matrix: sprite, pixelSize: 2.5)
     }
 
-    private func catStateFromString(_ str: String) -> CatState {
+    private func petStateFromString(_ str: String) -> PetState {
         switch str {
         case "eating": return .eating
         case "sleeping": return .sleeping
@@ -98,34 +81,37 @@ struct MiniPixelCatView: View {
 // MARK: - Lock Screen view
 struct LockScreenPetView: View {
     let state: PetActivityAttributes.ContentState
+    let petName: String
 
     var body: some View {
-        HStack(spacing: 12) {
-            let catState = catStateFromString(state.catState)
-            let frames = CatSprites.frames(for: catState)
-            let safeFrame = state.frame % frames.count
+        let petState = petStateFromString(state.petState)
+        let frames = ChickenSprites.frames(for: petState)
+        let safeFrame = state.frame % frames.count
 
-            PixelGrid(matrix: frames[safeFrame], pixelSize: 2.5)
+        HStack(spacing: 12) {
+            PixelGrid(matrix: frames[safeFrame], pixelSize: 3.0)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("DynamicKnuddl")
+                Text(petName)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
-                Text(stateLabel(state.catState))
+                Text(stateLabel(state.petState))
                     .font(.system(size: 11, design: .rounded))
                     .foregroundColor(.white.opacity(0.7))
+                if let msg = state.partnerMessage, !msg.isEmpty {
+                    Text(msg)
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundColor(.yellow.opacity(0.8))
+                        .lineLimit(2)
+                }
             }
-
             Spacer()
-
-            Text(stateEmoji(state.catState))
-                .font(.system(size: 24))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
 
-    private func catStateFromString(_ str: String) -> CatState {
+    private func petStateFromString(_ str: String) -> PetState {
         switch str {
         case "eating": return .eating
         case "sleeping": return .sleeping
@@ -134,22 +120,12 @@ struct LockScreenPetView: View {
         }
     }
 
-    private func stateEmoji(_ state: String) -> String {
-        switch state {
-        case "eating": return "🐟"
-        case "sleeping": return "💤"
-        case "playing": return "🧶"
-        default: return "😺"
-        }
-    }
-
     private func stateLabel(_ state: String) -> String {
         switch state {
-        case "eating": return "Essen"
+        case "eating": return "Picken"
         case "sleeping": return "Schlafen"
         case "playing": return "Spielen"
         default: return "Chillen"
         }
     }
 }
-

@@ -5,11 +5,12 @@ import SwiftUI
 struct PetActivityAttributes: ActivityAttributes {
     /// Dynamic state that updates
     public struct ContentState: Codable, Hashable {
-        var catState: String // "idle", "eating", "sleeping", "playing"
+        var petState: String    // "idle", "eating", "sleeping", "playing"
         var frame: Int
+        var partnerMessage: String?
+        var partnerPetState: String?
     }
 
     // Fixed data
     var petName: String
 }
-

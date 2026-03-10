@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum CatState: String, CaseIterable {
+enum PetState: String, CaseIterable, Codable {
     case idle
     case eating
     case sleeping
@@ -9,10 +9,9 @@ enum CatState: String, CaseIterable {
     var displayName: String {
         switch self {
         case .idle: return "Chillen"
-        case .eating: return "Essen"
+        case .eating: return "Picken"
         case .sleeping: return "Schlafen"
         case .playing: return "Spielen"
         }
     }
 }
-

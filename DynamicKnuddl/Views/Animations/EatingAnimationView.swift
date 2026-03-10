@@ -6,7 +6,7 @@ struct EatingAnimationView: View {
 
     var body: some View {
         if visible {
-            PixelGrid(matrix: CatSprites.fish, pixelSize: Constants.pixelSize)
+            PixelGrid(matrix: ChickenSprites.corn, pixelSize: Constants.pixelSize)
                 .opacity(opacity)
         }
     }

@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 
 class PetViewModel: ObservableObject {
-    @Published var currentState: CatState = .idle
+    @Published var currentState: PetState = .idle
     @Published var currentFrame: Int = 0
     @Published var showMenu: Bool = false
     @Published var yarnBallOffset: CGFloat = 0
@@ -27,7 +27,7 @@ class PetViewModel: ObservableObject {
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                let frames = CatSprites.frames(for: self.currentState)
+                let frames = ChickenSprites.frames(for: self.currentState)
                 self.currentFrame = (self.currentFrame + 1) % frames.count
                 // Sync to Live Activity
                 self.syncLiveActivity()
@@ -36,7 +36,7 @@ class PetViewModel: ObservableObject {
 
     private func syncLiveActivity() {
         LiveActivityManager.shared.updateActivity(
-            catState: currentState.rawValue,
+            petState: currentState.rawValue,
             frame: currentFrame
         )
     }
@@ -55,13 +55,10 @@ class PetViewModel: ObservableObject {
 
         actionTimer?.cancel()
         actionTimer = Timer.publish(every: Constants.actionDuration, on: .main, in: .common)
-            .autoconnect()
-            .first()
+            .autoconnect().first()
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                withAnimation(.easeOut(duration: 0.3)) {
-                    self.fishOpacity = 0
-                }
+                withAnimation(.easeOut(duration: 0.3)) { self.fishOpacity = 0 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     self.fishVisible = false
                     self.currentState = .idle
@@ -79,8 +76,7 @@ class PetViewModel: ObservableObject {
 
         actionTimer?.cancel()
         actionTimer = Timer.publish(every: 6.0, on: .main, in: .common)
-            .autoconnect()
-            .first()
+            .autoconnect().first()
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.currentState = .idle
@@ -116,9 +112,7 @@ class PetViewModel: ObservableObject {
     }
 
     func toggleMenu() {
-        if currentState != .idle {
-            return
-        }
+        if currentState != .idle { return }
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             showMenu.toggle()
         }
@@ -135,7 +129,7 @@ class PetViewModel: ObservableObject {
     }
 
     var currentSprite: [[Color?]] {
-        let frames = CatSprites.frames(for: currentState)
+        let frames = ChickenSprites.frames(for: currentState)
         let safeFrame = currentFrame % frames.count
         return frames[safeFrame]
     }

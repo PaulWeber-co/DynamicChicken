@@ -18,7 +18,8 @@ struct PixelCatView: View {
 #Preview {
     ZStack {
         Color.black
-        PixelCatView(sprite: CatSprites.idle, pixelSize: 6)
+        PixelCatView(sprite: ChickenSprites.idle1, pixelSize: 6)
     }
 }
+
 

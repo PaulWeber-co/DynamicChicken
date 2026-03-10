@@ -5,6 +5,6 @@ import SwiftUI
 struct PetWidgetBundle: WidgetBundle {
     var body: some Widget {
         PetLiveActivity()
+        PetHomeWidget()
     }
 }
-

@@ -6,7 +6,7 @@ struct YarnBallView: View {
 
     var body: some View {
         if visible {
-            PixelGrid(matrix: CatSprites.yarnBall, pixelSize: Constants.pixelSize)
+            PixelGrid(matrix: ChickenSprites.feather, pixelSize: Constants.pixelSize)
                 .offset(y: offset)
         }
     }

@@ -5,13 +5,13 @@ struct ActionMenuView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            MenuButton(icon: "🐟", label: "Füttern") {
+            MenuButton(iconName: "leaf.fill", label: "Futtern") {
                 viewModel.feed()
             }
-            MenuButton(icon: "💤", label: "Schlafen") {
+            MenuButton(iconName: "moon.zzz.fill", label: "Schlafen") {
                 viewModel.sleep()
             }
-            MenuButton(icon: "🧶", label: "Spielen") {
+            MenuButton(iconName: "figure.run", label: "Spielen") {
                 viewModel.play()
             }
         }
@@ -27,15 +27,16 @@ struct ActionMenuView: View {
 }
 
 struct MenuButton: View {
-    let icon: String
+    let iconName: String
     let label: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Text(icon)
-                    .font(.system(size: 28))
+                Image(systemName: iconName)
+                    .font(.system(size: 22))
+                    .foregroundColor(.white)
                 Text(label)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundColor(.white)
@@ -53,4 +54,3 @@ struct ScaleButtonStyle: ButtonStyle {
             .animation(.spring(response: 0.2), value: configuration.isPressed)
     }
 }
-

@@ -11,18 +11,16 @@ class LiveActivityManager {
 
     /// Start the Live Activity so the cat stays visible above the Dynamic Island
     func startLiveActivity() {
-        // End any existing activity first
         stopAllActivities()
 
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("Live Activities sind nicht erlaubt")
-            return
-        }
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
         let attributes = PetActivityAttributes(petName: "Knuddl")
         let initialState = PetActivityAttributes.ContentState(
-            catState: "idle",
-            frame: 0
+            petState: "idle",
+            frame: 0,
+            partnerMessage: nil,
+            partnerPetState: nil
         )
 
         let content = ActivityContent(state: initialState, staleDate: nil)
@@ -41,12 +39,14 @@ class LiveActivityManager {
     }
 
     /// Update the Live Activity with new state
-    func updateActivity(catState: String, frame: Int) {
+    func updateActivity(petState: String, frame: Int) {
         guard let activity = currentActivity else { return }
 
         let updatedState = PetActivityAttributes.ContentState(
-            catState: catState,
-            frame: frame
+            petState: petState,
+            frame: frame,
+            partnerMessage: nil,
+            partnerPetState: nil
         )
         let content = ActivityContent(state: updatedState, staleDate: nil)
 
@@ -59,7 +59,7 @@ class LiveActivityManager {
     func stopAllActivities() {
         Task {
             for activity in Activity<PetActivityAttributes>.activities {
-                let state = PetActivityAttributes.ContentState(catState: "idle", frame: 0)
+                let state = PetActivityAttributes.ContentState(petState: "idle", frame: 0, partnerMessage: nil, partnerPetState: nil)
                 await activity.end(
                     ActivityContent(state: state, staleDate: nil),
                     dismissalPolicy: .immediate
@@ -79,4 +79,7 @@ class LiveActivityManager {
         }
     }
 }
+
+
+
 

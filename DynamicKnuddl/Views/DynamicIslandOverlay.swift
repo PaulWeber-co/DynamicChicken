@@ -2,146 +2,195 @@ import SwiftUI
 
 struct DynamicIslandOverlay: View {
     @ObservedObject var viewModel: PetViewModel
+    @StateObject private var partnerManager = PartnerManager.shared
+    @State private var showPairing = false
+    @State private var showMessage = false
 
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let safeTop = geometry.safeAreaInsets.top
-            let centerX = screenWidth / 2
+        // Use a ZStack that covers the ENTIRE screen including status bar area
+        ZStack(alignment: .top) {
+            // Background — fills entire screen
+            Constants.backgroundColor
+                .ignoresSafeArea()
 
-            // On Dynamic Island iPhones:
-            // Physical top = 0
-            // Dynamic Island top edge ≈ 11pt from physical top
-            // Dynamic Island bottom edge ≈ 48pt from physical top
-            // safeTop ≈ 59pt
+            // Stars
+            StarsView()
+                .ignoresSafeArea()
+
+            // === ABSOLUTE SCREEN LAYOUT ===
+            // iPhone 15 Pro physical layout (from very top of screen):
+            //   0pt  = physical top edge of screen
+            //  ~11pt = top edge of Dynamic Island
+            //  ~48pt = bottom edge of Dynamic Island
+            //  ~59pt = safe area bottom (where normal content starts)
             //
-            // The cat needs to sit in the ~11pt strip ABOVE the DI
-            // Cat: 14 rows * 0.8pt = 11.2pt height, 16 cols * 0.8pt = 12.8pt width
-            let catPixelSize = Constants.pixelSize
-            let catHeight = CGFloat(14) * catPixelSize
-            let catWidth = CGFloat(16) * catPixelSize
+            // We want the cat in the 0–11pt strip.
+            // Cat with pixelSize 0.8: 14*0.8 = 11.2pt tall, 16*0.8 = 12.8pt wide
+            // → fits perfectly in that strip!
 
-            // Position: cat sits so its bottom touches the DI top (~11pt from screen top)
-            // In the GeometryReader coordinate space (which starts at safeArea top),
-            // the physical screen top is at y = -safeTop
-            let diTopFromScreenTop: CGFloat = 11.0
-            // Cat bottom = diTopFromScreenTop, cat center = diTopFromScreenTop - catHeight/2
-            // In GeometryReader coords: y = -safeTop + catCenterFromScreenTop
-            let catCenterY = -safeTop + diTopFromScreenTop - catHeight / 2
-
-            // For the menu and other elements, position relative to DI bottom
-            let diBotFromScreenTop: CGFloat = 48.0
-            let diBotInGeo = -safeTop + diBotFromScreenTop
-
-            ZStack {
-                // Background — fills entire screen
-                Constants.backgroundColor
-                    .ignoresSafeArea()
-
-                // Stars
-                StarsView()
-                    .ignoresSafeArea()
-
-                // === Cat sitting ON TOP of the Dynamic Island ===
-                PixelCatView(sprite: viewModel.currentSprite, pixelSize: catPixelSize)
+            // This VStack is aligned to .top of the ZStack,
+            // and ignoresSafeArea pushes it to the physical top
+            VStack(spacing: 0) {
+                // Cat — sits right at the top of the screen, above Dynamic Island
+                PixelCatView(sprite: viewModel.currentSprite, pixelSize: Constants.pixelSize)
                     .onTapGesture {
                         viewModel.toggleMenu()
                     }
-                    // Make tap target bigger than the tiny cat
-                    .contentShape(Rectangle().size(width: 60, height: 40))
-                    .position(x: centerX, y: catCenterY)
+                    .padding(.top, 0) // Flush with physical screen top
 
-                // ZZZ for sleeping — floats up from cat
-                if viewModel.currentState == .sleeping {
+                Spacer()
+            }
+            .ignoresSafeArea()
+
+            // ZZZ for sleeping — positioned at top right of cat
+            if viewModel.currentState == .sleeping {
+                VStack {
                     SleepingZZZView()
-                        .scaleEffect(0.35)
-                        .position(x: centerX + catWidth / 2 + 10, y: catCenterY - 6)
+                        .scaleEffect(0.3)
+                        .frame(width: 30, height: 20)
+                    Spacer()
                 }
+                .offset(x: 20, y: 0)
+                .ignoresSafeArea()
+            }
 
-                // Fish for eating
-                if viewModel.fishVisible {
+            // Fish for eating — positioned at top left of cat
+            if viewModel.fishVisible {
+                VStack {
                     EatingAnimationView(visible: viewModel.fishVisible, opacity: viewModel.fishOpacity)
-                        .position(x: centerX - catWidth / 2 - 10, y: catCenterY)
+                        .frame(width: 20, height: 15)
+                    Spacer()
                 }
+                .offset(x: -20, y: 2)
+                .ignoresSafeArea()
+            }
 
-                // Yarn ball — starts near DI, falls down
-                if viewModel.yarnBallVisible {
+            // Yarn ball for playing — starts below DI, falls down
+            if viewModel.yarnBallVisible {
+                VStack {
+                    Spacer().frame(height: 55) // Below Dynamic Island
                     YarnBallView(offset: viewModel.yarnBallOffset, visible: viewModel.yarnBallVisible)
-                        .position(x: centerX + 5, y: diBotInGeo + 20)
+                    Spacer()
                 }
+                .ignoresSafeArea()
+            }
 
-                // Action menu below DI
-                if viewModel.showMenu {
+            // Action menu — below Dynamic Island
+            if viewModel.showMenu {
+                VStack {
+                    Spacer().frame(height: 70) // Below DI + padding
                     ActionMenuView(viewModel: viewModel)
-                        .position(x: centerX, y: diBotInGeo + 80)
+                    Spacer()
                 }
+                .ignoresSafeArea()
+            }
 
-                // State label
-                if viewModel.currentState != .idle {
+            // State label
+            if viewModel.currentState != .idle {
+                VStack {
+                    Spacer().frame(height: 55)
                     Text(viewModel.currentState.displayName)
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.6))
-                        .position(x: centerX, y: diBotInGeo + 20)
-                }
-
-                // Main content area
-                VStack(spacing: 20) {
                     Spacer()
+                }
+                .ignoresSafeArea()
+            }
 
-                    VStack(spacing: 8) {
-                        Text("🐱")
-                            .font(.system(size: 50))
+            // Main content area — below safe area
+            VStack(spacing: 20) {
+                Spacer()
+
+                VStack(spacing: 8) {
+                        PixelCatView(sprite: ChickenSprites.idle1, pixelSize: 4.0)
                         Text("DynamicKnuddl")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
-                        Text("Dein Pixel-Haustier sitzt oben\nauf der Dynamic Island!")
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundColor(.white.opacity(0.5))
-                            .multilineTextAlignment(.center)
+                        Text("Dein Pixel-Chicken sitzt oben\nauf der Dynamic Island!")
+                        .font(.system(size: 14, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                        .multilineTextAlignment(.center)
+                }
+
+                Spacer()
+
+                VStack(spacing: 12) {
+                    Button(action: {
+                        viewModel.toggleLiveActivity()
+                    }) {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(viewModel.isLiveActivityRunning ? Color.green : Color.red)
+                                .frame(width: 8, height: 8)
+                            Text(viewModel.isLiveActivityRunning
+                                 ? "Live Activity aktiv"
+                                 : "Live Activity starten")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(.ultraThinMaterial)
+                        )
                     }
 
-                    Spacer()
+                    Text("In der App: Chicken sitzt uber der Dynamic Island\nBei geschlossener App: Chicken lebt in der Dynamic Island")
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundColor(.white.opacity(0.3))
+                        .multilineTextAlignment(.center)
+                }
 
-                    VStack(spacing: 12) {
-                        Button(action: {
-                            viewModel.toggleLiveActivity()
-                        }) {
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(viewModel.isLiveActivityRunning ? Color.green : Color.red)
-                                    .frame(width: 8, height: 8)
-                                Text(viewModel.isLiveActivityRunning
-                                     ? "Live Activity aktiv"
-                                     : "Live Activity starten")
+                // Partner Section
+                VStack(spacing: 10) {
+                    HStack(spacing: 12) {
+                        Button(action: { showPairing = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "person.2.fill").font(.system(size: 14))
+                                Text(partnerManager.isPaired ? partnerManager.partnerName : "Partner verbinden")
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundColor(.white)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(.ultraThinMaterial)
-                            )
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16).padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(.ultraThinMaterial))
                         }
 
-                        Text("Katze bleibt auch bei geschlossener App sichtbar")
-                            .font(.system(size: 11, design: .rounded))
-                            .foregroundColor(.white.opacity(0.3))
-                            .multilineTextAlignment(.center)
+                        if partnerManager.isPaired {
+                            Button(action: { showMessage = true }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "envelope.fill").font(.system(size: 14))
+                                    Text("Nachricht")
+                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                }
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 16).padding(.vertical, 10)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(.yellow))
+                            }
+                        }
                     }
 
-                    Spacer()
-
-                    Text("Tippe auf die Katze oben um zu interagieren")
-                        .font(.system(size: 12, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
-                        .padding(.bottom, 30)
+                    if !partnerManager.lastReceivedMessage.isEmpty {
+                        Text(partnerManager.lastReceivedMessage)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundColor(.yellow)
+                            .padding(.horizontal, 16).padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 10).fill(.yellow.opacity(0.1)))
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.top, 60)
+
+                Spacer()
+
+                Text("Tippe auf das Chicken oben um zu interagieren")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundColor(.white.opacity(0.3))
+                    .padding(.bottom, 30)
             }
-            .ignoresSafeArea()
+            .padding(.top, 80)
         }
+        .statusBarHidden(true)
+        .sheet(isPresented: $showPairing) { PairingView() }
+        .sheet(isPresented: $showMessage) { MessageComposeView() }
     }
 }
 
@@ -182,3 +231,9 @@ struct StarsView: View {
         }
     }
 }
+
+
+
+
+
+
