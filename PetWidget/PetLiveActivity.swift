@@ -50,6 +50,9 @@ struct PetLiveActivity: Widget {
         case "eating": return "Picken"
         case "sleeping": return "Schlafen"
         case "playing": return "Spielen"
+        case "turning": return "Umdrehen"
+        case "pecking": return "Gras picken"
+        case "stretching": return "Strecken"
         default: return "Chillen"
         }
     }
@@ -73,6 +76,9 @@ struct MiniPixelChickenView: View {
         case "eating": return .eating
         case "sleeping": return .sleeping
         case "playing": return .playing
+        case "turning": return .turning
+        case "pecking": return .pecking
+        case "stretching": return .stretching
         default: return .idle
         }
     }
@@ -116,6 +122,9 @@ struct LockScreenPetView: View {
         case "eating": return .eating
         case "sleeping": return .sleeping
         case "playing": return .playing
+        case "turning": return .turning
+        case "pecking": return .pecking
+        case "stretching": return .stretching
         default: return .idle
         }
     }
@@ -125,6 +134,9 @@ struct LockScreenPetView: View {
         case "eating": return "Picken"
         case "sleeping": return "Schlafen"
         case "playing": return "Spielen"
+        case "turning": return "Umdrehen"
+        case "pecking": return "Gras picken"
+        case "stretching": return "Strecken"
         default: return "Chillen"
         }
     }

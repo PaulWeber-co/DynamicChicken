@@ -205,7 +205,139 @@ struct ChickenSprites {
             return [sleeping1, sleeping2]
         case .playing:
             return [playing1, playing2]
+        case .turning:
+            return [turning1, turning2, turning3, turning2]
+        case .pecking:
+            return [pecking1, pecking2, pecking1, pecking2]
+        case .stretching:
+            return [stretching1, stretching2, stretching1]
         }
     }
+
+    // MARK: - Turning Frame 1 (facing right)
+    static let turning1: [[Color?]] = [
+        [X,X,X,X,X,X,X,X,X,H,X,H,X,H,X,X],
+        [X,X,X,X,X,X,X,X,X,B,X,B,X,B,X,X],
+        [X,X,X,X,X,X,B,B,B,R,B,R,B,B,X,X],
+        [X,X,X,X,X,B,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,X,X,B,Y,Y,Y,E,Y,Y,Y,Y,B,K,X],
+        [X,X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,K,K,X],
+        [X,X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,X,X,X,B,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,X,X,B,D,Y,Y,Y,Y,Y,Y,D,B,X,X],
+        [X,X,X,X,B,D,Y,W,W,W,W,Y,D,B,X,X],
+        [X,X,X,X,B,Y,W,W,W,W,W,W,Y,B,X,X],
+        [X,X,X,X,X,B,B,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,X,X,B,K,B,X,X,B,K,B,X,X,X],
+    ]
+
+    // MARK: - Turning Frame 2 (back view)
+    static let turning2: [[Color?]] = [
+        [X,X,X,X,X,X,H,X,H,X,H,X,X,X,X,X],
+        [X,X,X,X,X,X,B,X,B,X,B,X,X,X,X,X],
+        [X,X,X,X,B,B,R,B,R,B,B,B,X,X,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,B,D,Y,Y,Y,Y,Y,Y,Y,Y,D,B,X,X],
+        [X,X,B,D,Y,Y,D,D,D,D,Y,Y,D,B,X,X],
+        [X,X,B,Y,Y,D,D,D,D,D,D,Y,Y,B,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,B,K,B,X,X,X,X,B,K,B,X,X,X],
+    ]
+
+    // MARK: - Turning Frame 3 (facing left)
+    static let turning3: [[Color?]] = [
+        [X,X,H,X,H,X,H,X,X,X,X,X,X,X,X,X],
+        [X,X,B,X,B,X,B,X,X,X,X,X,X,X,X,X],
+        [X,X,B,B,R,B,R,B,B,X,X,X,X,X,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,B,X,X,X,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X,X],
+        [X,K,B,Y,Y,Y,Y,E,Y,Y,Y,B,X,X,X,X],
+        [X,K,K,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,B,X,X,X,X,X],
+        [X,X,B,D,Y,Y,Y,Y,Y,Y,D,B,X,X,X,X],
+        [X,X,B,D,Y,W,W,W,W,Y,D,B,X,X,X,X],
+        [X,X,B,Y,W,W,W,W,W,W,Y,B,X,X,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,B,B,X,X,X,X,X],
+        [X,X,X,B,K,B,X,X,B,K,B,X,X,X,X,X],
+    ]
+
+    // MARK: - Pecking Frame 1 (head down)
+    static let pecking1: [[Color?]] = [
+        [X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X],
+        [X,X,X,X,X,X,H,X,H,X,H,X,X,X,X,X],
+        [X,X,X,X,X,X,B,X,B,X,B,X,X,X,X,X],
+        [X,X,X,X,B,B,R,B,R,B,B,B,X,X,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,B,Y,Y,E,Y,Y,Y,Y,E,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,K,K,K,K,Y,Y,Y,B,X,X],
+        [X,X,X,B,Y,Y,Y,K,K,Y,Y,Y,B,X,X,X],
+        [X,X,B,D,Y,Y,Y,Y,Y,Y,Y,Y,D,B,X,X],
+        [X,X,B,D,Y,Y,W,W,W,W,Y,Y,D,B,X,X],
+        [X,X,B,Y,Y,W,W,W,W,W,W,Y,Y,B,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,B,K,B,X,X,X,X,B,K,B,X,X,X],
+    ]
+
+    // MARK: - Pecking Frame 2 (head very down, beak touching ground)
+    static let pecking2: [[Color?]] = [
+        [X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X],
+        [X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X],
+        [X,X,X,X,X,X,H,X,H,X,H,X,X,X,X,X],
+        [X,X,X,X,B,B,B,B,B,B,B,B,X,X,X,X],
+        [X,X,X,B,Y,Y,R,Y,R,Y,Y,Y,B,X,X,X],
+        [X,X,B,Y,Y,E,Y,Y,Y,E,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,X,B,Y,Y,K,K,K,Y,Y,Y,B,X,X,X],
+        [X,X,B,D,Y,Y,Y,Y,Y,Y,Y,Y,D,B,X,X],
+        [X,X,B,D,Y,Y,W,W,W,W,Y,Y,D,B,X,X],
+        [X,X,B,Y,Y,W,W,W,W,W,W,Y,Y,B,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,B,K,B,X,X,X,X,B,K,B,X,X,X],
+    ]
+
+    // MARK: - Stretching Frame 1 (wings out)
+    static let stretching1: [[Color?]] = [
+        [X,X,X,X,X,X,H,X,H,X,H,X,X,X,X,X],
+        [X,X,X,X,X,X,B,X,B,X,B,X,X,X,X,X],
+        [X,X,X,X,B,B,R,B,R,B,B,B,X,X,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X],
+        [X,X,B,Y,B,B,Y,Y,Y,Y,B,B,Y,B,X,X],
+        [X,X,B,Y,Y,Y,Y,K,K,Y,Y,Y,Y,B,X,X],
+        [X,B,D,Y,Y,Y,Y,K,K,Y,Y,Y,Y,D,B,X],
+        [B,D,B,B,Y,Y,Y,Y,Y,Y,Y,Y,B,B,D,B],
+        [X,B,B,D,Y,Y,Y,Y,Y,Y,Y,Y,D,B,B,X],
+        [X,X,B,D,Y,Y,W,W,W,W,Y,Y,D,B,X,X],
+        [X,X,B,Y,Y,W,W,W,W,W,W,Y,Y,B,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,B,K,B,X,X,X,X,B,K,B,X,X,X],
+    ]
+
+    // MARK: - Stretching Frame 2 (tippy toes, wings up)
+    static let stretching2: [[Color?]] = [
+        [X,X,X,X,X,X,H,X,H,X,H,X,X,X,X,X],
+        [X,X,X,X,X,X,B,X,B,X,B,X,X,X,X,X],
+        [X,X,X,X,B,B,R,B,R,B,B,B,X,X,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,B,B,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,B,B,X],
+        [B,D,B,Y,B,B,Y,Y,Y,Y,B,B,Y,B,D,B],
+        [X,B,B,Y,Y,Y,Y,K,K,Y,Y,Y,Y,B,B,X],
+        [X,X,B,Y,Y,Y,Y,K,K,Y,Y,Y,Y,B,X,X],
+        [X,X,X,B,Y,Y,Y,Y,Y,Y,Y,Y,B,X,X,X],
+        [X,X,B,D,Y,Y,Y,Y,Y,Y,Y,Y,D,B,X,X],
+        [X,X,B,D,Y,Y,W,W,W,W,Y,Y,D,B,X,X],
+        [X,X,B,Y,Y,W,W,W,W,W,W,Y,Y,B,X,X],
+        [X,X,X,B,B,Y,Y,Y,Y,Y,Y,B,B,X,X,X],
+        [X,X,X,X,B,K,B,X,X,B,K,B,X,X,X,X],
+    ]
 }
 

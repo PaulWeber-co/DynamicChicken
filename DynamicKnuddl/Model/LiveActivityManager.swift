@@ -55,6 +55,23 @@ class LiveActivityManager {
         }
     }
 
+    /// Update the Live Activity with partner message
+    func updateActivityWithMessage(petState: String, frame: Int, partnerMessage: String) {
+        guard let activity = currentActivity else { return }
+
+        let updatedState = PetActivityAttributes.ContentState(
+            petState: petState,
+            frame: frame,
+            partnerMessage: partnerMessage.isEmpty ? nil : partnerMessage,
+            partnerPetState: nil
+        )
+        let content = ActivityContent(state: updatedState, staleDate: nil)
+
+        Task {
+            await activity.update(content)
+        }
+    }
+
     /// Stop all Live Activities
     func stopAllActivities() {
         Task {
