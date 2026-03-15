@@ -28,8 +28,10 @@ class PetViewModel : ViewModel() {
         viewModelScope.launch {
             while (true) {
                 val frames = ChickenSprites.getFrames(currentState)
-                currentFrame = (currentFrame + 1) % frames.size
-                delay(400) // Constants.animationFrameDuration
+                if (frames.isNotEmpty()) {
+                    currentFrame = (currentFrame + 1) % frames.size
+                }
+                delay(400)
             }
         }
     }
@@ -37,7 +39,7 @@ class PetViewModel : ViewModel() {
     private fun startRandomBehavior() {
         viewModelScope.launch {
             while (true) {
-                delay(Random.nextLong(8000, 20000))
+                delay(Random.nextLong(15000, 30000))
                 if (currentState == PetState.IDLE) {
                     playRandomAnimation()
                 }
@@ -47,14 +49,20 @@ class PetViewModel : ViewModel() {
 
     private suspend fun playRandomAnimation() {
         val randomState = PetState.randomAnimations.random()
-        currentState = randomState
+        triggerAnimation(randomState)
+    }
+
+    private suspend fun triggerAnimation(state: PetState) {
+        currentState = state
         currentFrame = 0
         
-        val duration = when (randomState) {
+        val duration = when (state) {
             PetState.TURNING -> 2000L
             PetState.PECKING -> 3000L
             PetState.STRETCHING -> 2500L
-            PetState.SLEEPING -> 4000L
+            PetState.SLEEPING -> 5000L
+            PetState.FISHING -> 8000L
+            PetState.WALKING -> 6000L
             else -> 2000L
         }
         
@@ -64,23 +72,19 @@ class PetViewModel : ViewModel() {
     }
 
     fun feed() {
-        isMenuVisible = false
-        viewModelScope.launch {
-            currentState = PetState.EATING
-            currentFrame = 0
-            delay(4000)
-            currentState = PetState.IDLE
-        }
+        viewModelScope.launch { triggerAnimation(PetState.EATING) }
     }
 
     fun play() {
-        isMenuVisible = false
-        viewModelScope.launch {
-            currentState = PetState.PLAYING
-            currentFrame = 0
-            delay(5000)
-            currentState = PetState.IDLE
-        }
+        viewModelScope.launch { triggerAnimation(PetState.PLAYING) }
+    }
+
+    fun fish() {
+        viewModelScope.launch { triggerAnimation(PetState.FISHING) }
+    }
+
+    fun walk() {
+        viewModelScope.launch { triggerAnimation(PetState.WALKING) }
     }
 
     fun toggleMenu() {

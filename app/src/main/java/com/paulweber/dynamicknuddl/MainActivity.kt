@@ -1,130 +1,110 @@
 package com.paulweber.dynamicknuddl
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paulweber.dynamicknuddl.ui.PixelGrid
 import com.paulweber.dynamicknuddl.ui.theme.DynamicKnuddlTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        checkOverlayPermission()
+        startChickenService()
+
         setContent {
             DynamicKnuddlTheme {
-                val viewModel = PetViewModel()
-                PetScreen(viewModel)
+                PetScreen(onAction = { action -> sendActionToService(action) })
             }
         }
+    }
+
+    private fun checkOverlayPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivity(intent)
+        }
+    }
+
+    private fun startChickenService() {
+        if (Settings.canDrawOverlays(this)) {
+            val intent = Intent(this, ChickenOverlayService::class.java)
+            startForegroundService(intent)
+        }
+    }
+
+    private fun sendActionToService(action: String) {
+        val intent = Intent(this, ChickenOverlayService::class.java).apply {
+            putExtra("EXTRA_ACTION", action)
+        }
+        startService(intent)
     }
 }
 
 @Composable
-fun PetScreen(viewModel: PetViewModel) {
-    val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp.dp
-    val screenWidth = configuration.screenWidthDp.dp
-
+fun PetScreen(onAction: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        // The "Hole" representation (where the camera is)
-        // On many Androids it's top-center or top-left. Let's assume top-center for this "Expressive" design.
-        // We use WindowInsets to get the actual cutout if possible, but for a "creative" app, 
-        // we can also let the user drag the chicken or position it.
-        
         Column(
             modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp)) // Approximate area of the camera
-            
-            // The Chicken living above the hole
-            val frames = ChickenSprites.getFrames(viewModel.currentState)
-            val currentSprite = if (frames.isNotEmpty()) frames[viewModel.currentFrame % frames.size] else ChickenSprites.idle1
-            
-            Box(contentAlignment = Alignment.BottomCenter) {
-                // Background "Home" for the chicken
-                Box(
-                    modifier = Modifier
-                        .size(120.dp, 60.dp)
-                        .clip(RoundedCornerShape(topStart = 60.dp, topEnd = 60.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-                )
+            Text(
+                "Chicken is living in your Status Bar!",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                "(Make sure to grant Overlay Permission)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-                PixelGrid(
-                    sprite = currentSprite,
-                    pixelSize = 4.dp,
-                    modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .animateContentSize()
-                )
-                
-                // Extra items like corn when eating
-                if (viewModel.currentState == PetState.EATING) {
-                    PixelGrid(
-                        sprite = ChickenSprites.corn,
-                        pixelSize = 3.dp,
-                        modifier = Modifier.offset(y = 20.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // The "Camera Hole" visual interaction
-            Surface(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape),
-                color = Color.Black
-            ) {
-                // Maybe the chicken "looks" into the hole
-            }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Material 3 Expressive UI - Large, playful controls
-            ExpressiveControls(viewModel)
-            
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ExpressiveControls(onAction)
             Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }
 
 @Composable
-fun ExpressiveControls(viewModel: PetViewModel) {
+fun ExpressiveControls(onAction: (String) -> Unit) {
     Card(
         modifier = Modifier
-            .padding(24.dp)
+            .padding(16.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
@@ -132,14 +112,13 @@ fun ExpressiveControls(viewModel: PetViewModel) {
         )
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Chicken Life",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 2.sp
+                text = "Chicken Actions",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.ExtraBold
                 ),
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -153,17 +132,35 @@ fun ExpressiveControls(viewModel: PetViewModel) {
                 ControlButton(
                     icon = Icons.Default.Restaurant,
                     label = "Feed",
-                    onClick = { viewModel.feed() }
+                    onClick = { onAction("FEED") }
                 )
                 ControlButton(
                     icon = Icons.Default.Favorite,
-                    label = "Play",
-                    onClick = { viewModel.play() }
+                    label = "Love",
+                    onClick = { onAction("PLAY") }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ControlButton(
+                    icon = Icons.Default.Phishing,
+                    label = "Fish",
+                    onClick = { onAction("FISH") }
+                )
+                ControlButton(
+                    icon = Icons.AutoMirrored.Filled.DirectionsWalk,
+                    label = "Walk",
+                    onClick = { onAction("WALK") }
                 )
                 ControlButton(
                     icon = Icons.Default.Settings,
                     label = "Menu",
-                    onClick = { viewModel.toggleMenu() }
+                    onClick = { /* Handle Menu */ }
                 )
             }
         }
@@ -179,15 +176,15 @@ fun ControlButton(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         FilledTonalIconButton(
             onClick = onClick,
-            modifier = Modifier.size(64.dp),
-            shape = RoundedCornerShape(20.dp)
+            modifier = Modifier.size(56.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Icon(icon, contentDescription = label, modifier = Modifier.size(32.dp))
+            Icon(icon, contentDescription = label, modifier = Modifier.size(28.dp))
         }
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(top = 8.dp)
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(top = 4.dp)
         )
     }
 }
