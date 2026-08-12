@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="23" fill="#FFE7A3"/>
+  <circle cx="41.5" cy="23.5" r="6.2" fill="#FF7E8E"/>
+  <circle cx="50" cy="20.5" r="7.2" fill="#FF7E8E"/>
+  <circle cx="58.5" cy="23.5" r="6.2" fill="#FF7E8E"/>
+  <circle cx="50" cy="63" r="30" fill="#FFC94D"/>
+  <circle cx="50" cy="38" r="21" fill="#FFCF5C"/>
+  <ellipse cx="50" cy="70" rx="18.5" ry="14.5" fill="#FFF6E4"/>
+  <ellipse cx="23.5" cy="61.5" rx="6.2" ry="11.5" fill="#EDA820"/>
+  <ellipse cx="76.5" cy="61.5" rx="6.2" ry="11.5" fill="#EDA820"/>
+  <ellipse cx="33.5" cy="45.5" rx="5.2" ry="3.3" fill="#FF9BB4" opacity=".55"/>
+  <ellipse cx="66.5" cy="45.5" rx="5.2" ry="3.3" fill="#FF9BB4" opacity=".55"/>
+  <circle cx="40.8" cy="37.5" r="4" fill="#3A2C21"/>
+  <circle cx="59.2" cy="37.5" r="4" fill="#3A2C21"/>
+  <circle cx="42" cy="36.2" r="1.4" fill="#fff"/>
+  <circle cx="60.4" cy="36.2" r="1.4" fill="#fff"/>
+  <path d="M45.2 42.8h9.6L50 50.5z" fill="#FFB44D"/>
+</svg>

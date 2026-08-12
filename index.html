@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>Knuddl — Dynamic Chicken</title>
+<meta name="description" content="Ein dickes gelbes Chicken für dich und deine Fernbeziehung. Füttern, knuddeln, Minispiele — live oder zeitversetzt." />
+<meta name="theme-color" content="#FFF6E8" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#15100C" media="(prefers-color-scheme: dark)" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Knuddl" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icons/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="./styles/tokens.css" />
+<link rel="stylesheet" href="./styles/base.css" />
+<link rel="stylesheet" href="./styles/island.css" />
+<link rel="stylesheet" href="./styles/screens.css" />
+<link rel="stylesheet" href="./styles/games.css" />
+</head>
+<body>
+
+<!-- Weiche Pastell-Aurora im Hintergrund -->
+<div class="aurora" aria-hidden="true">
+  <span class="aurora-blob a1"></span>
+  <span class="aurora-blob a2"></span>
+  <span class="aurora-blob a3"></span>
+</div>
+
+<!-- SVG-Filter: lässt die Island-Blobs wie Quecksilber ineinanderfließen -->
+<svg class="svg-defs" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="goo">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+      <feColorMatrix in="blur" mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -11" result="goo" />
+      <feBlend in="SourceGraphic" in2="goo" />
+    </filter>
+  </defs>
+</svg>
+
+<div id="app" class="app">
+
+  <!-- ─────────── Dynamic Island ───────────
+       Zwei Ebenen im selben Raster: unten die schwarzen Formen, auf die der
+       goo-Filter wirkt (damit Benachrichtigungen hineinfließen), darüber der
+       Inhalt — der bleibt ungefiltert und damit gestochen scharf. -->
+  <div class="island-layer" id="island-layer" data-mode="dormant">
+    <div class="island-goo" aria-hidden="true">
+      <span class="island-shape"></span>
+      <span class="island-satellite" id="island-satellite"></span>
+    </div>
+    <div class="island" id="island" role="button" tabindex="0" aria-label="Dynamic Island öffnen">
+      <div class="island-inner" id="island-inner"></div>
+    </div>
+  </div>
+  <div class="island-scrim" id="island-scrim" hidden></div>
+
+  <!-- ─────────── Inhalt ─────────── -->
+  <main class="screen" id="screen" tabindex="-1"></main>
+
+  <!-- ─────────── Tab-Bar ─────────── -->
+  <nav class="tabbar" id="tabbar" aria-label="Hauptnavigation"></nav>
+
+</div>
+
+<div id="sheet-root"></div>
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+<noscript>
+  <p style="padding:2rem;text-align:center;font:16px system-ui">
+    Knuddl braucht JavaScript. Bitte aktiviere es. 🐔
+  </p>
+</noscript>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+/* ───────────────────────────────────────────────────────────
+   Knuddl — Design Tokens
+   Pastell-Palette, Apple-nahe Materialien, Federkraft-Kurven.
+   ─────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Pastell-Grundfarben ── */
+  --butter:   #FFE7A3;
+  --yolk:     #FFC64F;
+  --yolk-dp:  #F2A81E;
+  --peach:    #FFB9A0;
+  --blush:    #FFC3D8;
+  --lilac:    #CFC5F7;
+  --mint:     #AEE6C8;
+  --sky:      #ADD8F5;
+  --clay:     #E8D3C0;
+
+  /* ── Flächen ── */
+  --bg:            #FFF6E8;
+  --bg-tint:       #FFEFD9;
+  --surface:       #FFFFFF;
+  --surface-2:     #FFF9F0;
+  --surface-sunk:  #F6EADB;
+  --card-shadow:   0 1px 2px rgba(122, 88, 54, .06), 0 10px 30px -12px rgba(122, 88, 54, .22);
+  --card-shadow-lg:0 2px 6px rgba(122, 88, 54, .08), 0 28px 60px -20px rgba(122, 88, 54, .32);
+
+  /* ── Text ── */
+  --ink:        #3A2C21;
+  --ink-2:      #7A6553;
+  --ink-3:      #A89383;
+  --on-accent:  #4A3316;
+
+  /* ── Semantik ── */
+  --accent:     #FFB020;
+  --accent-soft:#FFE9C2;
+  --love:       #FF7BA6;
+  --love-soft:  #FFE0EB;
+  --calm:       #7EC8F5;
+  --calm-soft:  #DCF0FD;
+  --grow:       #5FCB98;
+  --grow-soft:  #DCF5E9;
+  --warn:       #FF8A6B;
+
+  --hairline:   rgba(122, 88, 54, .12);
+  --hairline-2: rgba(122, 88, 54, .07);
+
+  /* ── Glas / Materialien ── */
+  --glass:      rgba(255, 253, 249, .72);
+  --glass-thin: rgba(255, 253, 249, .55);
+  --glass-brd:  rgba(255, 255, 255, .65);
+  --blur:       saturate(180%) blur(22px);
+
+  /* ── Radien (Apple mag es großzügig) ── */
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-xl: 36px;
+  --r-full: 999px;
+
+  /* ── Rhythmus ── */
+  --gap:   14px;
+  --pad:   18px;
+  --tab-h: 62px;
+
+  /* ── Bewegung: eine echte Feder statt „ease" ── */
+  --spring:      cubic-bezier(.22, 1.15, .32, 1);
+  --spring-soft: cubic-bezier(.34, 1.02, .38, 1);
+  --spring-pop:  cubic-bezier(.18, 1.4, .4, 1);
+  --t-fast: 160ms;
+  --t-med:  280ms;
+  --t-slow: 460ms;
+
+  /* ── Island ── */
+  --island-bg:  #0B0B0D;
+  --island-ink: #FFFFFF;
+  --island-ink-2: rgba(255,255,255,.62);
+
+  color-scheme: light;
+}
+
+/* Dunkelmodus: warm, nicht klinisch — Karamell statt Grau. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg:           #15100C;
+    --bg-tint:      #1C1611;
+    --surface:      #221A14;
+    --surface-2:    #2A211A;
+    --surface-sunk: #191310;
+
+    --ink:    #F7ECE0;
+    --ink-2:  #C3AF9C;
+    --ink-3:  #8E7A69;
+    --on-accent: #2A1C08;
+
+    --accent-soft: #3E2F16;
+    --love-soft:   #3D2430;
+    --calm-soft:   #1E3140;
+    --grow-soft:   #1F3A2E;
+
+    --hairline:   rgba(255, 233, 210, .12);
+    --hairline-2: rgba(255, 233, 210, .07);
+
+    --glass:      rgba(34, 26, 20, .70);
+    --glass-thin: rgba(34, 26, 20, .52);
+    --glass-brd:  rgba(255, 255, 255, .09);
+
+    --card-shadow:   0 1px 2px rgba(0,0,0,.4), 0 12px 34px -14px rgba(0,0,0,.7);
+    --card-shadow-lg:0 2px 8px rgba(0,0,0,.45), 0 30px 66px -22px rgba(0,0,0,.8);
+
+    color-scheme: dark;
+  }
+}
+
+/* Explizit gewählter Dunkelmodus gewinnt in beide Richtungen. */
+:root[data-theme='dark'] {
+  --bg:           #15100C;
+  --bg-tint:      #1C1611;
+  --surface:      #221A14;
+  --surface-2:    #2A211A;
+  --surface-sunk: #191310;
+
+  --ink:    #F7ECE0;
+  --ink-2:  #C3AF9C;
+  --ink-3:  #8E7A69;
+  --on-accent: #2A1C08;
+
+  --accent-soft: #3E2F16;
+  --love-soft:   #3D2430;
+  --calm-soft:   #1E3140;
+  --grow-soft:   #1F3A2E;
+
+  --hairline:   rgba(255, 233, 210, .12);
+  --hairline-2: rgba(255, 233, 210, .07);
+
+  --glass:      rgba(34, 26, 20, .70);
+  --glass-thin: rgba(34, 26, 20, .52);
+  --glass-brd:  rgba(255, 255, 255, .09);
+
+  --card-shadow:   0 1px 2px rgba(0,0,0,.4), 0 12px 34px -14px rgba(0,0,0,.7);
+  --card-shadow-lg:0 2px 8px rgba(0,0,0,.45), 0 30px 66px -22px rgba(0,0,0,.8);
+
+  color-scheme: dark;
+}
