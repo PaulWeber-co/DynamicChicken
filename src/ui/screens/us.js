@@ -1,23 +1,61 @@
-/** Wir — der Ort für die Fernbeziehung. */
+/**
+ * Wir — der Ort für die Fernbeziehung.
+ *
+ * Vier Abschnitte, weil vier verschiedene Zeitgefühle dahinterstecken:
+ *   Heute   was gerade ist — Stimmung, Wetter, kleine Gesten
+ *   Nest    was mal sein soll — die gemeinsame Wohnung im Kopf
+ *   Wählen  was als Nächstes ansteht — eine Frage, zwei Stimmen
+ *   Raten   wie gut ihr euch kennt — bewerten und tippen
+ *
+ * Alle drei neuen Abschnitte teilen dieselbe Regel: sichtbar wird es erst,
+ * wenn beide abgegeben haben.
+ */
 
 import { esc } from '../../util/dom.js';
 import { fx, burst, confetti, haptic } from '../../util/feedback.js';
 import { get, commit, subscribe } from '../../state/store.js';
 import { renderChicken } from '../../pet/chicken.js';
+import { icon } from '../icons.js';
 import { MOODS, ACTIVITIES, NUDGES, moodByKey, activityByKey, petMood, questionForDay } from '../../pet/moods.js';
 import { tickPet, pushFeed, addBondXp, bondXpForLevel } from '../../state/model.js';
 import { REWARDS } from '../../state/catalog.js';
-import { sendNudge, setMood, setActivity } from '../actions.js';
+import {
+  ensureShared, NEST_CATALOG, NEST_CATS, WEIGHTS, weightLabel, nestSummary,
+  POLL_TEMPLATES, rateScore, rateStats, KIND_ICON, KIND_LABEL, kindOf
+} from '../../state/shared.js';
+import {
+  sendNudge, setMood, setActivity,
+  setNestWeight, dropNestWish, createPoll, votePoll, createRate, submitRate
+} from '../actions.js';
 import { sendEvent, partnerOnline } from '../../sync/index.js';
 import { pairKey } from '../../games/index.js';
 import { dayKey, localTimeIn, tzOffsetHours, hourIn, relTime, daysBetween } from '../../util/time.js';
+import { forecast, describe, advice, clockOf } from '../../util/weather.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
+import { openPlaceSheet } from '../placeSheet.js';
 import { go } from '../shell.js';
+
+const SEGMENTS = [
+  { id: 'today', label: 'Heute', icon: 'tabUs' },
+  { id: 'nest', label: 'Nest', icon: 'tabNest' },
+  { id: 'vote', label: 'Wählen', icon: 'tabVote' },
+  { id: 'rate', label: 'Raten', icon: 'dial' }
+];
+
+/** Überlebt einen Tab-Wechsel, damit man nicht ständig neu sucht. */
+let activeSeg = 'today';
+export function setUsTab(id) {
+  if (SEGMENTS.some((s) => s.id === id)) activeSeg = id;
+}
+
+/** Wetter wird pro Screen einmal geholt und dann nur noch nachgezeichnet. */
+let wx = { mine: null, theirs: null, at: 0, failed: false };
 
 export function render(root, ctx) {
   const s = get();
   tickPet(s.me.pet);
+  ensureShared(s);
   markSeen(s);
 
   root.innerHTML = `<div class="us" data-us></div>`;
@@ -29,14 +67,56 @@ export function render(root, ctx) {
     // Finger den Knopf unter sich.
     if (holding) return;
     const st = get();
+    ensureShared(st);
     const p = st.partner;
 
-    host.innerHTML = p ? linked(st, p) : unlinked(st);
+    if (!p) { host.innerHTML = unlinked(st); bind(); return; }
+
+    host.innerHTML = `
+      ${headerRow(st, p)}
+      ${segmentBar(st)}
+      <div class="seg-page" data-page>${page(st, p)}</div>`;
     bind();
   }
 
-  /* ── Verbunden ── */
-  function linked(st, p) {
+  function page(st, p) {
+    switch (activeSeg) {
+      case 'nest': return nestPanel(st, p);
+      case 'vote': return votePanel(st, p);
+      case 'rate': return ratePanel(st, p);
+      default: return todayPanel(st, p);
+    }
+  }
+
+  /* ── Kopf ── */
+  function headerRow(st, p) {
+    return `
+      <div class="row-between">
+        <div>
+          <div class="title-lg">Wir</div>
+          <div class="subtitle">${esc(st.me.name || 'Du')} &amp; ${esc(p.name)}${st.bond.since ? ` · seit ${daysBetween(new Date(st.bond.since).toISOString().slice(0, 10), dayKey())} Tagen` : ''}</div>
+        </div>
+        <div class="streak-pill" title="Tage in Folge">${icon('flame', { size: 20 })}<b>${st.bond.streak}</b></div>
+      </div>`;
+  }
+
+  function segmentBar(st) {
+    const dots = {
+      nest: st.nest.filter((x) => x.theirs != null && x.mine === 0).length,
+      vote: st.polls.filter((x) => x.mine == null && x.theirs != null).length,
+      rate: st.rates.filter((x) => !x.mine && x.theirs).length
+    };
+    return `<div class="segbar" role="tablist">
+      ${SEGMENTS.map((sg) => `<button class="segbtn" role="tab" data-seg="${sg.id}"
+        aria-selected="${activeSeg === sg.id}">
+        ${icon(sg.icon, { size: 17 })}<span>${esc(sg.label)}</span>
+        ${dots[sg.id] ? `<i class="seg-dot">${dots[sg.id]}</i>` : ''}
+      </button>`).join('')}
+    </div>`;
+  }
+
+  /* ══ Heute ══════════════════════════════════════════════ */
+  function todayPanel(st, p) {
     const myMood = moodByKey(st.me.mood?.key);
     const theirMood = moodByKey(p.mood?.key);
     const theirAct = activityByKey(p.activity?.key);
@@ -50,33 +130,25 @@ export function render(root, ctx) {
     const bondFrac = Math.max(0, Math.min(1, (st.bond.xp - bondPrev) / Math.max(1, bondNext - bondPrev)));
 
     return `
-      <div class="row-between">
-        <div>
-          <div class="title-lg">Wir</div>
-          <div class="subtitle">${esc(st.me.name || 'Du')} &amp; ${esc(p.name)}${st.bond.since ? ` · seit ${daysBetween(new Date(st.bond.since).toISOString().slice(0, 10), dayKey())} Tagen` : ''}</div>
-        </div>
-        <div class="streak-pill" title="Tage in Folge">🔥 <b>${st.bond.streak}</b></div>
-      </div>
-
       <div class="card duo-card">
         <div class="duo">
           <div class="duo-side">
-            <div class="duo-bubble">${myMood ? `${myMood.emoji}` : '💭'}</div>
+            <div class="duo-bubble">${icon(myMood ? myMood.icon : 'nudgeThink', { size: 24 })}</div>
             <div class="duo-chick">${renderChicken(st.me.pet.look, { mood: petMood(st.me.pet, { asleep: st.me.pet.asleep, moodKey: st.me.mood?.key }), size: 118, shadow: false })}</div>
             <div class="duo-name">${esc(st.me.pet.name)}</div>
-            <div class="duo-sub">${localTimeIn(st.me.tz)}${myAct ? ` · ${myAct.emoji}` : ''}</div>
+            <div class="duo-sub">${localTimeIn(st.me.tz)}${myAct ? ` · ${esc(myAct.label)}` : ''}</div>
           </div>
 
           <button class="cuddle-btn" data-cuddle aria-label="Halten zum Kuscheln">
             <span class="cuddle-ring"></span>
-            <span class="cuddle-core">🫂</span>
+            <span class="cuddle-core">${icon('careCuddle', { size: 32 })}</span>
           </button>
 
           <div class="duo-side">
-            <div class="duo-bubble">${theirMood ? `${theirMood.emoji}` : '💭'}</div>
+            <div class="duo-bubble">${icon(theirMood ? theirMood.icon : 'nudgeThink', { size: 24 })}</div>
             <div class="duo-chick">${renderChicken(p.pet.look, { mood: theirSleeping || p.pet.asleep ? 'asleep' : petMood(p.pet, { moodKey: p.mood?.key }), size: 118, shadow: false })}</div>
             <div class="duo-name">${esc(p.pet.name)}</div>
-            <div class="duo-sub">${localTimeIn(p.tz)}${theirAct ? ` · ${theirAct.emoji}` : ''}</div>
+            <div class="duo-sub">${localTimeIn(p.tz)}${theirAct ? ` · ${esc(theirAct.label)}` : ''}</div>
           </div>
         </div>
 
@@ -86,7 +158,7 @@ export function render(root, ctx) {
             ${theirSleeping ? `${esc(p.name)} schläft` : online ? `${esc(p.name)} ist da` : `zuletzt ${relTime(p.lastSeen)}`}
           </span>
           ${diff ? `<span class="badge">${diff > 0 ? `+${diff}` : diff} Std. Unterschied</span>` : ''}
-          <span class="badge badge-love">🫂 ${st.bond.hugs}</span>
+          <span class="badge badge-love">${icon('careCuddle', { size: 14 })} ${st.bond.hugs}</span>
         </div>
 
         <div class="bond">
@@ -98,17 +170,18 @@ export function render(root, ctx) {
         </div>
       </div>
 
+      ${weatherCard(st, p)}
       ${dailyCard(st, p)}
 
       <div class="section-label">Wie geht es dir gerade?</div>
       <div class="card">
         <div class="wrap">
           ${MOODS.map((m) => `<button class="chip chip-love" data-mood="${m.key}" aria-pressed="${st.me.mood?.key === m.key}">
-            <span>${m.emoji}</span>${esc(m.label)}
+            ${icon(m.icon, { size: 20 })}${esc(m.label)}
           </button>`).join('')}
         </div>
         ${st.me.mood ? `<button class="note-line" data-note>
-          ${st.me.mood.note ? `„${esc(st.me.mood.note)}"` : '＋ Ein Satz dazu …'}
+          ${st.me.mood.note ? `„${esc(st.me.mood.note)}“` : 'Ein Satz dazu …'}
         </button>` : ''}
       </div>
 
@@ -116,15 +189,15 @@ export function render(root, ctx) {
       <div class="card">
         <div class="wrap">
           ${ACTIVITIES.map((a) => `<button class="chip" data-act="${a.key}" aria-pressed="${st.me.activity?.key === a.key}">
-            <span>${a.emoji}</span>${esc(a.label)}
+            ${icon(a.icon, { size: 20 })}${esc(a.label)}
           </button>`).join('')}
         </div>
       </div>
 
       <div class="section-label">Kleine Gesten</div>
       <div class="nudge-grid">
-        ${NUDGES.map((n) => `<button class="nudge" data-nudge="${n.key}">
-          <span class="nudge-e">${n.emoji}</span>
+        ${NUDGES.map((n, i) => `<button class="nudge" data-nudge="${n.key}" style="--i:${i}">
+          <span class="nudge-e">${icon(n.icon, { size: 26 })}</span>
           <span class="nudge-l">${esc(n.label)}</span>
         </button>`).join('')}
       </div>
@@ -133,6 +206,349 @@ export function render(root, ctx) {
       ${timeline(st)}
     `;
   }
+
+  /* ── Wetter ── */
+  function weatherCard(st, p) {
+    const theirs = p.place;
+    const mine = st.me.place;
+
+    if (!theirs && !mine) {
+      return `<div class="card wx-card wx-empty">
+        <div class="wx-head">${icon('globe', { size: 20 })}<span>Wetter</span></div>
+        <p class="muted tiny" style="margin:0 0 12px">
+          Trag deinen Ort ein, dann seht ihr gegenseitig, wie das Wetter beim anderen ist.
+          Gespeichert wird nur die grobe Umgebung.
+        </p>
+        <button class="btn btn-soft btn-block" data-place>Meinen Ort setzen</button>
+      </div>`;
+    }
+
+    const w = wx.theirs;
+    const d = w ? describe(w.code, w.isDay) : null;
+
+    if (!theirs) {
+      return `<div class="card wx-card wx-empty">
+        <div class="wx-head">${icon('pin', { size: 18 })}<span>${esc(mine.name)}</span></div>
+        ${wx.mine ? wxRow(wx.mine, 'Bei dir')
+          : `<p class="muted tiny" style="margin:0">${wx.failed ? 'Wetterdienst nicht erreichbar' : 'Wetter wird geholt …'}</p>`}
+        <p class="muted tiny" style="margin:12px 0 0">
+          ${esc(p.name)} hat noch keinen Ort gesetzt.
+        </p>
+      </div>`;
+    }
+
+    return `<div class="card wx-card ${w ? `wx-${d.icon}` : ''}">
+      <div class="wx-main">
+        <div class="wx-ico">${icon(w ? d.icon : 'wCloud', { size: 62 })}</div>
+        <div class="wx-body">
+          <div class="wx-place">${icon('pin', { size: 13 })} ${esc(theirs.name)}${theirs.country ? `, ${esc(theirs.country)}` : ''}</div>
+          ${w ? `
+            <div class="wx-temp">${Math.round(w.temp)}<span>°</span></div>
+            <div class="wx-desc">${esc(d.label)} · gefühlt ${Math.round(w.feels)}°</div>
+          ` : `<div class="wx-desc">${wx.failed ? 'Wetterdienst nicht erreichbar' : 'Wetter lädt …'}</div>`}
+        </div>
+      </div>
+      ${w ? `
+        <div class="wx-strip">
+          <span>${icon('thermo', { size: 15 })} ${Math.round(w.min)}° / ${Math.round(w.max)}°</span>
+          <span>${icon('wWind', { size: 15 })} ${Math.round(w.wind)} km/h</span>
+          ${w.sunset ? `<span>${icon('sunrise', { size: 15 })} ${clockOf(w.sunset)}</span>` : ''}
+        </div>
+        <div class="wx-tip">${esc(advice(w))}</div>
+      ` : ''}
+      ${mine && wx.mine ? `<div class="wx-mine">
+        ${icon(describe(wx.mine.code, wx.mine.isDay).icon, { size: 20 })}
+        <span>Bei dir in ${esc(mine.name)}: ${Math.round(wx.mine.temp)}°</span>
+        ${w ? `<b>${diffWord(wx.mine.temp, w.temp)}</b>` : ''}
+      </div>` : `<button class="btn btn-ghost btn-block" data-place style="margin-top:10px">Eigenen Ort setzen</button>`}
+    </div>`;
+  }
+
+  const wxRow = (w, who) => {
+    const d = describe(w.code, w.isDay);
+    return `<div class="wx-line">${icon(d.icon, { size: 26 })}
+      <span>${esc(who)}: ${esc(d.label)}, ${Math.round(w.temp)}°</span></div>`;
+  };
+
+  const diffWord = (a, b) => {
+    const d = Math.round(a - b);
+    if (Math.abs(d) <= 1) return 'fast gleich';
+    return d > 0 ? `${d}° wärmer` : `${Math.abs(d)}° kälter`;
+  };
+
+  /* ══ Nest ═══════════════════════════════════════════════ */
+  function nestPanel(st, p) {
+    const sum = nestSummary(st);
+    const byKey = new Map(st.nest.map((x) => [x.key || x.id, x]));
+    const custom = st.nest.filter((x) => !x.key);
+
+    return `
+      <div class="card nest-hero">
+        <div class="nest-hero-art">
+          ${icon('tabNest', { size: 52 })}
+          <div class="nest-hero-chicks">
+            ${renderChicken(st.me.pet.look, { mood: 'happy', size: 54, shadow: false })}
+            ${renderChicken(p.pet.look, { mood: 'love', size: 54, shadow: false })}
+          </div>
+        </div>
+        <h2 class="nest-h">Unser Nest</h2>
+        <p class="muted tiny" style="margin:0 0 4px">
+          Was euch an einer gemeinsamen Wohnung wichtig wäre. Jeder gewichtet für sich,
+          danach seht ihr, wo ihr euch einig seid.
+        </p>
+        ${sum.match != null ? `
+          <div class="nest-match">
+            <div class="nest-match-num">${sum.match}<span>%</span></div>
+            <div class="grow">
+              <div class="li-title">Übereinstimmung</div>
+              <div class="stat-track"><span class="stat-fill" style="width:${sum.match}%;background:var(--love)"></span></div>
+              <div class="li-sub">${sum.rated} von ${sum.total} Wünschen habt ihr beide bewertet</div>
+            </div>
+          </div>` : `<div class="li-sub" style="margin-top:8px">Noch nichts von ${esc(p.name)} — bewerte du zuerst.</div>`}
+      </div>
+
+      ${sum.agreed.length ? `
+        <div class="section-label">Darin seid ihr euch einig</div>
+        <div class="card nest-agreed">
+          ${sum.agreed.slice(0, 12).map((x) => `<div class="nest-hit">
+            <span class="nest-hit-ico">${icon(x.icon, { size: 22 })}</span>
+            <span class="grow">${esc(x.text)}</span>
+            <span class="nest-hit-w">${'●'.repeat(Math.min(x.mine, x.theirs))}</span>
+          </div>`).join('')}
+        </div>` : ''}
+
+      ${sum.talk.length ? `
+        <div class="section-label">Darüber solltet ihr reden</div>
+        <div class="card nest-talk">
+          ${sum.talk.slice(0, 8).map((x) => `<div class="nest-gap">
+            <span class="nest-hit-ico">${icon(x.icon, { size: 22 })}</span>
+            <div class="grow">
+              <div class="li-title">${esc(x.text)}</div>
+              <div class="li-sub">Du: ${weightLabel(x.mine)} · ${esc(p.name)}: ${weightLabel(x.theirs)}</div>
+            </div>
+            <span class="gap-bar"><i style="height:${(x.mine / 3) * 100}%;background:var(--accent)"></i><i style="height:${(x.theirs / 3) * 100}%;background:var(--love)"></i></span>
+          </div>`).join('')}
+        </div>` : ''}
+
+      <div class="section-label">Was ist dir wichtig?</div>
+      <p class="muted tiny" style="margin:-4px 4px 10px">Tippen wechselt die Stufe: egal → schön → wichtig → unverzichtbar.</p>
+
+      ${NEST_CATS.filter((c) => c !== 'Eigenes').map((cat) => `
+        <div class="nest-cat">${esc(cat)}</div>
+        <div class="card nest-list">
+          ${NEST_CATALOG.filter((w) => w.cat === cat).map((w) => wishRow(w, byKey.get(w.key), p)).join('')}
+        </div>`).join('')}
+
+      ${custom.length ? `
+        <div class="nest-cat">Eigenes</div>
+        <div class="card nest-list">
+          ${custom.map((x) => wishRow({ key: null, icon: x.icon, text: x.text }, x, p, true)).join('')}
+        </div>` : ''}
+
+      <button class="btn btn-soft btn-block" data-wish style="margin-top:12px">
+        ${icon('plus', { size: 16 })} Eigenen Wunsch hinzufügen
+      </button>`;
+  }
+
+  function wishRow(cat, item, p, removable = false) {
+    const mine = item?.mine ?? 0;
+    const theirs = item?.theirs;
+    const id = item?.id || '';
+    return `<div class="wish ${mine > 0 ? 'on' : ''}" data-wish-key="${esc(cat.key || '')}" data-wish-id="${esc(id)}">
+      <button class="wish-main" data-cycle
+        data-key="${esc(cat.key || '')}" data-id="${esc(id)}"
+        data-text="${esc(cat.text)}" data-icon="${esc(cat.icon)}" data-cat="${esc(cat.cat || 'Eigenes')}" data-w="${mine}">
+        <span class="wish-ico">${icon(cat.icon, { size: 22 })}</span>
+        <span class="grow">
+          <span class="wish-text">${esc(cat.text)}</span>
+          ${theirs != null ? `<span class="wish-them">${esc(p.name)}: ${weightLabel(theirs).toLowerCase()}</span>` : ''}
+        </span>
+        <span class="wish-dots" aria-label="${weightLabel(mine)}">
+          ${[1, 2, 3].map((n) => `<i class="${mine >= n ? 'on' : ''}"></i>`).join('')}
+        </span>
+      </button>
+      ${removable ? `<button class="wish-x" data-drop="${esc(id)}" aria-label="Entfernen">${icon('close', { size: 13 })}</button>` : ''}
+    </div>`;
+  }
+
+  /* ══ Wählen ═════════════════════════════════════════════ */
+  function votePanel(st, p) {
+    const open = st.polls.filter((x) => !x.doneAt);
+    const done = st.polls.filter((x) => x.doneAt);
+
+    return `
+      <div class="card vote-hero">
+        <div class="vote-hero-ico">${icon('tabVote', { size: 44 })}</div>
+        <h2 class="nest-h">Abstimmen</h2>
+        <p class="muted tiny" style="margin:0 0 12px">
+          Eine Frage, zwei Stimmen. Was ${esc(p.name)} gewählt hat, siehst du erst,
+          wenn du selbst gewählt hast.
+        </p>
+        <button class="btn btn-primary btn-block" data-newpoll>${icon('plus', { size: 16 })} Neue Abstimmung</button>
+      </div>
+
+      <div class="section-label">Schnell gefragt</div>
+      <div class="wrap" style="margin-bottom:4px">
+        ${POLL_TEMPLATES.map((t) => `<button class="chip" data-tpl="${t.key}">${icon('ballot', { size: 18 })}${esc(t.q)}</button>`).join('')}
+      </div>
+
+      ${open.length ? `
+        <div class="section-label">Offen</div>
+        ${open.map((poll) => pollCard(poll, st, p)).join('')}` : ''}
+
+      ${done.length ? `
+        <div class="section-label">Entschieden</div>
+        ${done.slice(0, 10).map((poll) => pollCard(poll, st, p)).join('')}` : ''}
+
+      ${!open.length && !done.length ? `<div class="card"><div class="empty">
+        <span class="empty-emoji">${icon('ballot', { size: 42 })}</span>
+        Noch keine Frage. „Was machen wir heute Abend?“ wäre ein Anfang.
+      </div></div>` : ''}`;
+  }
+
+  function pollCard(poll, st, p) {
+    const revealed = !!poll.doneAt;
+    const agree = revealed && poll.mine === poll.theirs;
+    const label = (k) => poll.opts.find((o) => o.k === k)?.label || '—';
+
+    return `<div class="card poll ${revealed ? (agree ? 'poll-agree' : 'poll-split') : ''}">
+      <div class="poll-top">
+        <span class="poll-kick">${icon(revealed ? (agree ? 'handshake' : 'scale') : 'tabVote', { size: 15 })}
+          ${poll.by === st.me.code ? 'Du fragst' : `${esc(p.name)} fragt`}</span>
+        <span class="tiny muted">${relTime(poll.at)}</span>
+      </div>
+      <div class="poll-q">${esc(poll.q)}</div>
+
+      ${revealed ? `
+        <div class="poll-result">
+          ${poll.opts.map((o) => {
+            const me = poll.mine === o.k, them = poll.theirs === o.k;
+            return `<div class="poll-opt done ${me || them ? 'picked' : ''}">
+              <span class="poll-ico">${icon(o.icon || 'ballot', { size: 20 })}</span>
+              <span class="grow">${esc(o.label)}</span>
+              <span class="poll-who">
+                ${me ? '<i class="pw me">Du</i>' : ''}
+                ${them ? `<i class="pw them">${esc(p.name.slice(0, 8))}</i>` : ''}
+              </span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="poll-verdict">${agree
+          ? `${icon('handshake', { size: 16 })}<span>Einig: <b>${esc(label(poll.mine))}</b></span>`
+          : `${icon('scale', { size: 16 })}<span>Du: <b>${esc(label(poll.mine))}</b> · ${esc(p.name)}: <b>${esc(label(poll.theirs))}</b></span>`}</div>
+      ` : poll.mine != null ? `
+        <div class="poll-sealed">${icon('lock', { size: 14 })}
+          <span>Du hast <b>${esc(label(poll.mine))}</b> gewählt. Warten auf ${esc(p.name)}.</span></div>
+      ` : `
+        <div class="poll-opts">
+          ${poll.opts.map((o) => `<button class="poll-opt" data-vote="${esc(poll.id)}" data-k="${esc(o.k)}">
+            <span class="poll-ico">${icon(o.icon || 'ballot', { size: 20 })}</span>
+            <span class="grow">${esc(o.label)}</span>
+            ${icon('chevron', { size: 14 })}
+          </button>`).join('')}
+        </div>
+        ${poll.theirs != null ? `<div class="poll-hint">${esc(p.name)} hat schon gewählt.</div>` : ''}
+      `}
+    </div>`;
+  }
+
+  /* ══ Raten ══════════════════════════════════════════════ */
+  function ratePanel(st, p) {
+    const stats = rateStats(st);
+    const open = st.rates.filter((x) => !x.doneAt);
+    const done = st.rates.filter((x) => x.doneAt);
+
+    return `
+      <div class="card rate-hero">
+        <div class="rate-hero-ico">${icon('dial', { size: 44 })}</div>
+        <h2 class="nest-h">Bewerten &amp; Raten</h2>
+        <p class="muted tiny" style="margin:0 0 12px">
+          Ein Song, ein Link, irgendeine Sache. Beide geben eine Note von 1 bis 10 —
+          und tippen, was der andere sagt. Punkte gibt es fürs Kennen, nicht fürs Mögen.
+        </p>
+        ${stats.rounds ? `
+          <div class="rate-score">
+            <div><b>${stats.me}</b><small>Du</small></div>
+            <div class="rate-score-mid">${stats.rounds} ${stats.rounds === 1 ? 'Runde' : 'Runden'}</div>
+            <div><b>${stats.them}</b><small>${esc(p.name)}</small></div>
+          </div>
+          <div class="li-sub center">Geschmacks-Nähe ${stats.taste}%</div>
+        ` : ''}
+        <button class="btn btn-primary btn-block" data-newrate style="margin-top:12px">
+          ${icon('plus', { size: 16 })} Etwas zum Bewerten
+        </button>
+      </div>
+
+      ${open.length ? `<div class="section-label">Offen</div>
+        ${open.map((e) => rateCard(e, st, p)).join('')}` : ''}
+
+      ${done.length ? `<div class="section-label">Aufgedeckt</div>
+        ${done.slice(0, 10).map((e) => rateCard(e, st, p)).join('')}` : ''}
+
+      ${!open.length && !done.length ? `<div class="card"><div class="empty">
+        <span class="empty-emoji">${icon('disc', { size: 42 })}</span>
+        Noch nichts bewertet. Schick den Song, der dir heute nicht aus dem Kopf geht.
+      </div></div>` : ''}`;
+  }
+
+  function rateCard(e, st, p) {
+    const ico = KIND_ICON[e.kind] || 'sparkle';
+    const revealed = !!e.doneAt;
+    const sc = revealed ? rateScore(e) : null;
+
+    return `<div class="card rate ${revealed ? 'rate-open' : ''}">
+      <div class="rate-top">
+        <span class="rate-ico">${icon(ico, { size: 26 })}</span>
+        <div class="grow">
+          <div class="rate-title">${esc(e.title)}</div>
+          <div class="li-sub">${esc(KIND_LABEL[e.kind] || 'Sache')} · ${e.by === st.me.code ? 'von dir' : `von ${esc(p.name)}`} · ${relTime(e.at)}</div>
+        </div>
+      </div>
+      ${e.note ? `<div class="rate-note">„${esc(e.note)}“</div>` : ''}
+      ${e.url ? `<a class="rate-link" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">
+        ${icon('link', { size: 14 })} ${esc(prettyUrl(e.url))}</a>` : ''}
+
+      ${revealed ? `
+        <div class="rate-grid">
+          <div class="rate-col">
+            <div class="rate-col-h">Du</div>
+            <div class="rate-num">${e.mine.score}</div>
+            <div class="li-sub">getippt: ${e.mine.guess}</div>
+          </div>
+          <div class="rate-col mid">
+            <div class="rate-pts">+${sc.myPts}</div>
+            <div class="li-sub">deine Punkte</div>
+          </div>
+          <div class="rate-col">
+            <div class="rate-col-h">${esc(p.name)}</div>
+            <div class="rate-num them">${e.theirs.score}</div>
+            <div class="li-sub">getippt: ${e.theirs.guess}</div>
+          </div>
+        </div>
+        <div class="rate-bars">
+          ${bar('Du', e.mine.score, 'var(--accent)')}
+          ${bar(esc(p.name), e.theirs.score, 'var(--love)')}
+        </div>
+        <div class="rate-verdict">${esc(sc.verdict)}</div>
+      ` : e.mine ? `
+        <div class="poll-sealed">${icon('lock', { size: 14 })}
+          <span>Du: <b>${e.mine.score}/10</b>, getippt <b>${e.mine.guess}</b>. Warten auf ${esc(p.name)}.</span></div>
+      ` : `
+        <button class="btn btn-love btn-block" data-dorate="${esc(e.id)}" style="margin-top:12px">Bewerten</button>
+        ${e.theirs ? `<div class="poll-hint">${esc(p.name)} hat schon abgegeben.</div>` : ''}
+      `}
+    </div>`;
+  }
+
+  const bar = (who, v, color) => `<div class="rbar">
+    <span class="rbar-l">${who}</span>
+    <span class="rbar-t"><i style="width:${v * 10}%;background:${color}"></i></span>
+    <b>${v}</b></div>`;
+
+  const prettyUrl = (u) => {
+    try { return new URL(u).hostname.replace(/^www\./, ''); }
+    catch { return u.slice(0, 40); }
+  };
 
   /* ── Noch nicht verbunden ── */
   function unlinked(st) {
@@ -143,12 +559,12 @@ export function render(root, ctx) {
         <div class="pair-duo">
           <div>${renderChicken(st.me.pet.look, { mood: 'happy', size: 110, shadow: false })}</div>
           <div class="pair-plus">＋</div>
-          <div class="pair-ghost">🥚</div>
+          <div class="pair-ghost">${icon('egg', { size: 44 })}</div>
         </div>
         <h2 style="margin:12px 0 6px;font-size:19px;font-weight:800">Zweites Huhn gesucht</h2>
         <p class="muted" style="font-size:14.5px;margin:0 0 16px">
-          Verbindet euch mit einem sechsstelligen Code — dann könnt ihr Stimmungen schicken,
-          gemeinsam spielen und sehen, wie es dem anderen geht.
+          Verbindet euch mit einer Einladung — dann könnt ihr Stimmungen schicken,
+          das gemeinsame Nest bauen, abstimmen und euch gegenseitig raten.
         </p>
         <button class="btn btn-primary btn-block" data-goto-more>Verbinden</button>
       </div>
@@ -156,7 +572,7 @@ export function render(root, ctx) {
         <div class="li-title" style="margin-bottom:6px">Solange du allein bist</div>
         <p class="muted tiny" style="margin:0">
           Im Solo-Modus übernimmt ein simulierter Mensch die andere Seite: Stimmungen,
-          Anstupser und Spielzüge kommen trotzdem herein. So siehst du, wie sich alles anfühlt.
+          Anstupser, Abstimmungen und Spielzüge kommen trotzdem herein.
         </p>
       </div>`;
   }
@@ -167,7 +583,7 @@ export function render(root, ctx) {
     const revealed = !!d.revealedAt;
     if (revealed) {
       return `<div class="card daily-card open">
-        <div class="daily-kicker">💌 Frage des Tages</div>
+        <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
         <div class="daily-q">${esc(d.q)}</div>
         <div class="daily-answer">
           <div class="daily-who">${esc(st.me.name || 'Du')}</div>
@@ -181,15 +597,15 @@ export function render(root, ctx) {
     }
     if (d.mine) {
       return `<div class="card daily-card">
-        <div class="daily-kicker">💌 Frage des Tages</div>
+        <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
         <div class="daily-q">${esc(d.q)}</div>
         <div class="daily-sealed">Deine Antwort liegt bereit. Sie öffnet sich, sobald ${esc(p.name)} geantwortet hat.</div>
       </div>`;
     }
     return `<div class="card daily-card">
-      <div class="daily-kicker">💌 Frage des Tages</div>
+      <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
       <div class="daily-q">${esc(d.q)}</div>
-      ${d.theirs ? `<div class="daily-sealed">${esc(p.name)} hat schon geantwortet. 👀</div>` : ''}
+      ${d.theirs ? `<div class="daily-sealed">${esc(p.name)} hat schon geantwortet.</div>` : ''}
       <button class="btn btn-love btn-block" data-daily>Antworten</button>
     </div>`;
   }
@@ -198,16 +614,16 @@ export function render(root, ctx) {
   function timeline(st) {
     if (!st.feed.length) {
       return `<div class="card"><div class="empty">
-        <span class="empty-emoji">🪺</span>
+        <span class="empty-emoji">${icon('nest', { size: 42 })}</span>
         Noch nichts passiert. Schick die erste Umarmung.
       </div></div>`;
     }
     return `<div class="list">
-      ${st.feed.slice(0, 26).map((f) => `<div class="li feed-li ${f.from}">
-        <div class="li-ico">${f.emoji || '•'}</div>
+      ${st.feed.slice(0, 26).map((f, i) => `<div class="li feed-li ${f.from}" style="--i:${Math.min(i, 12)}">
+        <div class="li-ico">${icon(f.icon || 'info', { size: 20 })}</div>
         <div class="grow">
           <div class="li-title">${esc(f.text)}</div>
-          ${f.note ? `<div class="li-sub">„${esc(f.note)}"</div>` : ''}
+          ${f.note ? `<div class="li-sub">„${esc(f.note)}“</div>` : ''}
           <div class="li-sub">${relTime(f.at)}</div>
         </div>
       </div>`).join('')}
@@ -216,8 +632,23 @@ export function render(root, ctx) {
 
   /* ── Interaktion ── */
   function bind() {
+    host.querySelectorAll('[data-seg]').forEach((b) => {
+      b.onclick = () => {
+        if (activeSeg === b.dataset.seg) return;
+        activeSeg = b.dataset.seg;
+        fx('tap');
+        paint();
+        host.querySelector('[data-page]')?.classList.add('seg-in');
+      };
+    });
+
     host.querySelectorAll('[data-mood]').forEach((b) => {
-      b.onclick = () => { setMood(b.dataset.mood, get().me.mood?.note || ''); burst([moodByKey(b.dataset.mood)?.emoji || '💛'], { from: b, count: 5 }); paint(); };
+      b.onclick = () => {
+        const m = moodByKey(b.dataset.mood);
+        setMood(b.dataset.mood, get().me.mood?.note || '');
+        burst([m?.icon || 'statJoy'], { from: b, count: 5 });
+        paint();
+      };
     });
     host.querySelectorAll('[data-act]').forEach((b) => {
       b.onclick = () => { setActivity(b.dataset.act); paint(); };
@@ -237,6 +668,59 @@ export function render(root, ctx) {
 
     const cud = host.querySelector('[data-cuddle]');
     if (cud) bindCuddle(cud);
+
+    host.querySelectorAll('[data-place]').forEach((b) => {
+      b.onclick = () => openPlaceSheet((place) => {
+        wx = { mine: null, theirs: wx.theirs, at: 0, failed: false };
+        if (place) loadWeather(true); else paint();
+      });
+    });
+
+    /* Nest */
+    host.querySelectorAll('[data-cycle]').forEach((b) => {
+      b.onclick = () => {
+        const next = ((Number(b.dataset.w) || 0) + 1) % 4;
+        const item = setNestWeight({
+          id: b.dataset.id || null,
+          key: b.dataset.key || null,
+          text: b.dataset.text,
+          icon: b.dataset.icon,
+          cat: b.dataset.cat
+        }, next);
+        if (next === 3) burst([b.dataset.icon], { from: b, count: 5, rise: 90 });
+        haptic(next ? 8 : 4);
+        paint();
+        return item;
+      };
+    });
+    host.querySelectorAll('[data-drop]').forEach((b) => {
+      b.onclick = () => { if (dropNestWish(b.dataset.drop)) { fx('tap'); paint(); } };
+    });
+    const wish = host.querySelector('[data-wish]');
+    if (wish) wish.onclick = openWishSheet;
+
+    /* Abstimmen */
+    const np = host.querySelector('[data-newpoll]');
+    if (np) np.onclick = () => openPollSheet();
+    host.querySelectorAll('[data-tpl]').forEach((b) => {
+      b.onclick = () => openPollSheet(POLL_TEMPLATES.find((t) => t.key === b.dataset.tpl));
+    });
+    host.querySelectorAll('[data-vote]').forEach((b) => {
+      b.onclick = () => {
+        const res = votePoll(b.dataset.vote, b.dataset.k);
+        if (res?.fresh) {
+          toast(res.agree ? 'Ihr seid euch einig!' : 'Zwei Meinungen — aufgedeckt', res.agree ? 'handshake' : 'scale');
+        }
+        paint();
+      };
+    });
+
+    /* Raten */
+    const nr = host.querySelector('[data-newrate]');
+    if (nr) nr.onclick = () => openRateSheet();
+    host.querySelectorAll('[data-dorate]').forEach((b) => {
+      b.onclick = () => openScoreSheet(b.dataset.dorate);
+    });
   }
 
   /* Halten zum Kuscheln — wenn beide gleichzeitig halten, spürt man es. */
@@ -258,13 +742,13 @@ export function render(root, ctx) {
           btn.classList.add('synced');
           fx('love');
           haptic([30, 60, 30, 60, 90]);
-          confetti(['💗', '🫂', '💛', '✨']);
-          toast('Ihr haltet gleichzeitig 💗', '🫂');
+          confetti(['statJoy', 'careCuddle', 'sparkle']);
+          toast('Ihr haltet gleichzeitig', 'careCuddle');
           const st2 = get();
           addBondXp(st2, 6);
           st2.bond.hugs++;
           st2.me.coins += REWARDS.nudgeSent;
-          pushFeed(st2, { from: 'system', type: 'cuddle', emoji: '🫂', text: 'Ihr habt gleichzeitig gedrückt' });
+          pushFeed(st2, { from: 'system', type: 'cuddle', icon: 'careCuddle', text: 'Ihr habt gleichzeitig gedrückt' });
           commit('cuddle');
         }
       }, 700);
@@ -283,6 +767,8 @@ export function render(root, ctx) {
     btn.addEventListener('pointercancel', end);
     btn.addEventListener('pointerleave', end);
   }
+
+  /* ── Eingabefenster ── */
 
   function openNoteSheet() {
     const st = get();
@@ -317,7 +803,7 @@ export function render(root, ctx) {
         t.focus();
         body.querySelector('[data-save]').onclick = () => {
           const text = t.value.trim();
-          if (!text) { toast('Ein Wort mindestens 🙂'); return; }
+          if (!text) { toast('Ein Wort mindestens'); return; }
           const st2 = get();
           const dd = ensureDaily(st2);
           dd.mine = { text, at: Date.now() };
@@ -325,10 +811,10 @@ export function render(root, ctx) {
             dd.revealedAt = Date.now();
             st2.me.coins += REWARDS.dailyBoth;
             addBondXp(st2, 8);
-            confetti(['💌', '💗', '✨']);
+            confetti(['mailHeart', 'statJoy', 'sparkle']);
           }
           addBondXp(st2, 4);
-          pushFeed(st2, { from: 'me', type: 'daily', emoji: '💌', text: 'Du hast die Frage des Tages beantwortet' });
+          pushFeed(st2, { from: 'me', type: 'daily', icon: 'mailHeart', text: 'Du hast die Frage des Tages beantwortet' });
           commit('daily');
           sendEvent('daily', { day: dd.day, q: dd.q, answer: text });
           fx('love');
@@ -339,9 +825,209 @@ export function render(root, ctx) {
     });
   }
 
+  /* Eigener Nest-Wunsch */
+  function openWishSheet() {
+    sheet({
+      title: 'Eigener Wunsch',
+      body: `
+        <input class="input" data-txt maxlength="70" placeholder="z.B. Ein Fenster mit Blick auf Bäume">
+        <div class="section-label" style="margin:14px 4px 8px">Bild dazu</div>
+        <div class="wish-icons" data-icons>
+          ${['nest', 'roomLight', 'roomPlant', 'roomBooks', 'roomMusic', 'roomPet', 'roomWater',
+            'roomCity', 'roomNature', 'coffee', 'roomSport', 'sparkle']
+            .map((n, i) => `<button class="wish-ic ${i === 0 ? 'on' : ''}" data-ic="${n}">${icon(n, { size: 24 })}</button>`).join('')}
+        </div>
+        <button class="btn btn-primary btn-block" data-save style="margin-top:14px">Hinzufügen</button>`,
+      onMount(body) {
+        const t = body.querySelector('[data-txt]');
+        let pick = 'nest';
+        t.focus();
+        body.querySelectorAll('[data-ic]').forEach((b) => {
+          b.onclick = () => {
+            pick = b.dataset.ic;
+            body.querySelectorAll('[data-ic]').forEach((x) => x.classList.toggle('on', x === b));
+          };
+        });
+        body.querySelector('[data-save]').onclick = () => {
+          const text = t.value.trim();
+          if (!text) { toast('Ein paar Worte brauchen wir'); return; }
+          setNestWeight({ text, icon: pick, cat: 'Eigenes' }, 2);
+          fx('pop');
+          closeSheet();
+          paint();
+        };
+      }
+    });
+  }
+
+  /* Neue Abstimmung */
+  function openPollSheet(tpl = null) {
+    const rows = tpl ? tpl.opts.map((o) => o.label) : ['', ''];
+    sheet({
+      title: tpl ? 'Abstimmung' : 'Neue Abstimmung',
+      body: `
+        <input class="input" data-q maxlength="110" placeholder="Was machen wir heute Abend?"
+          value="${esc(tpl?.q || '')}">
+        <div class="section-label" style="margin:14px 4px 8px">Zur Auswahl</div>
+        <div data-opts>
+          ${rows.map((v, i) => optInput(v, i)).join('')}
+        </div>
+        <button class="btn btn-ghost btn-block" data-add style="margin-top:6px">${icon('plus', { size: 15 })} Option</button>
+        <p class="tiny muted" style="margin:12px 4px">Du stimmst gleich mit ab. Das Ergebnis öffnet sich, wenn beide gewählt haben.</p>
+        <button class="btn btn-primary btn-block" data-save>Abstimmung schicken</button>`,
+      onMount(body) {
+        const q = body.querySelector('[data-q]');
+        const opts = body.querySelector('[data-opts]');
+        if (!tpl) q.focus();
+
+        body.querySelector('[data-add]').onclick = () => {
+          const n = opts.children.length;
+          if (n >= 6) { toast('Sechs reichen'); return; }
+          opts.insertAdjacentHTML('beforeend', optInput('', n));
+          opts.lastElementChild.querySelector('input').focus();
+        };
+
+        body.querySelector('[data-save]').onclick = () => {
+          const question = q.value.trim();
+          const list = [...opts.querySelectorAll('input')]
+            .map((i, n) => ({ k: tpl?.opts[n]?.k || `o${n}`, label: i.value.trim(), icon: tpl?.opts[n]?.icon || 'ballot' }))
+            .filter((o) => o.label);
+          if (!question) { toast('Eine Frage fehlt noch'); return; }
+          if (list.length < 2) { toast('Mindestens zwei Optionen'); return; }
+          const poll = createPoll(question, list);
+          closeSheet();
+          if (poll) { activeSeg = 'vote'; paint(); }
+        };
+      }
+    });
+  }
+
+  const optInput = (v, i) => `<div class="opt-row">
+    <span class="opt-n">${i + 1}</span>
+    <input class="input" maxlength="56" value="${esc(v)}" placeholder="Option ${i + 1}">
+  </div>`;
+
+  /* Etwas zum Bewerten */
+  function openRateSheet() {
+    sheet({
+      title: 'Zum Bewerten',
+      body: `
+        <input class="input" data-title maxlength="90" placeholder="Was ist es? z.B. „Song von gestern Abend“">
+        <input class="input" data-url maxlength="400" style="margin-top:10px"
+          placeholder="Link einfügen (Spotify, YouTube, egal) — optional" inputmode="url">
+        <input class="input" data-note maxlength="140" style="margin-top:10px" placeholder="Ein Satz dazu — optional">
+        <p class="tiny muted" style="margin:12px 4px">Gleich gibst du deine Note und tippst, was dein Mensch sagt.</p>
+        <button class="btn btn-primary btn-block" data-save>Weiter</button>`,
+      onMount(body) {
+        const title = body.querySelector('[data-title]');
+        const url = body.querySelector('[data-url]');
+        const note = body.querySelector('[data-note]');
+        title.focus();
+        // Aus dem Link lässt sich oft schon der Titel erahnen
+        url.onblur = () => {
+          if (title.value.trim() || !url.value.trim()) return;
+          const k = kindOf(url.value);
+          title.value = k === 'song' ? 'Ein Song' : k === 'film' ? 'Ein Video' : 'Ein Link';
+        };
+        body.querySelector('[data-save]').onclick = () => {
+          const t = title.value.trim() || 'Ohne Titel';
+          const entry = createRate({ title: t, url: url.value.trim(), note: note.value.trim() });
+          closeSheet();
+          if (entry) setTimeout(() => openScoreSheet(entry.id), 260);
+        };
+      }
+    });
+  }
+
+  /* Note geben und tippen */
+  function openScoreSheet(id) {
+    const st = get();
+    const e = st.rates.find((x) => x.id === id);
+    if (!e) return;
+    const p = st.partner;
+    let score = 7, guess = 7;
+
+    sheet({
+      title: e.title,
+      body: `
+        ${e.url ? `<a class="rate-link" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">
+          ${icon('link', { size: 14 })} ${esc(prettyUrl(e.url))}</a>` : ''}
+        ${e.note ? `<div class="rate-note" style="margin-bottom:14px">„${esc(e.note)}“</div>` : ''}
+
+        <div class="score-block">
+          <div class="score-h">${icon('dial', { size: 17 })} Deine Note</div>
+          <div class="score-val" data-out-a>7</div>
+          <div class="score-dots" data-pick="a">
+            ${[...Array(10)].map((_, i) => `<button class="sd ${i === 6 ? 'on' : ''}" data-v="${i + 1}">${i + 1}</button>`).join('')}
+          </div>
+        </div>
+
+        <div class="score-block them">
+          <div class="score-h">${icon('guess', { size: 17 })} Was sagt ${esc(p?.name || 'dein Mensch')}?</div>
+          <div class="score-val" data-out-b>7</div>
+          <div class="score-dots" data-pick="b">
+            ${[...Array(10)].map((_, i) => `<button class="sd ${i === 6 ? 'on' : ''}" data-v="${i + 1}">${i + 1}</button>`).join('')}
+          </div>
+        </div>
+
+        <p class="tiny muted" style="margin:14px 4px">Beides zusammen — danach lässt sich nichts mehr anpassen.</p>
+        <button class="btn btn-love btn-block" data-save>Abgeben</button>`,
+      onMount(body) {
+        const wire = (which) => {
+          const row = body.querySelector(`[data-pick="${which}"]`);
+          const out = body.querySelector(which === 'a' ? '[data-out-a]' : '[data-out-b]');
+          row.querySelectorAll('.sd').forEach((b) => {
+            b.onclick = () => {
+              const v = Number(b.dataset.v);
+              if (which === 'a') score = v; else guess = v;
+              out.textContent = v;
+              row.querySelectorAll('.sd').forEach((x) => x.classList.toggle('on', Number(x.dataset.v) <= v));
+              haptic(6);
+              fx('tap');
+            };
+          });
+          // Startzustand: alles bis 7 gefüllt
+          row.querySelectorAll('.sd').forEach((x) => x.classList.toggle('on', Number(x.dataset.v) <= 7));
+        };
+        wire('a');
+        wire('b');
+
+        body.querySelector('[data-save]').onclick = () => {
+          const res = submitRate(id, score, guess);
+          closeSheet();
+          if (res?.fresh) {
+            toast(`${res.myPts} von 10 Punkten`, res.myPts >= 8 ? 'trophy' : 'dial');
+          } else if (res) {
+            toast(`Abgelegt. Warten auf ${esc(p?.name || 'den anderen')}.`, 'lock');
+          }
+          activeSeg = 'rate';
+          paint();
+        };
+      }
+    });
+  }
+
+  /* ── Wetter holen ── */
+  async function loadWeather(force = false) {
+    const st = get();
+    const mine = st.me.place, theirs = st.partner?.place;
+    if (!mine && !theirs) return;
+    if (!force && Date.now() - wx.at < 10 * 60 * 1000) return;
+    wx.at = Date.now();
+    const [a, b] = await Promise.all([
+      mine ? forecast(mine.lat, mine.lon, { fresh: force }) : null,
+      theirs ? forecast(theirs.lat, theirs.lon, { fresh: force }) : null
+    ]);
+    wx.mine = a; wx.theirs = b;
+    // Ohne Netz soll die Karte nicht ewig „lädt …“ sagen
+    wx.failed = (!!mine && !a) || (!!theirs && !b);
+    paint();
+  }
+
   paint();
+  loadWeather();
   const unsub = subscribe(paint);
-  const timer = setInterval(paint, 30_000);
+  const timer = setInterval(() => { paint(); loadWeather(); }, 30_000);
   return () => {
     unsub();
     clearInterval(timer);

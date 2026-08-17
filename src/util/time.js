@@ -1,4 +1,4 @@
-/** Zeit, Zeitzonen und „vor 3 Minuten". Wichtig, wenn ihr Stunden trennt. */
+/** Zeit, Zeitzonen und „vor 3 Minuten“. Wichtig, wenn ihr Stunden trennt. */
 
 export const now = () => Date.now();
 export const MIN = 60_000, HOUR = 3_600_000, DAY = 86_400_000;
@@ -27,7 +27,7 @@ export function localTimeIn(tz, ts = Date.now()) {
   }
 }
 
-/** Stunde 0–23 in einer Zeitzone — für „schläft wahrscheinlich". */
+/** Stunde 0–23 in einer Zeitzone — für „schläft wahrscheinlich“. */
 export function hourIn(tz, ts = Date.now()) {
   try {
     return Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false })

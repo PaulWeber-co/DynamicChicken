@@ -4,45 +4,45 @@
  */
 
 export const MOODS = [
-  { key: 'gluecklich', emoji: '🥰', label: 'Glücklich',   pet: 'love',    color: 'var(--love-soft)',   line: 'strahlt bis in die Federspitzen' },
-  { key: 'verliebt',   emoji: '💗', label: 'Verliebt',    pet: 'love',    color: 'var(--love-soft)',   line: 'hat Herzchen in den Augen' },
-  { key: 'ruhig',      emoji: '🍵', label: 'Ruhig',       pet: 'happy',   color: 'var(--calm-soft)',   line: 'sitzt gemütlich im Nest' },
-  { key: 'muede',      emoji: '🥱', label: 'Müde',        pet: 'sleepy',  color: 'var(--calm-soft)',   line: 'gähnt herzhaft' },
-  { key: 'gestresst',  emoji: '🌪️', label: 'Gestresst',   pet: 'dizzy',   color: 'var(--accent-soft)', line: 'flattert etwas hektisch' },
-  { key: 'traurig',    emoji: '🥺', label: 'Traurig',     pet: 'sad',     color: 'var(--calm-soft)',   line: 'lässt die Flügel hängen' },
-  { key: 'vermisse',   emoji: '🫂', label: 'Vermisse dich',pet: 'sad',    color: 'var(--love-soft)',   line: 'schaut aus dem Fenster' },
-  { key: 'aufgeregt',  emoji: '🎉', label: 'Aufgeregt',   pet: 'excited', color: 'var(--grow-soft)',   line: 'hüpft im Kreis' },
-  { key: 'stolz',      emoji: '😌', label: 'Stolz',       pet: 'proud',   color: 'var(--grow-soft)',   line: 'plustert sich auf' },
-  { key: 'hungrig',    emoji: '🍜', label: 'Hungrig',     pet: 'hungry',  color: 'var(--accent-soft)', line: 'späht nach Körnern' },
-  { key: 'krank',      emoji: '🤒', label: 'Kränklich',   pet: 'sad',     color: 'var(--calm-soft)',   line: 'braucht Hühnersuppe' },
-  { key: 'albern',     emoji: '🤪', label: 'Albern',      pet: 'excited', color: 'var(--grow-soft)',   line: 'macht Quatsch' }
+  { key: 'gluecklich', icon: 'moodHappy',    label: 'Glücklich',     pet: 'love',    tone: 'love',   line: 'strahlt bis in die Federspitzen' },
+  { key: 'verliebt',   icon: 'moodLove',     label: 'Verliebt',      pet: 'love',    tone: 'love',   line: 'hat Herzchen in den Augen' },
+  { key: 'ruhig',      icon: 'moodCalm',     label: 'Ruhig',         pet: 'happy',   tone: 'calm',   line: 'sitzt gemütlich im Nest' },
+  { key: 'muede',      icon: 'moodTired',    label: 'Müde',          pet: 'sleepy',  tone: 'calm',   line: 'gähnt herzhaft' },
+  { key: 'gestresst',  icon: 'moodStressed', label: 'Gestresst',     pet: 'dizzy',   tone: 'warm',   line: 'flattert etwas hektisch' },
+  { key: 'traurig',    icon: 'moodSad',      label: 'Traurig',       pet: 'sad',     tone: 'calm',   line: 'lässt die Flügel hängen' },
+  { key: 'vermisse',   icon: 'moodMissing',  label: 'Vermisse dich', pet: 'sad',     tone: 'love',   line: 'schaut aus dem Fenster' },
+  { key: 'aufgeregt',  icon: 'moodExcited',  label: 'Aufgeregt',     pet: 'excited', tone: 'warm',   line: 'hüpft im Kreis' },
+  { key: 'stolz',      icon: 'moodProud',    label: 'Stolz',         pet: 'proud',   tone: 'warm',   line: 'plustert sich auf' },
+  { key: 'hungrig',    icon: 'moodHungry',   label: 'Hungrig',       pet: 'hungry',  tone: 'warm',   line: 'späht nach Körnern' },
+  { key: 'krank',      icon: 'moodSick',     label: 'Kränklich',     pet: 'sad',     tone: 'calm',   line: 'braucht Hühnersuppe' },
+  { key: 'albern',     icon: 'moodSilly',    label: 'Albern',        pet: 'excited', tone: 'warm',   line: 'macht Quatsch' }
 ];
 
 export const ACTIVITIES = [
-  { key: 'arbeit',   emoji: '💻', label: 'Arbeiten' },
-  { key: 'uni',      emoji: '📚', label: 'Lernen' },
-  { key: 'essen',    emoji: '🍝', label: 'Essen' },
-  { key: 'sport',    emoji: '🏃', label: 'Sport' },
-  { key: 'unterwegs',emoji: '🚃', label: 'Unterwegs' },
-  { key: 'serie',    emoji: '📺', label: 'Serie' },
-  { key: 'draussen', emoji: '🌤️', label: 'Draußen' },
-  { key: 'chillen',  emoji: '🛋️', label: 'Chillen' },
-  { key: 'schlafen', emoji: '😴', label: 'Schlafen' },
-  { key: 'freunde',  emoji: '🍻', label: 'Freunde' },
-  { key: 'kochen',   emoji: '🍳', label: 'Kochen' },
-  { key: 'duschen',  emoji: '🚿', label: 'Duschen' }
+  { key: 'arbeit',    icon: 'actWork',    label: 'Arbeiten' },
+  { key: 'uni',       icon: 'actStudy',   label: 'Lernen' },
+  { key: 'essen',     icon: 'actEat',     label: 'Essen' },
+  { key: 'sport',     icon: 'actSport',   label: 'Sport' },
+  { key: 'unterwegs', icon: 'actTravel',  label: 'Unterwegs' },
+  { key: 'serie',     icon: 'actShow',    label: 'Serie' },
+  { key: 'draussen',  icon: 'actOutside', label: 'Draußen' },
+  { key: 'chillen',   icon: 'actChill',   label: 'Chillen' },
+  { key: 'schlafen',  icon: 'actSleep',   label: 'Schlafen' },
+  { key: 'freunde',   icon: 'actFriends', label: 'Freunde' },
+  { key: 'kochen',    icon: 'actCook',    label: 'Kochen' },
+  { key: 'duschen',   icon: 'actShower',  label: 'Duschen' }
 ];
 
 /** Kleine Gesten — das Herzstück der Fernbeziehung. */
 export const NUDGES = [
-  { key: 'knuddel',   emoji: '🫂', label: 'Knuddeln',       text: 'schickt eine feste Umarmung',  self: 'Umarmung geschickt',        bond: 3 },
-  { key: 'kuss',      emoji: '😘', label: 'Kuss',           text: 'schickt einen Kuss',           self: 'Kuss geschickt',            bond: 3 },
-  { key: 'denkan',    emoji: '💭', label: 'Denk an dich',   text: 'denkt gerade an dich',         self: '„Denk an dich" geschickt',  bond: 2 },
-  { key: 'stolz',     emoji: '🏅', label: 'Bin stolz',      text: 'ist stolz auf dich',           self: '„Bin stolz auf dich"',      bond: 4 },
-  { key: 'kaffee',    emoji: '☕️', label: 'Kaffee',         text: 'spendiert dir einen Kaffee',   self: 'Kaffee spendiert',          bond: 2 },
-  { key: 'gutenacht', emoji: '🌙', label: 'Gute Nacht',     text: 'wünscht dir eine gute Nacht',  self: 'Gute Nacht gewünscht',      bond: 3 },
-  { key: 'guten',     emoji: '🌞', label: 'Guten Morgen',   text: 'wünscht dir einen guten Morgen', self: 'Guten Morgen gewünscht',  bond: 3 },
-  { key: 'daumen',    emoji: '🍀', label: 'Daumen drücken', text: 'drückt dir die Daumen',        self: 'Daumen gedrückt',           bond: 2 }
+  { key: 'knuddel',   icon: 'nudgeHug',     label: 'Knuddeln',       text: 'schickt eine feste Umarmung',    self: 'Umarmung geschickt',       bond: 3, act: 'hop' },
+  { key: 'kuss',      icon: 'nudgeKiss',    label: 'Kuss',           text: 'schickt einen Kuss',             self: 'Kuss geschickt',           bond: 3, act: 'nod' },
+  { key: 'denkan',    icon: 'nudgeThink',   label: 'Denk an dich',   text: 'denkt gerade an dich',           self: '„Denk an dich“ geschickt', bond: 2, act: 'think' },
+  { key: 'stolz',     icon: 'nudgeProud',   label: 'Bin stolz',      text: 'ist stolz auf dich',             self: '„Bin stolz auf dich“',     bond: 4, act: 'celebrate' },
+  { key: 'kaffee',    icon: 'nudgeCoffee',  label: 'Kaffee',         text: 'spendiert dir einen Kaffee',     self: 'Kaffee spendiert',         bond: 2, act: 'peck' },
+  { key: 'gutenacht', icon: 'nudgeNight',   label: 'Gute Nacht',     text: 'wünscht dir eine gute Nacht',    self: 'Gute Nacht gewünscht',     bond: 3, act: 'nod' },
+  { key: 'guten',     icon: 'nudgeMorning', label: 'Guten Morgen',   text: 'wünscht dir einen guten Morgen', self: 'Guten Morgen gewünscht',   bond: 3, act: 'stretch' },
+  { key: 'daumen',    icon: 'nudgeLuck',    label: 'Daumen drücken', text: 'drückt dir die Daumen',          self: 'Daumen gedrückt',          bond: 2, act: 'wave' }
 ];
 
 /** Fragen des Tages — beide antworten, dann öffnet sich beides gleichzeitig. */

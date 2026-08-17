@@ -4,6 +4,7 @@
  */
 
 import { $ } from '../util/dom.js';
+import { icon } from './icons.js';
 import { haptic } from '../util/feedback.js';
 
 let openSheet = null;
@@ -29,7 +30,7 @@ export function sheet(o = {}) {
     <div class="sheet-grab" data-grab></div>
     ${o.title === null ? '' : `<div class="sheet-head">
       <div class="sheet-title">${o.title || ''}</div>
-      <button class="sheet-x" data-x aria-label="Schließen">✕</button>
+      <button class="sheet-x" data-x aria-label="Schließen">${icon('close', { size: 14 })}</button>
     </div>`}
     <div class="sheet-body" data-body>${o.body || ''}</div>`;
 

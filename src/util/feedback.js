@@ -5,6 +5,8 @@
  * dadurch komplett asset-frei und funktioniert offline ab der ersten Sekunde.
  */
 
+import { icon } from '../ui/icons.js';
+
 let audioCtx = null;
 let prefs = { haptics: true, sound: true };
 
@@ -72,6 +74,7 @@ export const haptic = (pattern = 8) => {
 
 /* ── Konfetti / Herzchen ────────────────────────────────── */
 
+
 let fxLayer = null;
 function layer() {
   if (!fxLayer || !fxLayer.isConnected) {
@@ -83,11 +86,11 @@ function layer() {
 }
 
 /**
- * Lässt Emojis von einem Punkt (oder einem Element) aufsteigen.
- * @param {string[]} emojis
+ * Lässt kleine Icons von einem Punkt (oder einem Element) aufsteigen.
+ * @param {string[]} names  Icon-Namen aus ui/icons.js
  * @param {object} o { x, y, from, count, spread, rise, duration }
  */
-export function burst(emojis = ['💛'], o = {}) {
+export function burst(names = ['statJoy'], o = {}) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const host = layer();
   let { x, y } = o;
@@ -107,10 +110,9 @@ export function burst(emojis = ['💛'], o = {}) {
   for (let i = 0; i < count; i++) {
     const b = document.createElement('span');
     b.className = 'fx-bit';
-    b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    b.innerHTML = icon(names[Math.floor(Math.random() * names.length)], { size: 16 + Math.round(Math.random() * 16) });
     b.style.left = `${x}px`;
     b.style.top = `${y}px`;
-    b.style.fontSize = `${14 + Math.random() * 16}px`;
     b.style.setProperty('--fx-x', `${(Math.random() - 0.5) * spread}px`);
     b.style.setProperty('--fx-y', `${-rise - Math.random() * 110}px`);
     b.style.setProperty('--fx-r', `${(Math.random() - 0.5) * 220}deg`);
@@ -122,16 +124,15 @@ export function burst(emojis = ['💛'], o = {}) {
 }
 
 /** Großer Moment: Regen von oben. */
-export function confetti(emojis = ['💛', '🐥', '✨', '💗', '🌽']) {
+export function confetti(names = ['statJoy', 'sparkle', 'grain', 'egg', 'feather']) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const host = layer();
   for (let i = 0; i < 26; i++) {
     const b = document.createElement('span');
     b.className = 'fx-bit';
-    b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    b.innerHTML = icon(names[Math.floor(Math.random() * names.length)], { size: 16 + Math.round(Math.random() * 18) });
     b.style.left = `${Math.random() * 100}vw`;
     b.style.top = `-30px`;
-    b.style.fontSize = `${16 + Math.random() * 18}px`;
     b.style.setProperty('--fx-x', `${(Math.random() - 0.5) * 160}px`);
     b.style.setProperty('--fx-y', `${window.innerHeight + 80}px`);
     b.style.setProperty('--fx-r', `${(Math.random() - 0.5) * 720}deg`);

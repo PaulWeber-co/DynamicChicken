@@ -1,16 +1,17 @@
 /** Kurze Rückmeldungen am unteren Rand. */
 
 import { $ } from '../util/dom.js';
+import { icon } from './icons.js';
 
 let root = null;
 
-export function toast(text, emoji = '') {
+export function toast(text, iconName = '') {
   root ||= $('#toast-root');
   if (!root) return;
 
   const t = document.createElement('div');
   t.className = 'toast';
-  t.innerHTML = `${emoji ? `<span>${emoji}</span>` : ''}<span>${text}</span>`;
+  t.innerHTML = `${iconName ? icon(iconName, { size: 20 }) : ''}<span>${text}</span>`;
   root.appendChild(t);
 
   // Höchstens drei gleichzeitig — sonst wird es eine Wand.

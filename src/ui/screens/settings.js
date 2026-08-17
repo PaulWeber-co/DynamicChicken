@@ -1,25 +1,28 @@
 /** Mehr — Verbinden, Einstellungen, Daten. */
 
 import { esc } from '../../util/dom.js';
+import { icon } from '../icons.js';
 import { fx, confetti, setFeedbackPrefs } from '../../util/feedback.js';
 import { get, commit, subscribe, exportJson, importJson, reset } from '../../state/store.js';
-import { setMode, pairWith, unpair, syncStatus, buildCarrierCode, consumeCarrierCode, publishProfile } from '../../sync/index.js';
+import { setMode, pairWith, unpair, syncStatus, buildCarrierCode, consumeCarrierCode,
+  publishProfile, myInvite, inviteLink, isEncrypted } from '../../sync/index.js';
 import { guessTz, relTime } from '../../util/time.js';
 import CONFIG from '../../../config.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
+import { openPlaceSheet } from '../placeSheet.js';
 
 const MODES = [
   {
-    id: 'solo', emoji: '🐣', title: 'Solo',
+    id: 'solo', icon: 'tabPet', title: 'Solo',
     sub: 'Ein simulierter Mensch antwortet dir. Kein Server, sofort spielbar.'
   },
   {
-    id: 'cloud', emoji: '☁️', title: 'Cloud (live)',
+    id: 'cloud', icon: 'cloudSync', title: 'Cloud (live)',
     sub: 'Echtzeit über eure eigene Firebase-Datenbank. Braucht einmal fünf Minuten Einrichtung.'
   },
   {
-    id: 'post', emoji: '🕊️', title: 'Brieftaube',
+    id: 'post', icon: 'dove', title: 'Brieftaube',
     sub: 'Codes per WhatsApp hin und her. Völlig serverlos, dafür zeitversetzt.'
   }
 ];
@@ -28,6 +31,8 @@ export function render(root, ctx) {
   function paint() {
     const s = get();
     const st = syncStatus();
+    const invite = myInvite();
+    const enc = isEncrypted();
 
     root.innerHTML = `
       <div class="title-lg">Mehr</div>
@@ -36,33 +41,46 @@ export function render(root, ctx) {
       <div class="section-label">Du</div>
       <div class="list">
         <button class="li" data-edit-name>
-          <div class="li-ico">🙋</div>
+          <div class="li-ico">${icon('person', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Dein Name</div>
             <div class="li-sub">Sieht nur dein Mensch</div></div>
           <span class="li-val">${esc(s.me.name || 'nicht gesetzt')}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-edit-tz>
-          <div class="li-ico">🕑</div>
+          <div class="li-ico">${icon('clock', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Zeitzone</div>
             <div class="li-sub">Damit ihr die Uhrzeit des anderen seht</div></div>
           <span class="li-val">${esc(s.me.tz)}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
+        </button>
+        <button class="li" data-edit-place>
+          <div class="li-ico">${icon('pin', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Dein Ort</div>
+            <div class="li-sub">Nur fürs Wetter — grob gerundet, keine Adresse</div></div>
+          <span class="li-val">${esc(s.me.place?.name || 'nicht gesetzt')}</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
       <div class="section-label">Verbindung</div>
       <div class="card code-card">
-        <div class="code-label">Dein Knuddl-Code</div>
-        <div class="code-big" data-mycode>${esc(s.me.code)}</div>
+        <div class="code-label">Deine Einladung</div>
+        <div class="code-big" data-mycode>${esc(invite)}</div>
         <div class="row" style="gap:8px">
           <button class="btn btn-line btn-sm grow" data-copy-code>Kopieren</button>
           <button class="btn btn-primary btn-sm grow" data-share-code>Teilen</button>
         </div>
-        <p class="tiny muted center" style="margin:12px 0 0">
+        <div class="crypt-note ${enc ? 'ok' : 'warn'}">
+          ${icon(enc ? 'lock' : 'warn', { size: 15 })}
+          <span>${enc
+            ? 'Enthält euren Schlüssel. Schick sie nur deinem Menschen — wer sie hat, kann mitlesen.'
+            : 'Dieser Browser kann nicht verschlüsseln. Die Verbindung läuft im Klartext.'}</span>
+        </div>
+        <p class="tiny muted center" style="margin:10px 0 0">
           ${s.partner
             ? `Verbunden mit <b>${esc(s.partner.name)}</b> (${esc(s.partner.code)})${s.partner.lastSeen ? ` · zuletzt ${relTime(s.partner.lastSeen)}` : ''}`
-            : 'Schick ihn deinem Menschen — oder gib seinen/ihren Code unten ein.'}
+            : 'Schick sie deinem Menschen — oder füge unten seine/ihre ein.'}
         </p>
       </div>
 
@@ -70,17 +88,20 @@ export function render(root, ctx) {
         <button class="btn btn-line btn-block" data-unpair style="margin-top:12px">Verbindung lösen</button>
       ` : `
         <div class="card" style="margin-top:12px">
-          <label class="field-label">Code deines Menschen</label>
-          <input class="input input-code" data-pair-input maxlength="6" placeholder="ABC123"
-                 autocapitalize="characters" autocomplete="off" spellcheck="false">
+          <label class="field-label">Einladung deines Menschen</label>
+          <textarea class="input" data-pair-input rows="2" placeholder="ABC123-K7F2M9QX4R8TWE7HJ2NP"
+                    autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea>
           <button class="btn btn-primary btn-block" data-pair style="margin-top:12px">Verbinden</button>
+          <p class="tiny muted" style="margin:10px 4px 0">
+            Ganze Nachricht oder Link einfügen reicht — der Rest wird herausgesucht.
+          </p>
         </div>
       `}
 
       <div class="section-label">Wie synchronisiert ihr?</div>
       <div class="mode-list">
         ${MODES.map((m) => `<button class="card mode ${s.settings.syncMode === m.id ? 'on' : ''}" data-mode="${m.id}">
-          <div class="mode-e">${m.emoji}</div>
+          <div class="mode-e">${icon(m.icon, { size: 26 })}</div>
           <div class="grow">
             <div class="li-title">${esc(m.title)}</div>
             <div class="li-sub">${esc(m.sub)}</div>
@@ -100,56 +121,57 @@ export function render(root, ctx) {
 
       ${s.settings.syncMode === 'solo' ? soloPanel(s) : ''}
       ${s.settings.syncMode === 'cloud' ? cloudPanel(s) : ''}
+      ${s.settings.syncMode === 'cloud' ? cryptPanel(enc, !!s.partner) : ''}
       ${s.settings.syncMode === 'post' ? carrierPanel(s) : ''}
 
       <div class="section-label">App</div>
       <div class="list">
         <button class="li" data-toggle="haptics">
-          <div class="li-ico">📳</div>
+          <div class="li-ico">${icon('handTap', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Vibration</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.haptics}"></span>
         </button>
         <button class="li" data-toggle="sound">
-          <div class="li-ico">🔈</div>
+          <div class="li-ico">${icon('gameBeat', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Töne</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.sound}"></span>
         </button>
         <button class="li" data-notify>
-          <div class="li-ico">🔔</div>
+          <div class="li-ico">${icon('bell', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Mitteilungen</div>
             <div class="li-sub">Wenn die App im Hintergrund läuft</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.notify}"></span>
         </button>
         <button class="li" data-theme>
-          <div class="li-ico">🌗</div>
+          <div class="li-ico">${icon('careSleep', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Erscheinungsbild</div></div>
           <span class="li-val">${({ auto: 'Automatisch', light: 'Hell', dark: 'Dunkel' })[s.settings.theme]}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
       <div class="section-label">Daten</div>
       <div class="list">
         <button class="li" data-export>
-          <div class="li-ico">📤</div>
+          <div class="li-ico">${icon('upload', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Sicherung exportieren</div>
             <div class="li-sub">Alles liegt nur auf diesem Gerät</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-import>
-          <div class="li-ico">📥</div>
+          <div class="li-ico">${icon('download', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Sicherung einlesen</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-reset>
-          <div class="li-ico">🧹</div>
+          <div class="li-ico">${icon('broom', { size: 19 })}</div>
           <div class="grow"><div class="li-title" style="color:var(--warn)">Alles zurücksetzen</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
       <div class="card about">
-        <div class="about-title">🐔 Knuddl</div>
+        <div class="about-title">${icon('tabPet', { size: 22 })}<span>Knuddl</span></div>
         <p class="tiny muted" style="margin:6px 0 0">
           Eine statische Seite ohne Backend. Der Spielstand liegt in deinem Browser,
           nicht bei uns. Zum Startbildschirm hinzufügen macht daraus eine App —
@@ -164,14 +186,33 @@ export function render(root, ctx) {
   /* ── Solo ── */
   function soloPanel(s) {
     return `<button class="li card" data-solo-name style="margin-top:12px">
-      <div class="li-ico">🐣</div>
+      <div class="li-ico">${icon('tabPet', { size: 19 })}</div>
       <div class="grow">
         <div class="li-title">Name des simulierten Menschen</div>
         <div class="li-sub">Nur fürs Ausprobieren — ersetzt niemanden</div>
       </div>
       <span class="li-val">${esc(s.settings.soloName || 'Mila')}</span>
-      <span class="li-chev">›</span>
+      <span class="li-chev">${icon('chevron', { size: 15 })}</span>
     </button>`;
+  }
+
+  /* ── Was die Datenbank sieht ── */
+  function cryptPanel(enc, linked) {
+    return `<div class="card" style="margin-top:12px">
+      <div class="li-title row" style="gap:7px;margin-bottom:6px">
+        ${icon(enc ? 'lock' : 'warn', { size: 19 })}
+        ${enc ? 'Ende-zu-Ende-verschlüsselt' : 'Nicht verschlüsselt'}
+      </div>
+      <p class="tiny muted" style="margin:0">
+        ${enc
+          ? `Euer Schlüssel entsteht aus der Einladung und wird nie hochgeladen.
+             In der Datenbank liegt nur Chiffrat an einer Stelle, die aus dem
+             Schlüssel abgeleitet ist — ohne eure Einladung findet man sie nicht
+             und könnte sie auch nicht lesen.`
+          : `Ohne gemeinsames Geheimnis läuft alles im Klartext. Löst die
+             Verbindung und verbindet euch neu über die Einladung.`}
+      </p>
+    </div>`;
   }
 
   /* ── Cloud ── */
@@ -194,7 +235,7 @@ export function render(root, ctx) {
   /* ── Brieftaube ── */
   function carrierPanel(s) {
     return `<div class="card" style="margin-top:12px">
-      <div class="li-title" style="margin-bottom:4px">🕊️ Brieftaube</div>
+      <div class="li-title row" style="gap:7px;margin-bottom:4px">${icon('dove', { size: 20 })}Brieftaube</div>
       <p class="tiny muted" style="margin:0 0 14px">
         Erzeuge einen Code, schick ihn per Messenger, dein Mensch fügt ihn ein — und umgekehrt.
         Doppelte oder verlorene Codes machen nichts aus, der nächste holt alles nach.
@@ -224,10 +265,12 @@ export function render(root, ctx) {
       }
     });
 
-    q('[data-copy-code]').onclick = () => copy(get().me.code, 'Code kopiert');
+    q('[data-edit-place]').onclick = () => openPlaceSheet(() => paint());
+
+    q('[data-copy-code]').onclick = () => copy(myInvite(), 'Einladung kopiert');
     q('[data-share-code]').onclick = () => shareText(
-      `Hol dir Knuddl 🐔 und verbinde dich mit mir: ${get().me.code}\n${location.href.split('#')[0]}`,
-      'Knuddl-Code'
+      `Hol dir Knuddl und verbinde dich mit mir:\n${inviteLink()}`,
+      'Knuddl-Einladung'
     );
 
     const pairBtn = q('[data-pair]');
@@ -236,12 +279,17 @@ export function render(root, ctx) {
       try {
         const p = await pairWith(inp.value);
         fx('yay');
-        confetti(['💛', '🐥', '💗']);
-        toast(`Verbunden mit ${p.code}`, '🤝');
+        confetti(['statJoy', 'egg', 'sparkle']);
+        toast(p.encrypted
+          ? `Verbunden mit ${p.code} — verschlüsselt`
+          : `Verbunden mit ${p.code}, aber ohne Schlüssel`, p.encrypted ? 'lock' : 'warn');
+        if (!p.encrypted) {
+          setTimeout(() => toast('Nutzt lieber die vollständige Einladung', 'info'), 2600);
+        }
         paint();
       } catch (err) {
         fx('fail');
-        toast(err.message, '⚠️');
+        toast(err.message, 'warn');
       }
     };
 
@@ -280,7 +328,7 @@ export function render(root, ctx) {
       await setMode('cloud');
       const st = syncStatus();
       fx(st.status === 'error' ? 'fail' : 'yay');
-      toast(st.status === 'error' ? 'Datenbank nicht erreichbar' : 'Cloud verbunden', st.status === 'error' ? '⚠️' : '☁️');
+      toast(st.status === 'error' ? 'Datenbank nicht erreichbar' : 'Cloud verbunden', st.status === 'error' ? 'warn' : 'cloudSync');
       paint();
     };
 
@@ -321,15 +369,15 @@ export function render(root, ctx) {
             try {
               const res = await consumeCarrierCode(ta.value);
               fx('yay');
-              if (res.firstContact) confetti(['💛', '🐥', '💗']);
+              if (res.firstContact) confetti(['statJoy', 'egg', 'sparkle']);
               toast(res.firstContact
                 ? `Verbunden mit ${res.name}!`
-                : `${res.applied} Neuigkeit${res.applied === 1 ? '' : 'en'} von ${res.name}`, '🕊️');
+                : `${res.applied} Neuigkeit${res.applied === 1 ? '' : 'en'} von ${res.name}`, 'dove');
               closeSheet();
               paint();
             } catch (err) {
               fx('fail');
-              toast(err.message || 'Der Code ließ sich nicht lesen', '⚠️');
+              toast(err.message || 'Der Code ließ sich nicht lesen', 'warn');
             }
           };
         }
@@ -351,9 +399,9 @@ export function render(root, ctx) {
     q('[data-notify]').onclick = async () => {
       const s = get();
       if (s.settings.notify) { s.settings.notify = false; commit('settings'); paint(); return; }
-      if (typeof Notification === 'undefined') { toast('Dieser Browser kann das nicht', '🔕'); return; }
+      if (typeof Notification === 'undefined') { toast('Dieser Browser kann das nicht', 'bell'); return; }
       const perm = await Notification.requestPermission();
-      if (perm !== 'granted') { toast('Ohne Erlaubnis geht es leider nicht', '🔕'); return; }
+      if (perm !== 'granted') { toast('Ohne Erlaubnis geht es leider nicht', 'bell'); return; }
       s.settings.notify = true;
       commit('settings');
       fx('pop');
@@ -378,7 +426,7 @@ export function render(root, ctx) {
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       fx('pop');
-      toast('Sicherung heruntergeladen', '📤');
+      toast('Sicherung heruntergeladen', 'upload');
     };
 
     q('[data-import]').onclick = () => {
@@ -391,11 +439,11 @@ export function render(root, ctx) {
         try {
           importJson(await f.text());
           fx('yay');
-          toast('Sicherung eingelesen', '📥');
+          toast('Sicherung eingelesen', 'download');
           paint();
         } catch {
           fx('fail');
-          toast('Diese Datei konnte ich nicht lesen', '⚠️');
+          toast('Diese Datei konnte ich nicht lesen', 'warn');
         }
       };
       inp.click();
@@ -436,7 +484,7 @@ async function copy(text, msg) {
   try {
     await navigator.clipboard.writeText(text);
     fx('pop');
-    toast(msg, '📋');
+    toast(msg, 'copy');
   } catch {
     // Ältere Browser (und iOS ohne Nutzergeste) brauchen den Umweg
     const ta = document.createElement('textarea');
@@ -445,7 +493,7 @@ async function copy(text, msg) {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); toast(msg, '📋'); }
+    try { document.execCommand('copy'); toast(msg, 'copy'); }
     catch { toast('Kopieren ging nicht — bitte von Hand markieren'); }
     ta.remove();
   }

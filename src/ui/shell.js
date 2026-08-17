@@ -1,6 +1,7 @@
 /** Tab-Bar, Routing und das Einhängen der Screens. */
 
 import { $, esc } from '../util/dom.js';
+import { icon } from './icons.js';
 import { fx } from '../util/feedback.js';
 import { get, subscribe, on as onBus } from '../state/store.js';
 import { pendingCount } from '../games/index.js';
@@ -12,11 +13,11 @@ import * as shop from './screens/shop.js';
 import * as settings from './screens/settings.js';
 
 export const TABS = [
-  { id: 'home',  ico: '🐥', label: 'Knuddl', mod: home },
-  { id: 'us',    ico: '💞', label: 'Wir',    mod: us },
-  { id: 'games', ico: '🎮', label: 'Spiele', mod: games },
-  { id: 'shop',  ico: '🧺', label: 'Laden',  mod: shop },
-  { id: 'more',  ico: '⚙️', label: 'Mehr',   mod: settings }
+  { id: 'home',  ico: 'tabPet',  label: 'Knuddl', mod: home },
+  { id: 'us',    ico: 'tabUs',   label: 'Wir',    mod: us },
+  { id: 'games', ico: 'tabPlay', label: 'Spiele', mod: games },
+  { id: 'shop',  ico: 'tabShop', label: 'Laden',  mod: shop },
+  { id: 'more',  ico: 'tabMore', label: 'Mehr',   mod: settings }
 ];
 
 let currentTab = null;
@@ -91,7 +92,7 @@ function renderTabs() {
   if (!tabbarEl.childElementCount) {
     tabbarEl.innerHTML = TABS.map((t) => `
       <button class="tab" role="tab" data-tab="${t.id}" aria-selected="false">
-        <span class="tab-ico">${t.ico}</span>
+        <span class="tab-ico">${icon(t.ico, { size: 25 })}</span>
         <span class="tab-txt">${esc(t.label)}</span>
       </button>`).join('');
     tabbarEl.querySelectorAll('[data-tab]').forEach((b) => {
