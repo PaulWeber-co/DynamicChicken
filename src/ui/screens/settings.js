@@ -1,6 +1,7 @@
 /** Mehr — Verbinden, Einstellungen, Daten. */
 
 import { esc } from '../../util/dom.js';
+import { icon } from '../icons.js';
 import { fx, confetti, setFeedbackPrefs } from '../../util/feedback.js';
 import { get, commit, subscribe, exportJson, importJson, reset } from '../../state/store.js';
 import { setMode, pairWith, unpair, syncStatus, buildCarrierCode, consumeCarrierCode, publishProfile } from '../../sync/index.js';
@@ -11,15 +12,15 @@ import { sheet, closeSheet } from '../sheet.js';
 
 const MODES = [
   {
-    id: 'solo', emoji: '🐣', title: 'Solo',
+    id: 'solo', icon: 'tabPet', title: 'Solo',
     sub: 'Ein simulierter Mensch antwortet dir. Kein Server, sofort spielbar.'
   },
   {
-    id: 'cloud', emoji: '☁️', title: 'Cloud (live)',
+    id: 'cloud', icon: 'cloudSync', title: 'Cloud (live)',
     sub: 'Echtzeit über eure eigene Firebase-Datenbank. Braucht einmal fünf Minuten Einrichtung.'
   },
   {
-    id: 'post', emoji: '🕊️', title: 'Brieftaube',
+    id: 'post', icon: 'dove', title: 'Brieftaube',
     sub: 'Codes per WhatsApp hin und her. Völlig serverlos, dafür zeitversetzt.'
   }
 ];
@@ -36,18 +37,18 @@ export function render(root, ctx) {
       <div class="section-label">Du</div>
       <div class="list">
         <button class="li" data-edit-name>
-          <div class="li-ico">🙋</div>
+          <div class="li-ico">${icon('person', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Dein Name</div>
             <div class="li-sub">Sieht nur dein Mensch</div></div>
           <span class="li-val">${esc(s.me.name || 'nicht gesetzt')}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-edit-tz>
-          <div class="li-ico">🕑</div>
+          <div class="li-ico">${icon('clock', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Zeitzone</div>
             <div class="li-sub">Damit ihr die Uhrzeit des anderen seht</div></div>
           <span class="li-val">${esc(s.me.tz)}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
@@ -80,7 +81,7 @@ export function render(root, ctx) {
       <div class="section-label">Wie synchronisiert ihr?</div>
       <div class="mode-list">
         ${MODES.map((m) => `<button class="card mode ${s.settings.syncMode === m.id ? 'on' : ''}" data-mode="${m.id}">
-          <div class="mode-e">${m.emoji}</div>
+          <div class="mode-e">${icon(m.icon, { size: 26 })}</div>
           <div class="grow">
             <div class="li-title">${esc(m.title)}</div>
             <div class="li-sub">${esc(m.sub)}</div>
@@ -105,51 +106,51 @@ export function render(root, ctx) {
       <div class="section-label">App</div>
       <div class="list">
         <button class="li" data-toggle="haptics">
-          <div class="li-ico">📳</div>
+          <div class="li-ico">${icon('handTap', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Vibration</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.haptics}"></span>
         </button>
         <button class="li" data-toggle="sound">
-          <div class="li-ico">🔈</div>
+          <div class="li-ico">${icon('gameBeat', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Töne</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.sound}"></span>
         </button>
         <button class="li" data-notify>
-          <div class="li-ico">🔔</div>
+          <div class="li-ico">${icon('bell', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Mitteilungen</div>
             <div class="li-sub">Wenn die App im Hintergrund läuft</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.notify}"></span>
         </button>
         <button class="li" data-theme>
-          <div class="li-ico">🌗</div>
+          <div class="li-ico">${icon('careSleep', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Erscheinungsbild</div></div>
           <span class="li-val">${({ auto: 'Automatisch', light: 'Hell', dark: 'Dunkel' })[s.settings.theme]}</span>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
       <div class="section-label">Daten</div>
       <div class="list">
         <button class="li" data-export>
-          <div class="li-ico">📤</div>
+          <div class="li-ico">${icon('upload', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Sicherung exportieren</div>
             <div class="li-sub">Alles liegt nur auf diesem Gerät</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-import>
-          <div class="li-ico">📥</div>
+          <div class="li-ico">${icon('download', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Sicherung einlesen</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
         <button class="li" data-reset>
-          <div class="li-ico">🧹</div>
+          <div class="li-ico">${icon('broom', { size: 19 })}</div>
           <div class="grow"><div class="li-title" style="color:var(--warn)">Alles zurücksetzen</div></div>
-          <span class="li-chev">›</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
       </div>
 
       <div class="card about">
-        <div class="about-title">🐔 Knuddl</div>
+        <div class="about-title">${icon('tabPet', { size: 22 })}<span>Knuddl</span></div>
         <p class="tiny muted" style="margin:6px 0 0">
           Eine statische Seite ohne Backend. Der Spielstand liegt in deinem Browser,
           nicht bei uns. Zum Startbildschirm hinzufügen macht daraus eine App —
@@ -164,13 +165,13 @@ export function render(root, ctx) {
   /* ── Solo ── */
   function soloPanel(s) {
     return `<button class="li card" data-solo-name style="margin-top:12px">
-      <div class="li-ico">🐣</div>
+      <div class="li-ico">${icon('tabPet', { size: 19 })}</div>
       <div class="grow">
         <div class="li-title">Name des simulierten Menschen</div>
         <div class="li-sub">Nur fürs Ausprobieren — ersetzt niemanden</div>
       </div>
       <span class="li-val">${esc(s.settings.soloName || 'Mila')}</span>
-      <span class="li-chev">›</span>
+      <span class="li-chev">${icon('chevron', { size: 15 })}</span>
     </button>`;
   }
 
@@ -194,7 +195,7 @@ export function render(root, ctx) {
   /* ── Brieftaube ── */
   function carrierPanel(s) {
     return `<div class="card" style="margin-top:12px">
-      <div class="li-title" style="margin-bottom:4px">🕊️ Brieftaube</div>
+      <div class="li-title row" style="gap:7px;margin-bottom:4px">${icon('dove', { size: 20 })}Brieftaube</div>
       <p class="tiny muted" style="margin:0 0 14px">
         Erzeuge einen Code, schick ihn per Messenger, dein Mensch fügt ihn ein — und umgekehrt.
         Doppelte oder verlorene Codes machen nichts aus, der nächste holt alles nach.
@@ -226,7 +227,7 @@ export function render(root, ctx) {
 
     q('[data-copy-code]').onclick = () => copy(get().me.code, 'Code kopiert');
     q('[data-share-code]').onclick = () => shareText(
-      `Hol dir Knuddl 🐔 und verbinde dich mit mir: ${get().me.code}\n${location.href.split('#')[0]}`,
+      `Hol dir Knuddl und verbinde dich mit mir: ${get().me.code}\n${location.href.split('#')[0]}`,
       'Knuddl-Code'
     );
 
@@ -236,12 +237,12 @@ export function render(root, ctx) {
       try {
         const p = await pairWith(inp.value);
         fx('yay');
-        confetti(['💛', '🐥', '💗']);
-        toast(`Verbunden mit ${p.code}`, '🤝');
+        confetti(['statJoy', 'egg', 'sparkle']);
+        toast(`Verbunden mit ${p.code}`, 'dove');
         paint();
       } catch (err) {
         fx('fail');
-        toast(err.message, '⚠️');
+        toast(err.message, 'warn');
       }
     };
 
@@ -280,7 +281,7 @@ export function render(root, ctx) {
       await setMode('cloud');
       const st = syncStatus();
       fx(st.status === 'error' ? 'fail' : 'yay');
-      toast(st.status === 'error' ? 'Datenbank nicht erreichbar' : 'Cloud verbunden', st.status === 'error' ? '⚠️' : '☁️');
+      toast(st.status === 'error' ? 'Datenbank nicht erreichbar' : 'Cloud verbunden', st.status === 'error' ? 'warn' : 'cloudSync');
       paint();
     };
 
@@ -321,15 +322,15 @@ export function render(root, ctx) {
             try {
               const res = await consumeCarrierCode(ta.value);
               fx('yay');
-              if (res.firstContact) confetti(['💛', '🐥', '💗']);
+              if (res.firstContact) confetti(['statJoy', 'egg', 'sparkle']);
               toast(res.firstContact
                 ? `Verbunden mit ${res.name}!`
-                : `${res.applied} Neuigkeit${res.applied === 1 ? '' : 'en'} von ${res.name}`, '🕊️');
+                : `${res.applied} Neuigkeit${res.applied === 1 ? '' : 'en'} von ${res.name}`, 'dove');
               closeSheet();
               paint();
             } catch (err) {
               fx('fail');
-              toast(err.message || 'Der Code ließ sich nicht lesen', '⚠️');
+              toast(err.message || 'Der Code ließ sich nicht lesen', 'warn');
             }
           };
         }
@@ -351,9 +352,9 @@ export function render(root, ctx) {
     q('[data-notify]').onclick = async () => {
       const s = get();
       if (s.settings.notify) { s.settings.notify = false; commit('settings'); paint(); return; }
-      if (typeof Notification === 'undefined') { toast('Dieser Browser kann das nicht', '🔕'); return; }
+      if (typeof Notification === 'undefined') { toast('Dieser Browser kann das nicht', 'bell'); return; }
       const perm = await Notification.requestPermission();
-      if (perm !== 'granted') { toast('Ohne Erlaubnis geht es leider nicht', '🔕'); return; }
+      if (perm !== 'granted') { toast('Ohne Erlaubnis geht es leider nicht', 'bell'); return; }
       s.settings.notify = true;
       commit('settings');
       fx('pop');
@@ -378,7 +379,7 @@ export function render(root, ctx) {
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       fx('pop');
-      toast('Sicherung heruntergeladen', '📤');
+      toast('Sicherung heruntergeladen', 'upload');
     };
 
     q('[data-import]').onclick = () => {
@@ -391,11 +392,11 @@ export function render(root, ctx) {
         try {
           importJson(await f.text());
           fx('yay');
-          toast('Sicherung eingelesen', '📥');
+          toast('Sicherung eingelesen', 'download');
           paint();
         } catch {
           fx('fail');
-          toast('Diese Datei konnte ich nicht lesen', '⚠️');
+          toast('Diese Datei konnte ich nicht lesen', 'warn');
         }
       };
       inp.click();
@@ -436,7 +437,7 @@ async function copy(text, msg) {
   try {
     await navigator.clipboard.writeText(text);
     fx('pop');
-    toast(msg, '📋');
+    toast(msg, 'copy');
   } catch {
     // Ältere Browser (und iOS ohne Nutzergeste) brauchen den Umweg
     const ta = document.createElement('textarea');
@@ -445,7 +446,7 @@ async function copy(text, msg) {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); toast(msg, '📋'); }
+    try { document.execCommand('copy'); toast(msg, 'copy'); }
     catch { toast('Kopieren ging nicht — bitte von Hand markieren'); }
     ta.remove();
   }

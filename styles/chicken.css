@@ -1,0 +1,312 @@
+/* ───────────────────────────────────────────────────────────
+   Knuddl — Bewegungsapparat
+   Jede Körperpartie hat einen eigenen Drehpunkt. Aktionen werden über
+   .act-<name> am SVG geschaltet, Stimmungen über .mood-<name>.
+   ─────────────────────────────────────────────────────────── */
+
+.chicken { display: block; overflow: visible; }
+
+/* Drehpunkte in Nutzerkoordinaten des viewBox (320 × 360) */
+.chicken g { transform-box: view-box; }
+.ck-body   { transform-origin: 160px 320px; }
+.ck-head   { transform-origin: 160px 180px; }
+.ck-torso  { transform-origin: 160px 310px; }
+.ck-tail   { transform-origin: 240px 240px; }
+.ck-wing   { transform-origin: 98px 202px; }
+.ck-leg-l  { transform-origin: 134px 288px; }
+.ck-leg-r  { transform-origin: 186px 288px; }
+.ck-comb   { transform-origin: 160px 70px; }
+.ck-beak-low { transform-origin: 160px 150px; transform-box: view-box; }
+.ck-eye-a  { transform-origin: 132px 112px; }
+.ck-eye-b  { transform-origin: 188px 112px; }
+.ck-brow-l { transform-origin: 132px 86px; transform-box: view-box; }
+.ck-brow-r { transform-origin: 188px 86px; transform-box: view-box; }
+.ck-shadow { transform-origin: 160px 330px; transform-box: view-box; }
+.ck-scarf-tail { transform-origin: 208px 214px; transform-box: view-box; }
+.ck-halo   { transform-origin: 160px 18px; }
+
+/* ── Augenvarianten: nur eine ist sichtbar ─────────────── */
+.ck-eye-shut, .ck-eye-love, .ck-eye-swirl, .ck-eye-x { display: none; }
+
+.chicken.mood-asleep .ck-eye-open,
+.chicken.mood-sleepy .ck-eye-open,
+.chicken.act-sleep   .ck-eye-open,
+.chicken.act-wash    .ck-eye-open,
+.chicken.eyes-shut   .ck-eye-open { display: none; }
+.chicken.mood-asleep .ck-eye-shut,
+.chicken.mood-sleepy .ck-eye-shut,
+.chicken.act-sleep   .ck-eye-shut,
+.chicken.act-wash    .ck-eye-shut,
+.chicken.eyes-shut   .ck-eye-shut { display: block; }
+
+.chicken.mood-love .ck-eye-open { display: none; }
+.chicken.mood-love .ck-eye-love { display: block; }
+
+.chicken.mood-dizzy .ck-eye-open { display: none; }
+.chicken.mood-dizzy .ck-eye-swirl { display: block; }
+
+/* Brauen erscheinen nur, wenn sie etwas erzählen */
+.ck-brows { opacity: 0; transition: opacity var(--t-med); }
+.chicken.mood-sad .ck-brows,
+.chicken.mood-stressed .ck-brows,
+.chicken.mood-hungry .ck-brows,
+.chicken.act-think .ck-brows { opacity: 1; }
+.chicken.mood-sad .ck-brow-l { transform: rotate(16deg) translateY(-2px); }
+.chicken.mood-sad .ck-brow-r { transform: rotate(-16deg) translateY(-2px); }
+.chicken.act-think .ck-brow-l { transform: rotate(-10deg) translateY(-5px); }
+
+/* ═══ Ruhezustand ═══════════════════════════════════════ */
+
+.chicken.is-animated .ck-body   { animation: ckBreathe 3.8s ease-in-out infinite; }
+.chicken.is-animated .ck-head   { animation: ckHeadIdle 3.8s ease-in-out infinite; }
+.chicken.is-animated .ck-wing   { animation: ckWingIdle 3.8s ease-in-out infinite; }
+.chicken.is-animated .ck-tail   { animation: ckTailIdle 4.6s ease-in-out infinite; }
+.chicken.is-animated .ck-comb   { animation: ckCombIdle 3.8s ease-in-out infinite; }
+.chicken.is-animated .ck-shadow { animation: ckShadowIdle 3.8s ease-in-out infinite; }
+.chicken.is-animated .ck-eye-open { animation: ckBlink 6.4s infinite; }
+.chicken.is-animated .ck-eye-b .ck-eye-open { animation-delay: .06s; }
+
+@keyframes ckBreathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50%      { transform: translateY(-5px) scaleY(1.018); }
+}
+@keyframes ckHeadIdle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%      { transform: translateY(-3px) rotate(-1.4deg); }
+  70%      { transform: translateY(-2px) rotate(1.4deg); }
+}
+@keyframes ckWingIdle {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-7deg) translateY(3px); }
+}
+@keyframes ckTailIdle {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(5deg); }
+}
+@keyframes ckCombIdle {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(-4deg) translateY(-3px); }
+}
+@keyframes ckShadowIdle {
+  0%, 100% { transform: scale(1); opacity: .17; }
+  50%      { transform: scale(.9); opacity: .11; }
+}
+@keyframes ckBlink {
+  0%, 91%, 100% { transform: scaleY(1); }
+  94%           { transform: scaleY(.05); }
+  97%           { transform: scaleY(1); }
+}
+
+/* Schal und Heiligenschein leben immer */
+.chicken.is-animated .ck-scarf-tail { animation: ckScarf 3s ease-in-out infinite; }
+@keyframes ckScarf { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(9deg); } }
+.chicken.is-animated .ck-halo { animation: ckHalo 3.6s ease-in-out infinite; }
+@keyframes ckHalo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+/* ═══ Stimmungen ════════════════════════════════════════ */
+
+.chicken.mood-sad .ck-body { animation: ckDroop 4.6s ease-in-out infinite; }
+.chicken.mood-sad .ck-head { animation: ckHeadDroop 4.6s ease-in-out infinite; }
+.chicken.mood-sad .ck-wing { animation: ckWingDroop 4.6s ease-in-out infinite; }
+@keyframes ckDroop      { 0%, 100% { transform: translateY(3px) scaleY(.985); } 50% { transform: translateY(5px) scaleY(.995); } }
+@keyframes ckHeadDroop  { 0%, 100% { transform: translateY(8px) rotate(-3deg); } 50% { transform: translateY(10px) rotate(3deg); } }
+@keyframes ckWingDroop  { 0%, 100% { transform: rotate(12deg) translateY(6px); } 50% { transform: rotate(14deg) translateY(7px); } }
+
+.chicken.mood-excited .ck-body { animation: ckHopLoop .62s cubic-bezier(.3,1.4,.5,1) infinite; }
+.chicken.mood-excited .ck-wing { animation: ckWingFast .31s ease-in-out infinite; }
+@keyframes ckHopLoop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  22%      { transform: translateY(-26px) scale(.95, 1.07); }
+  55%      { transform: translateY(0) scale(1.07, .93); }
+  75%      { transform: translateY(0) scale(1, 1); }
+}
+@keyframes ckWingFast { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(-42deg); } }
+
+.chicken.mood-asleep .ck-body { animation: ckSleepBreathe 5s ease-in-out infinite; }
+.chicken.mood-asleep .ck-head { animation: ckSleepHead 5s ease-in-out infinite; }
+.chicken.mood-asleep .ck-wing { animation: none; transform: rotate(6deg) translateY(4px); }
+@keyframes ckSleepBreathe { 0%, 100% { transform: translateY(6px) scaleY(.97); } 50% { transform: translateY(9px) scaleY(1.03); } }
+@keyframes ckSleepHead    { 0%, 100% { transform: translateY(10px) rotate(-9deg); } 50% { transform: translateY(13px) rotate(-11deg); } }
+
+.chicken.mood-dizzy .ck-head { animation: ckWobble 1.1s ease-in-out infinite; }
+@keyframes ckWobble { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+
+.chicken.mood-hungry .ck-head { animation: ckSniff 1.8s ease-in-out infinite; }
+@keyframes ckSniff {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(5px) rotate(-7deg); }
+  60%      { transform: translateY(5px) rotate(7deg); }
+}
+
+.chicken.mood-proud .ck-body { animation: ckPuff 3s ease-in-out infinite; }
+@keyframes ckPuff { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.045, 1.02) translateY(-4px); } }
+
+/* ═══ Effekte ═══════════════════════════════════════════ */
+
+.ck-fx-zzz     { animation: ckZzz 3.4s ease-in-out infinite; transform-origin: 240px 100px; }
+.ck-fx-hearts  { animation: ckFloat 2.8s ease-in-out infinite; }
+.ck-fx-sparks  { animation: ckTwinkle 1.9s ease-in-out infinite; }
+.ck-fx-tear    { animation: ckTear 3.2s ease-in infinite; transform-origin: 210px 150px; }
+.ck-fx-stars   { animation: ckSpin 2.6s linear infinite; transform-origin: 160px 34px; }
+.ck-fx-bubbles { animation: ckBubbles 2.4s ease-out infinite; }
+.ck-fx-crumbs  { animation: ckCrumbs 1.1s ease-out infinite; }
+.ck-fx-notes   { animation: ckNotes 2.6s ease-in-out infinite; }
+.ck-fx-confetti{ animation: ckConfetti 2.2s ease-in infinite; }
+
+@keyframes ckZzz     { 0%, 100% { transform: translate(0, 0); opacity: .95; } 50% { transform: translate(8px, -12px); opacity: .45; } }
+@keyframes ckFloat   { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-12px) scale(1.1); } }
+@keyframes ckTwinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.7) rotate(20deg); opacity: .5; } }
+@keyframes ckTear    { 0%, 60% { transform: translateY(0); opacity: 0; } 70% { opacity: 1; } 100% { transform: translateY(46px); opacity: 0; } }
+@keyframes ckSpin    { to { transform: rotate(360deg); } }
+@keyframes ckBubbles { 0% { transform: translateY(12px) scale(.6); opacity: 0; } 30% { opacity: .9; } 100% { transform: translateY(-30px) scale(1.15); opacity: 0; } }
+@keyframes ckCrumbs  { 0% { transform: translateY(-10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
+@keyframes ckNotes   { 0% { transform: translate(0, 10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(14px, -34px); opacity: 0; } }
+@keyframes ckConfetti{ 0% { transform: translateY(-24px) rotate(0deg); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(60px) rotate(180deg); opacity: 0; } }
+
+/* ═══ Aktionen ══════════════════════════════════════════ */
+
+/* Picken — dreimal kurz nach vorn unten */
+.chicken.act-peck .ck-head { animation: ckPeck .5s ease-in-out 3; }
+.chicken.act-peck .ck-body { animation: ckPeckBody .5s ease-in-out 3; }
+@keyframes ckPeck {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  40%      { transform: translateY(30px) rotate(14deg); }
+  62%      { transform: translateY(30px) rotate(14deg); }
+}
+@keyframes ckPeckBody {
+  0%, 100% { transform: scaleY(1); }
+  45%      { transform: scaleY(.96) translateY(4px); }
+}
+
+/* Essen — picken plus arbeitender Schnabel */
+.chicken.act-eat .ck-head     { animation: ckPeck .55s ease-in-out 4; }
+.chicken.act-eat .ck-beak-low { animation: ckChew .2s ease-in-out 11; }
+@keyframes ckChew { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(15deg) translateY(3px); } }
+
+/* Waschen — Wackeln unter Seifenblasen */
+.chicken.act-wash .ck-body { animation: ckWiggle .34s ease-in-out 8; }
+.chicken.act-wash .ck-wing { animation: ckWingFast .34s ease-in-out 8; }
+@keyframes ckWiggle {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25%      { transform: rotate(-4deg) translateX(-5px); }
+  75%      { transform: rotate(4deg) translateX(5px); }
+}
+
+/* Hüpfen */
+.chicken.act-hop .ck-body { animation: ckHopLoop .7s cubic-bezier(.3,1.4,.5,1) 2; }
+.chicken.act-hop .ck-wing { animation: ckWingFast .35s ease-in-out 4; }
+
+/* Tanzen — Gewichtsverlagerung mit Gegenbewegung im Kopf */
+.chicken.act-dance .ck-body   { animation: ckDance .8s ease-in-out 4; }
+.chicken.act-dance .ck-head   { animation: ckDanceHead .8s ease-in-out 4; }
+.chicken.act-dance .ck-wing-l { animation: ckDanceWingL .8s ease-in-out 4; }
+.chicken.act-dance .ck-wing-r { animation: ckDanceWingR .8s ease-in-out 4; }
+@keyframes ckDance {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25%      { transform: rotate(-7deg) translateX(-10px) translateY(-6px); }
+  75%      { transform: rotate(7deg) translateX(10px) translateY(-6px); }
+}
+@keyframes ckDanceHead {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(9deg) translateY(-3px); }
+  75%      { transform: rotate(-9deg) translateY(-3px); }
+}
+@keyframes ckDanceWingL { 0%, 100% { transform: rotate(-8deg); } 25% { transform: rotate(-52deg); } }
+@keyframes ckDanceWingR { 0%, 100% { transform: rotate(-8deg); } 75% { transform: rotate(-52deg); } }
+
+/* Flattern */
+.chicken.act-flap .ck-wing { animation: ckFlap .16s ease-in-out 8; }
+.chicken.act-flap .ck-body { animation: ckLift 1.3s ease-in-out 1; }
+@keyframes ckFlap { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-62deg) translateY(-6px); } }
+@keyframes ckLift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+
+/* Laufen — Beine im Wechsel, Körper wippt mit */
+.chicken.act-walk .ck-leg-l { animation: ckStep .42s ease-in-out 6; }
+.chicken.act-walk .ck-leg-r { animation: ckStep .42s ease-in-out 6 .21s; }
+.chicken.act-walk .ck-body  { animation: ckWaddle .42s ease-in-out 6; }
+.chicken.act-walk .ck-head  { animation: ckPeckBob .42s ease-in-out 6; }
+@keyframes ckStep {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(-20deg) translateY(-8px); }
+}
+@keyframes ckWaddle {
+  0%, 100% { transform: rotate(-2.5deg) translateY(0); }
+  50%      { transform: rotate(2.5deg) translateY(-4px); }
+}
+@keyframes ckPeckBob {
+  0%, 100% { transform: translateY(0) translateX(-3px); }
+  50%      { transform: translateY(-2px) translateX(3px); }
+}
+
+/* Frieren */
+.chicken.act-shiver .ck-body { animation: ckShiver .07s linear 18; }
+@keyframes ckShiver { 0%, 100% { transform: translateX(-2.5px); } 50% { transform: translateX(2.5px); } }
+
+/* Jubeln */
+.chicken.act-celebrate .ck-body { animation: ckHopLoop .6s cubic-bezier(.3,1.4,.5,1) 4; }
+.chicken.act-celebrate .ck-wing { animation: ckWingsUp .6s ease-in-out 4; }
+@keyframes ckWingsUp { 0%, 100% { transform: rotate(-20deg); } 50% { transform: rotate(-78deg) translateY(-10px); } }
+
+/* Winken — nur der rechte Flügel */
+.chicken.act-wave .ck-wing-r { animation: ckWave .42s ease-in-out 4; }
+.chicken.act-wave .ck-body   { animation: ckLean 1.8s ease-in-out 1; }
+@keyframes ckWave {
+  0%, 100% { transform: rotate(-56deg) translateY(-12px); }
+  50%      { transform: rotate(-86deg) translateY(-14px); }
+}
+@keyframes ckLean { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4deg); } }
+
+/* Nachdenken */
+.chicken.act-think .ck-head { animation: ckThink 2.4s ease-in-out 1; }
+@keyframes ckThink {
+  0%      { transform: rotate(0deg); }
+  20%, 80%{ transform: rotate(-13deg) translateY(-4px); }
+  100%    { transform: rotate(0deg); }
+}
+
+/* Singen */
+.chicken.act-sing .ck-head     { animation: ckSing 2.8s ease-in-out 1; }
+.chicken.act-sing .ck-beak-low { animation: ckChew .34s ease-in-out 8; }
+@keyframes ckSing {
+  0%      { transform: rotate(0deg) translateY(0); }
+  15%, 85%{ transform: rotate(-16deg) translateY(-10px); }
+  100%    { transform: rotate(0deg) translateY(0); }
+}
+
+/* Strecken nach dem Aufwachen */
+.chicken.act-stretch .ck-body { animation: ckStretch 1.8s ease-in-out 1; }
+.chicken.act-stretch .ck-wing { animation: ckStretchWing 1.8s ease-in-out 1; }
+@keyframes ckStretch {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  35%      { transform: scaleY(1.1) translateY(-14px) scaleX(.96); }
+  60%      { transform: scaleY(.96) translateY(2px) scaleX(1.03); }
+}
+@keyframes ckStretchWing {
+  0%, 100% { transform: rotate(0deg); }
+  35%      { transform: rotate(-74deg) translateY(-8px); }
+}
+
+/* Rempler */
+.chicken.act-bump .ck-body { animation: ckBump .7s cubic-bezier(.3,1.6,.5,1) 1; }
+@keyframes ckBump {
+  0%   { transform: translateX(0) rotate(0deg); }
+  25%  { transform: translateX(-14px) rotate(-9deg); }
+  55%  { transform: translateX(6px) rotate(4deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+/* Nicken und Kopfschütteln */
+.chicken.act-nod   .ck-head { animation: ckNod .4s ease-in-out 3; }
+.chicken.act-shake .ck-head { animation: ckShakeHead .3s ease-in-out 4; }
+@keyframes ckNod       { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(9px) rotate(6deg); } }
+@keyframes ckShakeHead { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+
+/* Antippen: kurzes Zusammenquetschen des ganzen Tiers */
+.chicken.squish { animation: ckSquish .56s cubic-bezier(.18,1.5,.4,1); transform-origin: 160px 330px; transform-box: view-box; }
+@keyframes ckSquish {
+  0%   { transform: scale(1, 1); }
+  26%  { transform: scale(1.13, .85); }
+  56%  { transform: scale(.94, 1.08); }
+  80%  { transform: scale(1.03, .98); }
+  100% { transform: scale(1, 1); }
+}

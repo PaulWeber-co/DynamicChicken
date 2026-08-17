@@ -3,7 +3,7 @@
  *
  * Zweck: Die App soll vom ersten Öffnen an lebendig sein. Man sieht, wie
  * sich eine Stimmung anfühlt, wenn sie ankommt, wie ein Spielzug hereinflattert
- * und wie die Dynamic Island reagiert — ohne dass jemand anderes mitspielen
+ * und wie ein Banner hereinfährt — ohne dass jemand anderes mitspielen
  * muss. Sobald ihr euch verbindet, ersetzt der echte Mensch die Simulation.
  */
 
@@ -109,7 +109,7 @@ function loop() {
 }
 
 const NOTES = [
-  'Bin gleich fertig hier 🙂',
+  'Bin gleich fertig hier',
   'Denk an dich',
   'Heute war lang',
   'Kaffee Nr. 3',

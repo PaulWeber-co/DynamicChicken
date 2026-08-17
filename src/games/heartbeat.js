@@ -10,6 +10,7 @@
 import { esc } from '../util/dom.js';
 import { fx, haptic, burst } from '../util/feedback.js';
 import { get, commit } from '../state/store.js';
+import { icon } from '../ui/icons.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
@@ -17,7 +18,7 @@ import { relTime } from '../util/time.js';
 
 export const meta = {
   id: 'beat',
-  emoji: '💓',
+  icon: 'gameBeat',
   title: 'Herzschlag',
   tagline: 'Tippe einen Rhythmus — dein Mensch spürt ihn',
   modes: ['async'],
@@ -61,10 +62,11 @@ export function handleRemote(state, msg, { partnerName }) {
     g.pending = { from: 'them', taps: msg.taps || [], id: msg.id, at: Date.now() };
     g.got++;
     commit('beat');
-    pushFeed(state, { from: 'them', type: 'game', emoji: '💓', text: `${partnerName} hat dir einen Herzschlag geschickt` });
+    pushFeed(state, { from: 'them', type: 'game', icon: 'gameBeat', text: `${partnerName} hat dir einen Herzschlag geschickt` });
     return {
       kind: 'gameTurn',
-      emoji: '💓',
+      icon: 'gameBeat',
+      avatar: 'them',
       title: `${partnerName} schickt einen Herzschlag`,
       sub: `${(msg.taps || []).length} Schläge`,
       body: `${partnerName} hat einen Rhythmus getippt. Hör ihn dir an und versuch, ihn nachzufühlen.`,
@@ -82,7 +84,8 @@ export function handleRemote(state, msg, { partnerName }) {
     commit('beat');
     return {
       kind: 'gameResult',
-      emoji: msg.score >= 80 ? '💞' : '💓',
+      icon: msg.score >= 80 ? 'trophy' : 'gameBeat',
+      avatar: 'them',
       title: `${msg.score}% getroffen`,
       sub: `${partnerName} hat deinen Herzschlag nachgefühlt`,
       body: msg.score >= 80
@@ -114,8 +117,8 @@ export function mount(root, ctx) {
   function shell(inner, right = '') {
     return `<div class="game-wrap">
       <div class="game-top">
-        <button class="game-x" data-close aria-label="Schließen">✕</button>
-        <div class="game-title">💓 Herzschlag</div>
+        <button class="game-x" data-close aria-label="Schließen">${icon('close', { size: 15 })}</button>
+        <div class="game-title">Herzschlag</div>
         <div class="game-right">${right}</div>
       </div>
       <div class="game-scroll">${inner}</div>
@@ -150,7 +153,7 @@ export function mount(root, ctx) {
         <h2 class="game-h">Tipp deinen Herzschlag</h2>
         <p class="game-p">${MIN_TAPS}–${MAX_TAPS} Schläge. So wie du dich gerade fühlst.</p>
         <button class="beat-pad" data-pad data-pulse>
-          <span class="beat-heart">💗</span>
+          <span class="beat-heart">${icon('statJoy', { size: 74 })}</span>
         </button>
         <div class="beat-dots" data-dots></div>
         <div class="beat-actions">
@@ -193,11 +196,11 @@ export function mount(root, ctx) {
       g.pending = { from: 'me', taps: taps.slice(), id, at: Date.now() };
       g.sent++;
       addBondXp(state, 4);
-      pushFeed(state, { from: 'me', type: 'game', emoji: '💓', text: `Herzschlag an ${partner} geschickt` });
+      pushFeed(state, { from: 'me', type: 'game', icon: 'gameBeat', text: `Herzschlag an ${partner} geschickt` });
       commit('beat');
       sendEvent('game', { g: 'beat', kind: 'beat', id, taps: taps.slice() });
       fx('love');
-      burst(['💗', '💓'], { from: send, count: 8 });
+      burst(['statJoy', 'gameBeat'], { from: send, count: 8 });
       screenSent();
     };
   }
@@ -205,7 +208,7 @@ export function mount(root, ctx) {
   function screenSent() {
     root.innerHTML = shell(`
       <div class="card game-card center">
-        <div class="game-hero">💌</div>
+        <div class="game-hero">${icon('dove', { size: 68 })}</div>
         <h2 class="game-h">Unterwegs</h2>
         <p class="game-p">${esc(partner)} bekommt deinen Herzschlag beim nächsten Öffnen. Dann versucht er/sie, ihn nachzufühlen — und du erfährst, wie nah es war.</p>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
@@ -223,7 +226,7 @@ export function mount(root, ctx) {
         <div class="game-kicker">Von ${esc(partner)}</div>
         <h2 class="game-h">Hör hin</h2>
         <p class="game-p">${g.pending.taps.length} Schläge. Du darfst zweimal hören, dann tippst du sie nach.</p>
-        <div class="beat-pad listen" data-pulse><span class="beat-heart">💓</span></div>
+        <div class="beat-pad listen" data-pulse><span class="beat-heart">${icon('gameBeat', { size: 74 })}</span></div>
         <button class="btn btn-primary btn-block" data-listen>Abspielen</button>
         <button class="btn btn-line btn-block" data-try disabled>Ich bin bereit</button>
       </div>`);
@@ -250,7 +253,7 @@ export function mount(root, ctx) {
         <div class="game-kicker">Jetzt du</div>
         <h2 class="game-h">Tipp nach</h2>
         <p class="game-p">Vertrau deinem Gefühl, nicht deinem Kopf.</p>
-        <button class="beat-pad" data-pad data-pulse><span class="beat-heart">🫀</span></button>
+        <button class="beat-pad" data-pad data-pulse><span class="beat-heart">${icon('gameBeat', { size: 74 })}</span></button>
         <div class="beat-dots" data-dots></div>
         <button class="btn btn-primary btn-block" data-done disabled>Fertig</button>
       </div>`);
@@ -282,7 +285,7 @@ export function mount(root, ctx) {
       if (g.scores.length > 20) g.scores.length = 20;
       state.me.coins += score >= 70 ? REWARDS.gameWon : REWARDS.gamePlayed;
       addBondXp(state, Math.round(score / 12));
-      pushFeed(state, { from: 'me', type: 'game', emoji: '💓', text: `Herzschlag zu ${score}% nachgefühlt` });
+      pushFeed(state, { from: 'me', type: 'game', icon: 'gameBeat', text: `Herzschlag zu ${score}% nachgefühlt` });
       commit('beat');
       sendEvent('game', { g: 'beat', kind: 'beatScore', id: pending.id, score });
       fx(score >= 70 ? 'yay' : 'pop');
@@ -314,7 +317,7 @@ export function mount(root, ctx) {
     return `<div class="section-label">Bisher</div>
       <div class="list">
         ${g.scores.slice(0, 6).map((s) => `<div class="li">
-          <div class="li-ico">${s.score >= 80 ? '💞' : '💓'}</div>
+          <div class="li-ico">${icon(s.score >= 80 ? 'trophy' : 'gameBeat', { size: 19 })}</div>
           <div class="grow">
             <div class="li-title">${s.score}% getroffen</div>
             <div class="li-sub">${s.who === 'me' ? 'du hast nachgefühlt' : `${esc(partner)} hat nachgefühlt`} · ${relTime(s.at)}</div>

@@ -362,3 +362,214 @@
   .beat-heart { font-size: 50px; }
   .game-hero { font-size: 48px; }
 }
+
+/* ── Körner-Jagd: Fangfeld ─────────────────────────────── */
+
+.catch-field {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  touch-action: none;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--calm-soft), transparent 70%),
+    linear-gradient(180deg, transparent 40%, var(--accent-soft) 100%);
+}
+.catch-lane { position: absolute; inset: 0; }
+.catch-item {
+  position: absolute;
+  top: -60px;
+  will-change: transform;
+  filter: drop-shadow(0 3px 5px rgba(122, 88, 54, .22));
+}
+.catch-item.is-rare { animation: rareGlow 1.1s ease-in-out infinite; }
+@keyframes rareGlow { 0%, 100% { filter: drop-shadow(0 0 4px rgba(255,201,77,.8)); } 50% { filter: drop-shadow(0 0 14px rgba(255,201,77,1)); } }
+.catch-item.is-bad { filter: drop-shadow(0 3px 6px rgba(90, 80, 70, .45)); }
+.catch-item.caught { animation: itemPop 240ms ease-out forwards; }
+@keyframes itemPop { to { transform: translate(-50%, var(--y, 0)) scale(1.7); opacity: 0; } }
+
+.catch-hero {
+  position: absolute;
+  bottom: 34px;
+  left: 0;
+  width: 96px;
+  will-change: transform;
+  transition: transform 90ms linear;
+}
+.catch-hero.flip { transform-origin: center; }
+.catch-hero.flip .chicken { transform: scaleX(-1); }
+.catch-ground {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 46px;
+  background: linear-gradient(180deg, #C6E7BC, #A9D89E);
+}
+:root[data-theme='dark'] .catch-ground { background: linear-gradient(180deg, #4C6350, #3B4E3F); }
+
+.catch-hint {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink-3);
+  padding: 10px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  transition: opacity var(--t-med);
+}
+.catch-hint.gone { opacity: 0; }
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin: 4px 0 18px;
+}
+.game-stats div { text-align: center; }
+.game-stats b { display: block; font-size: 21px; font-weight: 850; letter-spacing: -.02em; }
+.game-stats small { font-size: 11px; color: var(--ink-3); font-weight: 700; }
+
+/* ── Federflug ─────────────────────────────────────────── */
+
+.fly-field {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  touch-action: none;
+}
+.fly-sky {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--calm-soft) 0%, var(--surface-2) 62%, var(--accent-soft) 100%);
+}
+.fly-gates { position: absolute; inset: 0; }
+.fly-gate { position: absolute; top: 0; bottom: 0; width: 52px; left: 0; will-change: transform; }
+.fly-post {
+  position: absolute;
+  left: 0; right: 0;
+  background: linear-gradient(90deg, #C99268, #B8834F 60%, #A9724A);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .06);
+}
+.fly-post.top { top: 0; border-radius: 0 0 10px 10px; }
+.fly-post.bot { bottom: 0; border-radius: 10px 10px 0 0; }
+.fly-flag {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  animation: bobY 1.6s ease-in-out infinite;
+}
+.fly-hero {
+  position: absolute;
+  top: 0; left: 0;
+  width: 84px;
+  will-change: transform;
+}
+.fly-hero.crashed { animation: crash .7s ease-in forwards; }
+@keyframes crash { to { transform: translateY(120px) rotate(180deg); opacity: .2; } }
+.fly-ground {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 22px;
+  background: linear-gradient(180deg, #C6E7BC, #A9D89E);
+}
+
+/* ── Nest-Turm ─────────────────────────────────────────── */
+
+.tower-field {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  touch-action: none;
+  background: linear-gradient(180deg, var(--calm-soft) 0%, var(--surface-2) 70%, var(--accent-soft) 100%);
+}
+.tower-stack { position: absolute; inset: 0; }
+.tower-layer {
+  position: absolute;
+  height: 24px;
+  border-radius: 12px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .1), 0 2px 5px rgba(122, 88, 54, .2);
+  animation: layerDrop 220ms cubic-bezier(.3, 1.5, .5, 1) both;
+}
+@keyframes layerDrop { from { transform: translateY(-22px); opacity: .5; } to { transform: none; opacity: 1; } }
+.tower-twig {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 24px;
+  border-radius: 12px;
+  will-change: transform;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .1), 0 4px 10px rgba(122, 88, 54, .3);
+}
+.tower-twig.falling { animation: twigFall .6s ease-in forwards; }
+@keyframes twigFall { to { transform: translateY(320px) rotate(42deg); opacity: 0; } }
+.tower-base {
+  position: absolute;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  height: 24px;
+  border-radius: 12px;
+  background: #8C6B4A;
+}
+
+/* ── Kritzel-Telefon ───────────────────────────────────── */
+
+.doodle-word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 20px 12px;
+}
+.doodle-kicker {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.doodle-word b { font-size: 26px; font-weight: 850; letter-spacing: -.025em; }
+
+.doodle-pad {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 0 18px;
+  min-height: 0;
+}
+.doodle-pad canvas {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--hairline-2);
+  touch-action: none;
+}
+.doodle-pad.show canvas { background: var(--surface); }
+.doodle-timer {
+  position: absolute;
+  top: 8px; right: 26px;
+  padding: 4px 11px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunk);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.doodle-timer.urgent { background: var(--warn); color: #fff; }
+
+.doodle-tools {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px 6px;
+}
+.doodle-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  padding: 16px 18px 0;
+}
+.doodle-options .btn { justify-content: center; }
+
+/* Auf sehr flachen Geräten die Spielfelder nicht erdrücken */
+@media (max-height: 620px) {
+  .doodle-word b { font-size: 21px; }
+  .catch-hero, .fly-hero { transform-origin: bottom center; }
+}

@@ -71,11 +71,6 @@
   --t-med:  280ms;
   --t-slow: 460ms;
 
-  /* ── Island ── */
-  --island-bg:  #0B0B0D;
-  --island-ink: #FFFFFF;
-  --island-ink-2: rgba(255,255,255,.62);
-
   color-scheme: light;
 }
 

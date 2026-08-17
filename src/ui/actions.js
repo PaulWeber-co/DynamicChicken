@@ -11,7 +11,15 @@ import { sendEvent } from '../sync/index.js';
 import { fx, burst, confetti } from '../util/feedback.js';
 import { toast } from './toast.js';
 import { sheet, closeSheet } from './sheet.js';
-import { esc } from '../util/dom.js';
+import { esc, $$ } from '../util/dom.js';
+import { icon } from './icons.js';
+import { playAction } from '../pet/chicken.js';
+
+/** Lässt jedes sichtbare Huhn die passende Bewegung machen. */
+function animatePet(action) {
+  if (!action) return;
+  $$('[data-chicken]').forEach((svg) => playAction(svg, action));
+}
 
 const cools = () => { const s = get(); s.me.lastCare ||= {}; return s.me.lastCare; };
 
@@ -30,9 +38,9 @@ export function careAction(kind, sourceEl) {
 
   if (kind === 'sleep') return toggleSleep(sourceEl);
 
-  if (pet.asleep) { toast(`${pet.name} schläft gerade`, '💤'); return false; }
+  if (pet.asleep) { toast(`${pet.name} schläft gerade`, 'careSleep'); return false; }
   if (cooldownLeft(kind) > 0) {
-    toast(`${pet.name} braucht kurz Pause`, '⏳');
+    toast(`${pet.name} braucht kurz Pause`, 'clock');
     return false;
   }
 
@@ -40,7 +48,7 @@ export function careAction(kind, sourceEl) {
   if (!c) return false;
 
   if (kind === 'play' && pet.stats.energy < 12) {
-    toast(`${pet.name} ist zu müde zum Toben`, '🥱');
+    toast(`${pet.name} ist zu müde zum Toben`, 'moodTired');
     return false;
   }
 
@@ -57,11 +65,12 @@ export function careAction(kind, sourceEl) {
     s.bond.hugs++;
   }
 
-  pushFeed(s, { from: 'me', type: 'care', emoji: c.emoji, text: `${pet.name} ${c.line}` });
+  pushFeed(s, { from: 'me', type: 'care', icon: c.icon, text: `${pet.name} ${c.line}` });
   commit('care');
 
   fx(c.fx || 'pop');
-  if (sourceEl) burst(kind === 'cuddle' ? ['💛', '💗'] : [c.emoji], { from: sourceEl, count: 6, rise: 110 });
+  animatePet(c.act);
+  if (sourceEl) burst(kind === 'cuddle' ? ['statJoy', 'careCuddle'] : [c.icon], { from: sourceEl, count: 6, rise: 110 });
   if (lvl) celebrateLevel(pet);
 
   sendEvent('profile', { pet: { name: pet.name, look: pet.look, stats: pet.stats, level: pet.level, asleep: pet.asleep } });
@@ -78,12 +87,13 @@ export function toggleSleep(sourceEl) {
   if (pet.asleep) addXp(pet, 2);
 
   pushFeed(s, {
-    from: 'me', type: 'care', emoji: pet.asleep ? '💤' : '🌞',
+    from: 'me', type: 'care', icon: pet.asleep ? 'careSleep' : 'nudgeMorning',
     text: `${pet.name} ${pet.asleep ? 'schlummert ein' : 'ist wieder wach'}`
   });
   commit('sleep');
   fx('cluck');
-  if (sourceEl) burst([pet.asleep ? '💤' : '🌞'], { from: sourceEl, count: 4, rise: 90 });
+  animatePet(pet.asleep ? 'nod' : 'stretch');
+  if (sourceEl) burst([pet.asleep ? 'careSleep' : 'nudgeMorning'], { from: sourceEl, count: 4, rise: 90 });
   sendEvent('profile', { pet: { name: pet.name, look: pet.look, stats: pet.stats, level: pet.level, asleep: pet.asleep } });
   return true;
 }
@@ -92,7 +102,8 @@ function celebrateLevel(pet) {
   const s = get();
   s.me.coins += REWARDS.levelUp;
   commit('levelup');
-  confetti(['⭐️', '🐥', '💛', '✨']);
+  confetti(['sparkle', 'trophy', 'statJoy', 'grain']);
+  animatePet('celebrate');
   toast(`${pet.name} ist jetzt Level ${pet.level}! +${REWARDS.levelUp} Körner`, '⭐️');
 }
 
@@ -108,14 +119,14 @@ export function openFeedSheet() {
     body: owned.length
       ? `<div class="food-grid">
           ${owned.map((f) => `<button class="food" data-food="${f.id}">
-            <span class="food-e">${f.emoji}</span>
+            <span class="food-e">${icon(f.icon, { size: 34 })}</span>
             <span class="food-l">${esc(f.label)}</span>
             <span class="food-n">×${inv[f.id]}</span>
           </button>`).join('')}
         </div>
         <p class="tiny muted center" style="margin-top:14px">Nachschub gibt es im Laden.</p>`
       : `<div class="empty">
-          <span class="empty-emoji">🧺</span>
+          <span class="empty-emoji">${icon('tabShop', { size: 40 })}</span>
           Der Kühlschrank ist leer.<br>Im Laden gibt es Körner, Beeren und Kuchen.
         </div>`,
     onMount(body) {
@@ -131,9 +142,9 @@ export function feedPet(foodId, sourceEl) {
   const pet = s.me.pet;
   const food = foodById(foodId);
   if (!food) return false;
-  if ((s.me.inv[foodId] || 0) <= 0) { toast('Davon hast du nichts mehr', '🧺'); return false; }
-  if (pet.asleep) { toast(`${pet.name} schläft — erst wecken`, '💤'); return false; }
-  if (pet.stats.full > 97) { toast(`${pet.name} ist pappsatt`, '😌'); return false; }
+  if ((s.me.inv[foodId] || 0) <= 0) { toast('Davon hast du nichts mehr', 'tabShop'); return false; }
+  if (pet.asleep) { toast(`${pet.name} schläft — erst wecken`, 'careSleep'); return false; }
+  if (pet.stats.full > 97) { toast(`${pet.name} ist pappsatt`, 'moodProud'); return false; }
 
   tickPet(pet);
   s.me.inv[foodId]--;
@@ -144,11 +155,12 @@ export function feedPet(foodId, sourceEl) {
   });
   const lvl = addXp(pet, 5);
 
-  pushFeed(s, { from: 'me', type: 'feed', emoji: food.emoji, text: `${pet.name} hat ${food.label} bekommen` });
+  pushFeed(s, { from: 'me', type: 'feed', icon: food.icon, text: `${pet.name} hat ${food.label} bekommen` });
   commit('feed');
 
   fx('eat');
-  if (sourceEl) burst([food.emoji, '💛'], { from: sourceEl, count: 6, rise: 110 });
+  animatePet('eat');
+  if (sourceEl) burst([food.icon, 'statJoy'], { from: sourceEl, count: 6, rise: 110 });
   if (lvl) celebrateLevel(pet);
   sendEvent('profile', { pet: { name: pet.name, look: pet.look, stats: pet.stats, level: pet.level, asleep: pet.asleep } });
   return true;
@@ -159,19 +171,20 @@ export function feedPet(foodId, sourceEl) {
 export function sendNudge(key, sourceEl) {
   const s = get();
   const n = nudgeByKey(key) || NUDGES[0];
-  if (!s.partner) { toast('Noch niemand verbunden', '🔗'); return false; }
+  if (!s.partner) { toast('Noch niemand verbunden', 'info'); return false; }
 
   addBondXp(s, n.bond);
   s.bond.hugs++;
   s.me.coins += REWARDS.nudgeSent;
   s.me.pet.stats.joy = clamp100(s.me.pet.stats.joy + 3);
-  pushFeed(s, { from: 'me', type: 'nudge', emoji: n.emoji, text: `${n.self} an ${s.partner.name}` });
+  pushFeed(s, { from: 'me', type: 'nudge', icon: n.icon, text: `${n.self} an ${s.partner.name}` });
   commit('nudge');
 
   sendEvent('nudge', { key });
   fx('love');
-  if (sourceEl) burst([n.emoji, '💗'], { from: sourceEl, count: 8, rise: 140 });
-  toast(`${n.label} unterwegs zu ${s.partner.name}`, n.emoji);
+  animatePet(n.act || 'hop');
+  if (sourceEl) burst([n.icon, 'statJoy'], { from: sourceEl, count: 8, rise: 140 });
+  toast(`${n.label} unterwegs zu ${s.partner.name}`, n.icon);
   return true;
 }
 
@@ -179,7 +192,7 @@ export function setMood(key, note = '') {
   const s = get();
   const m = moodByKey(key);
   s.me.mood = { key, note, at: Date.now() };
-  pushFeed(s, { from: 'me', type: 'mood', emoji: m?.emoji || '💬', text: `Du fühlst dich ${m?.label.toLowerCase() || '…'}`, note });
+  pushFeed(s, { from: 'me', type: 'mood', icon: m?.icon || 'nudgeThink', text: `Du fühlst dich ${m?.label.toLowerCase() || '…'}`, note });
   addBondXp(s, 2);
   commit('mood');
   sendEvent('mood', { key, note });
@@ -194,6 +207,6 @@ export function setActivity(key) {
   commit('activity');
   sendEvent('act', { key });
   fx('tap');
-  toast(`Status: ${a?.label || '…'}`, a?.emoji || '📍');
+  toast(`Status: ${a?.label || '…'}`, a?.icon || 'info');
   return true;
 }

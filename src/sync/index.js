@@ -149,7 +149,7 @@ export async function pairWith(code) {
   const s = get();
   const clean = String(code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (clean.length !== 6) throw new Error('Ein Knuddl-Code hat sechs Zeichen.');
-  if (clean === s.me.code) throw new Error('Das ist dein eigener Code. 🙂');
+  if (clean === s.me.code) throw new Error('Das ist dein eigener Code.');
 
   s.partner = {
     linked: true,

@@ -1,7 +1,7 @@
-# 🐔 Knuddl — Dynamic Chicken
+# Knuddl — Dynamic Chicken
 
-Ein dickes gelbes Huhn, das oben in einer Dynamic Island wohnt, gefüttert werden
-will und einen Zwilling bei dem Menschen hat, den du vermisst.
+Ein dickes gelbes Huhn, das gefüttert werden will und einen Zwilling bei dem
+Menschen hat, den du vermisst.
 
 Pou trifft Fernbeziehung: pflegen, personalisieren, Stimmungen schicken und
 gegeneinander antreten — live oder zeitversetzt, je nachdem, ob ihr gerade
@@ -31,8 +31,7 @@ python3 -m http.server 8099   # dann http://localhost:8099
 ```
 
 Auf dem Handy: Seite öffnen → Teilen → **Zum Home-Bildschirm**. Dann läuft
-Knuddl im Vollbild, offline, mit eigenem Icon — und die Insel sitzt genau dort,
-wo beim iPhone die echte wäre.
+Knuddl im Vollbild, offline und mit eigenem Icon.
 
 ---
 
@@ -42,8 +41,8 @@ Kurz: **ja** — mit einer bewussten Entscheidung an genau einer Stelle.
 
 GitHub Pages liefert nur Dateien aus. Es kann nichts speichern und nichts
 weiterleiten. Alles, was rein im Browser passiert, funktioniert deshalb
-uneingeschränkt: Pflege-Simulation, Personalisierung, Spiel-Logik,
-Dynamic Island, Offline-Betrieb, Installation als App.
+uneingeschränkt: Pflege-Simulation, Personalisierung, alle acht Spiele,
+Offline-Betrieb, Installation als App.
 
 Für „mein Gefühl kommt bei dir an" braucht es dagegen irgendetwas dazwischen.
 Knuddl bietet dafür **drei Wege**, umschaltbar unter *Mehr → Wie synchronisiert
@@ -51,14 +50,14 @@ ihr?*:
 
 | Modus | Was du brauchst | Was geht | Was nicht |
 |---|---|---|---|
-| 🐣 **Solo** | nichts | Alles, ein simulierter Mensch antwortet dir | Es ist eben nicht dein Mensch |
-| 🕊️ **Brieftaube** | nichts | Wirklich alles zu zweit — Stimmungen, Gesten, alle fünf Spiele | Zeitversetzt: ihr schickt euch Codes |
-| ☁️ **Cloud** | 5 Minuten Firebase-Einrichtung, kostenlos | Alles live: Anwesenheit, Live-Punktestand, sofortige Zustellung | — |
+| **Solo** | nichts | Alles, ein simulierter Mensch antwortet dir | Es ist eben nicht dein Mensch |
+| **Brieftaube** | nichts | Wirklich alles zu zweit — Stimmungen, Gesten, alle acht Spiele | Zeitversetzt: ihr schickt euch Codes |
+| **Cloud** | 5 Minuten Firebase-Einrichtung, kostenlos | Alles live: Anwesenheit, Live-Punktestand, sofortige Zustellung | — |
 
 Alle drei laufen auf derselben statischen Seite. Du kannst jederzeit wechseln;
 was im Brieftauben-Stapel liegt, geht nicht verloren.
 
-### 🕊️ Brieftaube — der Weg ganz ohne Server
+### Brieftaube — der Weg ganz ohne Server
 
 Der ehrlichste Weg und mein Liebling: Deine Ereignisse werden zu einem kurzen
 Text zusammengefaltet (deflate + base64url), den du per WhatsApp, iMessage oder
@@ -73,7 +72,7 @@ Jedes Ereignis trägt eine ID. Ein Code doppelt eingefügt macht nichts, ein
 verlorener Code auch nicht — der nächste holt alles nach. Der erste Code ist
 gleichzeitig die Verbindung: Wer ihn einliest, ist gepaart.
 
-### ☁️ Cloud — live spielen, in fünf Minuten eingerichtet
+### Cloud — live spielen, in fünf Minuten eingerichtet
 
 Warum Firebase Realtime Database und nicht irgendein SDK? Weil sie sich als
 reine REST-Schnittstelle ansprechen lässt **und** Änderungen als Server-Sent
@@ -117,85 +116,103 @@ und ersetzt oben `"knuddl"` durch denselben Wert; dann ist der Namensraum
 praktisch unauffindbar. Wer es richtig dicht will, schaltet Firebase Anonymous
 Auth ein und setzt `".read": "auth != null"`.
 
-### Und die echte Dynamic Island?
+### Benachrichtigungen
 
-Die gehört iOS, und keine Webseite darf sie anfassen. Was Knuddl macht, ist die
-konsequente Nachbildung: eine schwarze Pille direkt unter der Notch, die sich
-mit derselben Federkurve zwischen drei Zuständen morpht, laufende Aktivitäten
-anzeigt und bei der Benachrichtigungen als Tropfen heranfliegen und mit ihr
-verschmelzen (SVG-`goo`-Filter).
+Was dein Mensch schickt, fährt oben als Banner herein: antippen öffnet die
+Stelle, nach oben wischen schickt es weg, und der Inhalt darunter rückt so
+lange sanft nach. Liegt die App im Hintergrund und hast du es unter *Mehr*
+erlaubt, geht dieselbe Meldung zusätzlich als Systembenachrichtigung raus.
 
-Als Home-Screen-App unter `apple-mobile-web-app-status-bar-style:
-black-translucent` sitzt sie exakt dort, wo das Hardware-Pendant wäre — und auf
-jedem anderen Gerät bekommt man das Gefühl geschenkt. Echte Mitteilungen bei
-geschlossener App bräuchten einen Push-Server; solange die App im Hintergrund
-offen ist, funktioniert die Notification-API (unter *Mehr* aktivierbar).
+Echte Push-Nachrichten bei komplett geschlossener App bräuchten einen
+Push-Server mit VAPID-Schlüsseln — das sprengt „statische Seite". Solange die
+App im Hintergrund offen ist, funktioniert es.
 
 ---
 
 ## Was drin ist
 
-### 🐥 Pflegen
-Sattheit, Energie, Sauberkeit und Laune verfallen **in Echtzeit** — beim Öffnen
-wird nachgerechnet, was in der Zwischenzeit passiert wäre. Füttern (zehn
-Sorten, jede mit eigenen Werten), waschen, schlafen legen, spielen, knuddeln.
+### Knuddl selbst
+Kein Bild-Asset, sondern eine kleine Anatomie aus SVG-Pfaden: Schwanzfedern,
+zwei Flügel mit Federkanten, Bauchflaum, Beine mit Zehen, Lider, Brauen, ein
+Schnabel, der sich öffnet. Kopf und Rumpf sind getrennte Formen, teilen sich
+aber denselben Verlauf — dadurch ist die Naht unsichtbar, obwohl der Kopf
+picken und den Kopf schütteln kann.
+
+**Über zwanzig Bewegungen**: atmen, blinzeln, picken, fressen, sich waschen,
+hüpfen, tanzen, flattern, laufen, frieren, jubeln, winken, nachdenken, singen,
+sich strecken, nicken, den Kopf schütteln, anrempeln, schlafen. Dazu
+Stimmungen, die den ganzen Körper verändern — ein trauriges Huhn lässt die
+Flügel hängen, ein aufgeregtes hüpft ununterbrochen.
+
+Angetippt reagiert es jedes Mal, und jedes dritte Mal fällt die Reaktion
+größer aus. Alle vierzehn Sekunden tut es im Hintergrund etwas von allein.
+
+### Keine Emojis
+Alle rund **hundert Symbole sind selbst gezeichnet** (`src/ui/icons.js`):
+Futter, Tab-Leiste, Bedienelemente, Spielsymbole — und die zwölf Stimmungen
+sind winzige Hühnergesichter, jedes mit eigenem Ausdruck. Emojis sehen auf
+jedem Gerät anders aus und hätten die Pastell-Palette gebrochen.
+
+### Die Szene
+Der Hintergrund kennt die Uhrzeit: Morgenrot, Tag, Abendlicht oder Nacht mit
+Mond und Sternen. Wolken ziehen vorbei, Gras wächst am Hügel.
+
+### Pflegen
+Sattheit, Energie, Sauberkeit und Laune verfallen **in Echtzeit** — beim
+Öffnen wird nachgerechnet, was in der Zwischenzeit passiert wäre. Füttern
+(zehn Sorten mit eigenen Werten), waschen, schlafen legen, spielen, knuddeln.
 XP, Level, Körner als Währung.
 
-### 🎨 Personalisieren
-Das Huhn ist kein Bild, sondern wird gezeichnet: 10 Gefiederfarben, 6 Bauch-
-töne, 6 Kammformen in 5 Farben, 5 Augenpaare, 8 Hüte, 8 Accessoires und ein
-Regler für die Leibesfülle. Alles skaliert verlustfrei und wiegt null Kilobyte.
-Manches kauft man, manches schaltet euer gemeinsames Bond-Level frei.
+### Personalisieren
+10 Gefiederfarben, 6 Bauchtöne, 6 Kammformen in 5 Farben, 5 Augenpaare,
+8 Hüte, 8 Accessoires und ein Regler für die Leibesfülle. Manches kauft man,
+manches schaltet euer gemeinsames Bond-Level frei.
 
-### 💞 Kommunizieren
+### Kommunizieren
 - **Stimmungen** aus 12 Gefühlen, optional mit einem Satz dazu
 - **Status** — was du gerade machst, aus 12 Aktivitäten
 - **Kleine Gesten** — Knuddeln, Kuss, „Denk an dich", Kaffee spendieren …
+  Jede löst beim Empfänger eine eigene Bewegung aus
 - **Kuschel-Knopf** — beide gleichzeitig halten, dann vibrieren beide Geräte
 - **Frage des Tages** — beide antworten, aufgedeckt wird gemeinsam
 - **Zeitzonen** — seine/ihre Uhrzeit, Stundenversatz, „schläft wahrscheinlich"
 - **Streak, Bond-Level, gemeinsamer Verlauf**
 
-### 🎮 Fünf Minispiele
+### Acht Minispiele
 
 | Spiel | Was | Live | Zeitversetzt |
 |---|---|:--:|:--:|
-| 🌽 **Körner-Jagd** | 30 s Reaktion, Körner fangen, Bomben meiden | ✅ mit Live-Punktestand | ✅ |
-| 🥚 **Ei-Duell** | Schnick-Schnack-Schnuck mit 5 Symbolen, 5 Runden, verdeckt | ✅ | ✅ |
-| 💓 **Herzschlag** | Du tippst einen Rhythmus, er/sie fühlt ihn nach | — | ✅ |
-| 🎭 **Gefühls-Duett** | Beide raten, wie es dem anderen geht | — | ✅ |
-| 🃏 **Feder-Memory** | Acht Paare, identisches Blatt für beide | — | ✅ |
+| **Körner-Jagd** | Du steuerst Knuddl und fängst, was vom Himmel fällt | ✅ mit Live-Punktestand | ✅ |
+| **Federflug** | Ein Finger, viele Zaunlücken — mit dem Fähnchen deines Menschen als Ziel | — | ✅ |
+| **Ei-Duell** | Fünf Symbole, fünf Runden, verdeckt gelegt | ✅ | ✅ |
+| **Nest-Turm** | Zweig auf Zweig, perfekte Treffer machen die Fläche wieder breiter | — | ✅ |
+| **Herzschlag** | Du tippst einen Rhythmus, er/sie fühlt ihn nach | — | ✅ |
+| **Kritzel-Telefon** | Du malst ein Wort, drüben wird der Strich für Strich nachgezeichnet und geraten | — | ✅ |
+| **Gefühls-Duett** | Beide raten, wie es dem anderen geht | — | ✅ |
+| **Feder-Memory** | Acht Paare, identisches Blatt für beide | — | ✅ |
 
 **Wie kann das ohne Schiedsrichter fair sein?** Jede Runde hat eine Nummer.
 Aus Rundennummer + eurem Paar-Code berechnet jedes Gerät denselben Seed und
 daraus dieselbe Spielwelt — denselben Körnerregen zur selben Millisekunde,
-dieselbe Kartenanordnung. Ihr spielt, wann ihr könnt; wer zuletzt fertig wird,
-löst die Abrechnung aus, und beide Seiten kommen unabhängig zum selben
-Ergebnis.
+denselben Zaun, dieselbe Kartenanordnung. Ihr spielt, wann ihr könnt; wer
+zuletzt fertig wird, löst die Abrechnung aus, und beide Seiten kommen
+unabhängig zum selben Ergebnis.
 
 Auf der Spiele-Seite gibt es außerdem eine **Arena**: Die Form eures Huhns
-(Pflegezustand + Level) wird gegeneinander gestellt. Gut gefüttert ist eben
-selbstbewusster.
-
----
+(Pflegezustand + Level) wird gegeneinander gestellt.
 
 ## Ideen für später
 
-Ein paar, die gut hineinpassen würden:
-
-- **Federflug** — Einfingerspiel, bei dem der Geist des letzten Laufs deines
-  Menschen neben dir fliegt
-- **Zeichen-Telefon** — kleine Kritzelei auf 16×16, der andere rät
 - **Gemeinsames Nest** — ein Ort, den ihr zusammen einrichtet; jede Woche
   Pflege schaltet ein Möbelstück frei
-- **Wunschzettel** — Dinge, die ihr beim nächsten Treffen machen wollt,
-  auslosbar
-- **Eier legen** — Knuddl legt bei gutem Pflegezustand Eier, aus denen bei
+- **Eier legen** — bei gutem Pflegezustand legt Knuddl Eier, aus denen bei
   gemeinsamem Ausbrüten ein Küken schlüpft
-- **Countdown** bis zum nächsten Wiedersehen, direkt in der Insel als
-  Live-Aktivität
-
----
+- **Countdown** bis zum nächsten Wiedersehen, mit eigener Karte im Wir-Tab
+- **Wunschzettel** — Dinge fürs nächste Treffen, auslosbar
+- **Foto-Kritzel** — dasselbe Spiel, aber mit einem echten Foto als Vorlage
+- **Wetter am Ort des anderen** in der Szene (bräuchte eine Wetter-API)
+- **Duett-Modus für Herzschlag** — beide tippen gleichzeitig, die App misst,
+  wie synchron ihr seid
 
 ## Aufbau
 
@@ -204,22 +221,22 @@ die der Browser direkt lädt. Das ist der Grund, warum GitHub Pages ohne
 Build-Schritt reicht — und warum man jede Datei einzeln lesen und ändern kann.
 
 ```
-index.html            Gerüst, Insel-Container, goo-Filter
+index.html            Gerüst
 config.js             Cloud-URL & Co. — direkt auf GitHub editierbar
 sw.js                 Service Worker, offline-first
 manifest.webmanifest  PWA-Manifest
 
 styles/
   tokens.css          Pastell-Palette, Materialien, Federkurven, Dark Mode
-  base.css            Layout, Karten, Buttons, Tab-Bar, Sheets, Toasts
-  island.css          Dynamic Island
-  screens.css         Chicken-Animationen, Wir-Tab, Laden, Onboarding
-  games.css           Minispiele
+  base.css            Layout, Karten, Buttons, Tab-Bar, Sheets, Banner, Toasts
+  chicken.css         Der Bewegungsapparat: Drehpunkte und alle Animationen
+  screens.css         Tageszeit-Szene, Wir-Tab, Laden, Onboarding
+  games.css           Die acht Minispiele
 
 src/
-  main.js             Start, Herzschlag, Insel-Aktionen, Onboarding
+  main.js             Start, Herzschlag, Banner-Aktionen, Onboarding
   pet/
-    chicken.js        Prozeduraler SVG-Chicken + alle Anpassungsoptionen
+    chicken.js        Anatomie, Aussehen, playAction()
     moods.js          Gefühle, Aktivitäten, Gesten, Tagesfragen
   state/
     store.js          Winziger reaktiver Store mit Persistenz
@@ -231,11 +248,15 @@ src/
     solo.js           Simulierter Mensch
     cloud.js          Firebase RTDB über fetch + EventSource
     carrier.js        Brieftauben-Codes
-  games/              Registry + fünf Spiele
-  ui/                 Insel, Tabs, Sheets, Toasts, Aktionen, fünf Screens
+  games/              Registry + acht Spiele
+  ui/
+    icons.js          ~100 selbst gezeichnete SVG-Icons
+    banner.js         Benachrichtigungen von oben
+    shell.js          Tabs und Routing
+    …                 Sheets, Toasts, Aktionen, fünf Screens
   util/               DOM, Zufall, Zeit, Haptik/Ton/Konfetti, Codec
 
-tools/make-icons.mjs  Erzeugt die PNG-Icons (nur bei Änderungen nötig)
+tools/make-icons.mjs  Erzeugt die PNG-App-Icons (nur bei Änderungen nötig)
 ```
 
 Der Spielstand liegt ausschließlich im `localStorage` deines Geräts. Unter
@@ -251,6 +272,11 @@ Git-Historie (bis Commit `98dceb8`). Die Web-Fassung ersetzt sie, weil sie das
 Einzige ist, was ihr beide sofort installieren könnt — ohne Xcode, ohne
 Developer-Account, ohne App-Store-Review, auf iPhone und Android gleichzeitig.
 
+Eine erste Web-Fassung hatte eine nachgebaute Dynamic Island oben im Bild.
+Die ist wieder raus: Sie passte höhenmäßig nie zu jedem Gerät und nahm Platz
+weg, den der Inhalt besser gebrauchen kann. Benachrichtigungen kommen jetzt
+als Banner.
+
 ---
 
-Mit viel 💛 für zwei Menschen und zwei Hühner gebaut.
+Für zwei Menschen und zwei Hühner gebaut.

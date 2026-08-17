@@ -9,7 +9,7 @@
 import { load, get, commit, subscribe, emit } from './state/store.js';
 import { tickPet, urgentNeed, touchStreak } from './state/model.js';
 import { setFeedbackPrefs, fx, confetti } from './util/feedback.js';
-import { initIsland, setLive, clearLive } from './ui/island.js';
+import { initBanners } from './ui/banner.js';
 import { initShell, go, refresh } from './ui/shell.js';
 import { applyTheme } from './ui/screens/settings.js';
 import { applyBondUnlocks } from './ui/screens/shop.js';
@@ -37,7 +37,7 @@ async function boot() {
   if (applyBondUnlocks(s)) { /* neue Freischaltungen */ }
   commit('boot');
 
-  initIsland({ onAct: handleIslandAction });
+  initBanners({ onAct: handleBannerAction });
   initShell({});
   await initSync();
 
@@ -49,9 +49,9 @@ async function boot() {
   wireLifecycle();
 }
 
-/* ── Aktionen aus der Dynamic Island ────────────────────── */
+/* ── Aktionen aus einem Banner ──────────────────────────── */
 
-function handleIslandAction(act) {
+function handleBannerAction(act) {
   if (!act) return;
   const [kind, arg] = act.split(':');
   switch (kind) {
@@ -68,88 +68,64 @@ function handleIslandAction(act) {
   }
 }
 
-/* ── Herzschlag: Bedürfnisse, Live-Aktivitäten, Präsenz ── */
+/* ── Herzschlag: Bedürfnisse im Blick behalten ──────────── */
 
 let lastNeedKey = null;
 let lastNeedAt = 0;
 
 function startHeartbeat() {
-  updateLiveActivities();
   setInterval(() => {
     const s = get();
     tickPet(s.me.pet);
     commit('tick');
-    updateLiveActivities();
     checkNeeds();
+    checkCuddle();
   }, 60_000);
-
-  subscribe(() => updateLiveActivities());
-}
-
-function updateLiveActivities() {
-  const s = get();
-  const pet = s.me.pet;
-
-  if (pet.asleep) {
-    setLive('sleep', {
-      emoji: '💤',
-      title: `${pet.name} schläft`,
-      sub: `Energie ${Math.round(pet.stats.energy)}%`,
-      trail: '🌙',
-      priority: 2
-    });
-  } else {
-    clearLive('sleep');
-  }
-
-  if (s.cuddleUntil && s.cuddleUntil > Date.now()) {
-    setLive('cuddle', {
-      emoji: '🫂',
-      title: `${s.partner?.name || 'Dein Mensch'} hält gerade`,
-      sub: 'Halt auch — im Wir-Tab',
-      trail: '💗',
-      priority: 9
-    });
-    setTimeout(() => { if (!(get().cuddleUntil > Date.now())) clearLive('cuddle'); }, 2000);
-  } else {
-    clearLive('cuddle');
-  }
 }
 
 /** Knuddl meldet sich, wenn etwas fehlt — höchstens alle zwei Stunden. */
 function checkNeeds() {
   const s = get();
   const need = urgentNeed(s.me.pet);
-  if (!need) { lastNeedKey = null; clearLive('need'); return; }
-
-  setLive('need', {
-    emoji: need.emoji,
-    title: `${s.me.pet.name} ${need.text}`,
-    sub: `${Math.round(need.v)}%`,
-    trail: '›',
-    priority: 4
-  });
+  if (!need) { lastNeedKey = null; return; }
 
   const now = Date.now();
   if (need.key === lastNeedKey && now - lastNeedAt < 2 * 3600_000) return;
   lastNeedKey = need.key;
   lastNeedAt = now;
 
+  const fix = {
+    full:   { label: 'Füttern',  act: 'open:feed' },
+    clean:  { label: 'Waschen',  act: 'care:wash' },
+    energy: { label: 'Hinlegen', act: 'care:sleep' },
+    joy:    { label: 'Spielen',  act: 'care:play' }
+  }[need.key];
+
   emit('notify', {
     kind: 'need',
-    emoji: need.emoji,
     avatar: 'me',
+    petMood: need.key === 'full' ? 'hungry' : need.key === 'energy' ? 'sleepy' : 'sad',
     title: `${s.me.pet.name} ${need.text}`,
-    sub: 'Kurz kümmern?',
-    body: `${s.me.pet.name} ${need.text}. Das dauert zehn Sekunden.`,
-    actions: need.key === 'full'
-      ? [{ label: 'Füttern', act: 'open:feed', primary: true }, { label: 'Später', act: 'dismiss' }]
-      : need.key === 'clean'
-        ? [{ label: 'Waschen', act: 'care:wash', primary: true }, { label: 'Später', act: 'dismiss' }]
-        : need.key === 'energy'
-          ? [{ label: 'Hinlegen', act: 'care:sleep', primary: true }, { label: 'Später', act: 'dismiss' }]
-          : [{ label: 'Spielen', act: 'care:play', primary: true }, { label: 'Später', act: 'dismiss' }],
+    sub: 'Das dauert zehn Sekunden.',
+    body: `${s.me.pet.name} ${need.text}.`,
+    actions: [{ label: fix.label, act: fix.act, primary: true }],
     tone: 'warm'
+  });
+}
+
+/** Hält der Partner gerade den Kuschelknopf? */
+let cuddleShown = 0;
+function checkCuddle() {
+  const s = get();
+  if (!(s.cuddleUntil > Date.now())) return;
+  if (Date.now() - cuddleShown < 30_000) return;
+  cuddleShown = Date.now();
+  emit('notify', {
+    kind: 'cuddle', icon: 'careCuddle', avatar: 'them',
+    title: `${s.partner?.name || 'Dein Mensch'} hält gerade`,
+    sub: 'Halt auch — dann spürt ihr euch gleichzeitig',
+    actions: [{ label: 'Zum Kuscheln', act: 'open:us', primary: true }],
+    tone: 'love'
   });
 }
 
@@ -159,18 +135,19 @@ function welcomeBack(wokeUp) {
   const s = get();
   if (wokeUp) {
     emit('notify', {
-      kind: 'woke', emoji: '🌞', avatar: 'me',
+      kind: 'woke', avatar: 'me', petMood: 'happy',
       title: `${s.me.pet.name} ist ausgeschlafen`,
       sub: 'Energie voll',
       body: `${s.me.pet.name} hat gut geschlafen und ist wieder bei 100%.`,
-      actions: [{ label: 'Guten Morgen', act: 'care:cuddle', primary: true }]
+      actions: [{ label: 'Guten Morgen', act: 'care:cuddle', primary: true }],
+      tone: 'warm'
     });
     return;
   }
   const unread = s.feed.filter((f) => f.from === 'them' && !f.seen).length;
   if (unread) {
     emit('notify', {
-      kind: 'catchup', emoji: '💌',
+      kind: 'catchup', icon: 'mailHeart',
       title: `${unread} Neuigkeit${unread === 1 ? '' : 'en'}`,
       sub: s.partner ? `von ${s.partner.name}` : '',
       body: `Während du weg warst, ist etwas passiert.`,
@@ -257,16 +234,17 @@ function openOnboarding() {
     s.onboarded = true;
     commit('onboarded');
     publishProfile();
-    confetti(['🐥', '💛', '✨']);
-    toast(`${petName} zieht bei dir ein`, '🐣');
+    confetti(['egg', 'statJoy', 'sparkle']);
+    toast(`${petName} zieht bei dir ein`, 'tabPet');
     refresh();
     setTimeout(() => {
       emit('notify', {
-        kind: 'hint', emoji: '👆',
-        title: 'Tipp die Insel oben an',
-        sub: 'Da wohnt Knuddl',
-        body: 'Die schwarze Pille ist dein Schnellzugriff: füttern, knuddeln, spielen. Und dort landet alles, was dein Mensch dir schickt.',
-        actions: [{ label: 'Verstanden', act: 'dismiss', primary: true }]
+        kind: 'hint', icon: 'handTap',
+        title: `Tipp ${petName} einfach an`,
+        sub: 'Streicheln geht immer',
+        body: 'Unten findest du Futter, Bad und Spiele. Alles, was dein Mensch dir schickt, fährt hier oben herein.',
+        actions: [{ label: 'Verstanden', act: 'dismiss', primary: true }],
+        tone: 'warm'
       });
     }, 1400);
   }
@@ -290,7 +268,6 @@ function wireLifecycle() {
     touchStreak(s);
     commit('resume');
     publishProfile();
-    updateLiveActivities();
   });
 
   window.addEventListener('beforeunload', () => {

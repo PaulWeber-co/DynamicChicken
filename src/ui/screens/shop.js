@@ -1,6 +1,7 @@
 /** Laden — Futter kaufen, Mode kaufen, Knuddl umstylen. */
 
 import { esc } from '../../util/dom.js';
+import { icon } from '../icons.js';
 import { fx, burst, confetti } from '../../util/feedback.js';
 import { get, commit, subscribe } from '../../state/store.js';
 import { FOODS, BOND_UNLOCKS } from '../../state/catalog.js';
@@ -37,12 +38,14 @@ export function render(root, ctx) {
           <div class="title-lg">Laden</div>
           <div class="subtitle">Körner verdienst du mit Spielen und Pflege.</div>
         </div>
-        <div class="coin-pill"><span>🌾</span><b>${s.me.coins}</b></div>
+        <div class="coin-pill">${icon('grain', { size: 20 })}<b>${s.me.coins}</b></div>
       </div>
 
       <div class="seg" role="tablist">
-        ${[['futter', '🧺 Futter'], ['mode', '👑 Mode'], ['atelier', '🎨 Atelier']].map(([id, label]) =>
-          `<button class="seg-btn" role="tab" data-tab="${id}" aria-selected="${tab === id}">${label}</button>`).join('')}
+        ${[['futter', 'tabShop', 'Futter'], ['mode', 'hatCrown', 'Mode'], ['atelier', 'palette', 'Atelier']].map(([id, ic, label]) =>
+          `<button class="seg-btn" role="tab" data-tab="${id}" aria-selected="${tab === id}">
+             ${icon(ic, { size: 18 })}<span>${label}</span>
+           </button>`).join('')}
       </div>
 
       <div data-panel>${tab === 'futter' ? panelFood(s) : tab === 'mode' ? panelMode(s) : panelAtelier(s)}</div>`;
@@ -60,17 +63,17 @@ export function render(root, ctx) {
         const have = s.me.inv[f.id] || 0;
         const can = s.me.coins >= f.price;
         return `<div class="card shop-item ${can ? '' : 'poor'}">
-          <div class="shop-e">${f.emoji}</div>
+          <div class="shop-e">${icon(f.icon, { size: 38 })}</div>
           <div class="shop-t">${esc(f.label)}</div>
           <div class="shop-s">${esc(f.line)}</div>
           <div class="shop-eff">
-            ${f.full ? `<span>🌽+${f.full}</span>` : ''}
-            ${f.joy ? `<span>💛+${f.joy}</span>` : ''}
-            ${f.energy > 4 ? `<span>⚡️+${f.energy}</span>` : ''}
-            ${f.clean < 0 ? `<span class="neg">🫧${f.clean}</span>` : ''}
+            ${f.full ? `<span>${icon('statFull', { size: 13 })}+${f.full}</span>` : ''}
+            ${f.joy ? `<span>${icon('statJoy', { size: 13 })}+${f.joy}</span>` : ''}
+            ${f.energy > 4 ? `<span>${icon('statEnergy', { size: 13 })}+${f.energy}</span>` : ''}
+            ${f.clean < 0 ? `<span class="neg">${icon('statClean', { size: 13 })}${f.clean}</span>` : ''}
           </div>
           <div class="shop-buy">
-            <button class="btn btn-primary btn-sm" data-buy-food="${f.id}" ${can ? '' : 'disabled'}>🌾 ${f.price}</button>
+            <button class="btn btn-primary btn-sm" data-buy-food="${f.id}" ${can ? '' : 'disabled'}>${icon('grain', { size: 15 })} ${f.price}</button>
             ${have ? `<span class="shop-have">×${have}</span>` : ''}
           </div>
         </div>`;
@@ -90,11 +93,11 @@ export function render(root, ctx) {
           const unlock = BOND_UNLOCKS.find((u) => u.grants[key] === it.id);
           return `<button class="wear ${worn ? 'worn' : ''} ${owned ? '' : 'locked'}"
             data-wear="${key}:${it.id}" data-price="${it.price}">
-            <span class="wear-e">${it.emoji}</span>
+            <span class="wear-e">${icon(it.icon, { size: 28 })}</span>
             <span class="wear-l">${esc(it.label)}</span>
-            <span class="wear-p">${owned ? (worn ? 'getragen' : 'im Schrank') : `🌾 ${it.price}`}</span>
+            <span class="wear-p">${owned ? (worn ? 'getragen' : 'im Schrank') : `${it.price} Körner`}</span>
             ${!owned && unlock ? `<span class="wear-unlock">oder Bond ${unlock.level}</span>` : ''}
-            ${!owned && !can ? '<span class="wear-lock">🔒</span>' : ''}
+            ${!owned && !can ? `<span class="wear-lock">${icon('lock', { size: 12 })}</span>` : ''}
           </button>`;
         }).join('')}
       </div>`;
@@ -110,7 +113,7 @@ export function render(root, ctx) {
         <div class="li-title" style="margin-bottom:6px">Bond-Belohnungen</div>
         <div class="wrap">
           ${BOND_UNLOCKS.map((u) => `<span class="chip ${s.bond.level >= u.level ? 'is-on' : ''}">
-            ${u.emoji} ${esc(u.label)} · Lv ${u.level}
+            ${icon(u.icon, { size: 18 })}${esc(u.label)} · Lv ${u.level}
           </span>`).join('')}
         </div>
       </div>`;
@@ -126,14 +129,14 @@ export function render(root, ctx) {
 
     const options = (list, key) => `<div class="wrap">
       ${list.map((o) => `<button class="chip ${look[key] === o.id ? 'is-on' : ''}" data-look="${key}:${o.id}">
-        <span>${o.emoji}</span>${esc(o.label)}
+        ${icon(o.icon, { size: 18 })}${esc(o.label)}
       </button>`).join('')}
     </div>`;
 
     return `
       <div class="card preview-card">
         <div class="preview-chick">${renderChicken(look, { mood: petMood(s.me.pet, { moodKey: s.me.mood?.key }), size: 170 })}</div>
-        <button class="btn btn-line btn-sm" data-rename>✏️ ${esc(s.me.pet.name)} umbenennen</button>
+        <button class="btn btn-line btn-sm" data-rename>${icon('edit', { size: 16 })} ${esc(s.me.pet.name)} umbenennen</button>
       </div>
 
       <div class="section-label">Gefieder</div>
@@ -190,12 +193,12 @@ export function render(root, ctx) {
     const s = get();
     const f = FOODS.find((x) => x.id === id);
     if (!f) return;
-    if (s.me.coins < f.price) { toast('Zu wenig Körner', '🌾'); return; }
+    if (s.me.coins < f.price) { toast('Zu wenig Körner', 'grain'); return; }
     s.me.coins -= f.price;
     s.me.inv[id] = (s.me.inv[id] || 0) + 1;
     commit('buy');
     fx('coin');
-    burst([f.emoji], { from: btn, count: 4, rise: 80 });
+    burst([f.icon], { from: btn, count: 4, rise: 80 });
     paint();
   }
 
@@ -206,18 +209,18 @@ export function render(root, ctx) {
     const owned = list.includes(id) || price === 0;
 
     if (!owned) {
-      if (s.me.coins < price) { toast('Zu wenig Körner — spiel eine Runde!', '🌾'); fx('fail'); return; }
+      if (s.me.coins < price) { toast('Zu wenig Körner — spiel eine Runde!', 'grain'); fx('fail'); return; }
       s.me.coins -= price;
       list.push(id);
       fx('coin');
-      confetti(['✨', '🌾']);
+      confetti(['sparkle', 'grain']);
     } else {
       fx('pop');
     }
 
     s.me.pet.look[key] = s.me.pet.look[key] === id && id !== 'none' ? 'none' : id;
     commit('wear');
-    burst(['✨'], { from: btn, count: 4, rise: 70 });
+    burst(['sparkle'], { from: btn, count: 4, rise: 70 });
     publishLook();
     paint();
   }

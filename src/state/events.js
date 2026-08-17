@@ -78,7 +78,7 @@ export function applyEvent(ev, { silent = false } = {}) {
         notify = {
           kind: 'pair',
           avatar: 'them',
-          emoji: '🤝',
+          icon: 'dove',
           title: `${p.name} ist da!`,
           sub: 'Ihr seid verbunden',
           body: `${p.pet.name} und ${state.me.pet.name} kennen sich jetzt.`,
@@ -96,7 +96,7 @@ export function applyEvent(ev, { silent = false } = {}) {
       p.lastSeen = at;
       pushFeed(state, {
         from: 'them', type: 'mood', at,
-        emoji: m?.emoji || '💬',
+        icon: m?.icon || 'nudgeThink',
         text: `${p.name} fühlt sich ${m ? m.label.toLowerCase() : 'irgendwie'}`,
         note: ev.d?.note || ''
       });
@@ -105,7 +105,7 @@ export function applyEvent(ev, { silent = false } = {}) {
         notify = {
           kind: 'mood',
           avatar: 'them',
-          emoji: m?.emoji || '💬',
+          icon: m?.icon || 'nudgeThink',
           title: `${p.name}: ${m?.label || 'Stimmung'}`,
           sub: ev.d?.note ? ev.d.note : `${p.pet.name} ${m?.line || 'sagt hallo'}`,
           body: ev.d?.note || `${p.pet.name} ${m?.line || 'sagt hallo'}.`,
@@ -126,18 +126,18 @@ export function applyEvent(ev, { silent = false } = {}) {
       p.lastSeen = at;
       pushFeed(state, {
         from: 'them', type: 'act', at,
-        emoji: a?.emoji || '📍',
+        icon: a?.icon || 'info',
         text: `${p.name}: ${a?.label || 'macht was'}`
       });
       if (!silent) {
         notify = {
           kind: 'act',
           avatar: 'them',
-          emoji: a?.emoji || '📍',
+          icon: a?.icon || 'info',
           title: p.name,
           sub: a?.label || 'macht gerade etwas',
           body: `${p.name} ist gerade beim Thema „${a?.label || '…'}".`,
-          actions: [{ label: 'Viel Spaß 💛', act: 'nudge:denkan' }],
+          actions: [{ label: 'Viel Spaß', act: 'nudge:denkan' }],
           tone: 'calm',
           quiet: true
         };
@@ -155,14 +155,14 @@ export function applyEvent(ev, { silent = false } = {}) {
       state.me.pet.stats.joy = Math.min(100, state.me.pet.stats.joy + 7);
       pushFeed(state, {
         from: 'them', type: 'nudge', at,
-        emoji: n?.emoji || '💛',
+        icon: n?.icon || 'statJoy',
         text: `${p.name} ${n?.text || 'denkt an dich'}`
       });
       if (!silent) {
         notify = {
           kind: 'nudge',
           avatar: 'them',
-          emoji: n?.emoji || '💛',
+          icon: n?.icon || 'statJoy',
           title: `${p.name} ${n?.text || 'denkt an dich'}`,
           sub: `${state.me.pet.name} freut sich`,
           body: `${p.name} ${n?.text || 'denkt an dich'}. ${state.me.pet.name} plustert sich vor Freude auf.`,
@@ -184,7 +184,7 @@ export function applyEvent(ev, { silent = false } = {}) {
         notify = {
           kind: 'cuddle',
           avatar: 'them',
-          emoji: '🫂',
+          icon: 'careCuddle',
           title: `${p.name} hält gerade`,
           sub: 'Halt auch — dann kuschelt ihr',
           body: `${p.name} drückt den Kuschel-Knopf. Halte deinen gedrückt, dann spürt ihr euch gleichzeitig.`,
@@ -210,7 +210,7 @@ export function applyEvent(ev, { silent = false } = {}) {
       }
       pushFeed(state, {
         from: 'them', type: 'daily', at,
-        emoji: '💌',
+        icon: 'mailHeart',
         text: `${p.name} hat die Frage des Tages beantwortet`
       });
       if (!silent) {
@@ -218,7 +218,7 @@ export function applyEvent(ev, { silent = false } = {}) {
         notify = {
           kind: 'daily',
           avatar: 'them',
-          emoji: '💌',
+          icon: 'mailHeart',
           title: ready ? 'Beide haben geantwortet!' : `${p.name} hat geantwortet`,
           sub: ready ? 'Jetzt darfst du lesen' : 'Du bist dran',
           body: ready

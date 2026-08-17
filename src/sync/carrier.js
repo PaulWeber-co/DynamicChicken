@@ -70,7 +70,7 @@ export async function consumeCode(text) {
   const state = get();
   const profile = payload.p;
   if (profile.code === state.me.code) {
-    throw new Error('Das ist dein eigener Code — den braucht dein Mensch. 🙂');
+    throw new Error('Das ist dein eigener Code — den braucht dein Mensch.');
   }
 
   const firstContact = !state.partner || state.partner.code !== profile.code;

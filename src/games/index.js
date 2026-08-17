@@ -15,12 +15,15 @@ import { roundSeed } from '../util/rng.js';
 import { sendEvent } from '../sync/index.js';
 
 import * as grainRush from './grainRush.js';
+import * as featherFlight from './featherFlight.js';
 import * as eggDuel from './eggDuel.js';
+import * as nestTower from './nestTower.js';
 import * as heartbeat from './heartbeat.js';
+import * as doodle from './doodle.js';
 import * as moodMatch from './moodMatch.js';
 import * as memory from './memory.js';
 
-export const GAMES = [grainRush, eggDuel, heartbeat, moodMatch, memory];
+export const GAMES = [grainRush, featherFlight, eggDuel, nestTower, heartbeat, doodle, moodMatch, memory];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
 
 /** Gemeinsamer Schlüssel beider Geräte — Reihenfolge-unabhängig. */
@@ -66,7 +69,7 @@ function settle(state, id, partnerName = 'Dein Mensch') {
 
   pushFeed(state, {
     from: 'system', type: 'game',
-    emoji: g?.meta.emoji || '🎮',
+    icon: g?.meta.icon || 'tabPlay',
     text: result === 'me'
       ? `${g?.meta.title}: du gewinnst ${mine}:${theirs}`
       : result === 'them'
@@ -126,7 +129,8 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
   if (msg.kind === 'invite') {
     return {
       kind: 'gameInvite',
-      emoji: g.meta.emoji,
+      icon: g.meta.icon,
+      avatar: 'them',
       title: `${partnerName} fordert dich heraus`,
       sub: g.meta.title,
       body: `${partnerName} spielt gerade ${g.meta.title}. Runde ${msg.r} liegt für dich bereit.`,
@@ -157,7 +161,7 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
       const won = done.result === 'me';
       return {
         kind: 'gameResult',
-        emoji: won ? '🏆' : done.result === 'draw' ? '🤝' : g.meta.emoji,
+        icon: won ? 'trophy' : done.result === 'draw' ? 'nudgeHug' : g.meta.icon,
         title: won ? 'Du gewinnst!' : done.result === 'draw' ? 'Unentschieden!' : `${partnerName} gewinnt`,
         sub: `${g.meta.title} · ${done.mine}:${done.theirs}`,
         body: `${g.meta.title}, Runde abgeschlossen: ${done.mine}:${done.theirs}. Du bekommst ${done.reward} Körner.`,
@@ -171,7 +175,8 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
 
     return {
       kind: 'gameWaiting',
-      emoji: g.meta.emoji,
+      icon: g.meta.icon,
+      avatar: 'them',
       title: `${partnerName} hat vorgelegt`,
       sub: `${g.meta.title} · ${msg.score} Punkte`,
       body: `${partnerName} hat in ${g.meta.title} ${msg.score} Punkte gemacht. Du bist dran — gleiche Runde, gleiche Bedingungen.`,

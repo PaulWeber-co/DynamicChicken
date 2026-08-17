@@ -1,6 +1,7 @@
 /** Spiele — die Übersicht. */
 
 import { esc } from '../../util/dom.js';
+import { icon } from '../icons.js';
 import { fx } from '../../util/feedback.js';
 import { get, subscribe } from '../../state/store.js';
 import { GAMES, gameSummary } from '../../games/index.js';
@@ -28,7 +29,7 @@ export function render(root, ctx) {
             ? online ? `${esc(s.partner.name)} ist gerade da — live spielen geht.` : 'Spiel wann du willst, der Rest wartet.'
             : 'Im Solo-Modus spielt ein simulierter Mensch mit.'}</div>
         </div>
-        <div class="coin-pill"><span>🌾</span><b>${s.me.coins}</b></div>
+        <div class="coin-pill">${icon('grain', { size: 20 })}<b>${s.me.coins}</b></div>
       </div>
 
       ${s.partner ? arena(s) : ''}
@@ -87,7 +88,7 @@ export function render(root, ctx) {
     const sum = gameSummary(s, g);
     const live = g.meta.modes.includes('live') && online;
     return `<button class="card game-item tone-${g.meta.tone}" data-game="${g.meta.id}">
-      <div class="game-item-e">${g.meta.emoji}</div>
+      <div class="game-item-e">${icon(g.meta.icon, { size: 30 })}</div>
       <div class="grow">
         <div class="game-item-t">${esc(g.meta.title)}</div>
         <div class="game-item-s">${esc(g.meta.tagline)}</div>
@@ -97,7 +98,7 @@ export function render(root, ctx) {
           <span class="tiny muted">${esc(sum.text)}</span>
         </div>
       </div>
-      <span class="li-chev">›</span>
+      <span class="li-chev">${icon('chevron', { size: 16 })}</span>
     </button>`;
   }
 

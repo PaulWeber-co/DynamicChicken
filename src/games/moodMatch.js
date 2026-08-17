@@ -9,6 +9,7 @@
 import { esc } from '../util/dom.js';
 import { fx, confetti, burst } from '../util/feedback.js';
 import { get, commit } from '../state/store.js';
+import { icon } from '../ui/icons.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { MOODS, moodByKey } from '../pet/moods.js';
@@ -17,7 +18,7 @@ import { dayKey, relTime } from '../util/time.js';
 
 export const meta = {
   id: 'duett',
-  emoji: '🎭',
+  icon: 'gameDuett',
   title: 'Gefühls-Duett',
   tagline: 'Rate, wie es dem anderen geht',
   modes: ['async'],
@@ -71,7 +72,7 @@ function tryReveal(state, g) {
   addBondXp(state, iRight && theyRight ? 12 : iRight || theyRight ? 7 : 4);
 
   pushFeed(state, {
-    from: 'system', type: 'game', emoji: '🎭',
+    from: 'system', type: 'game', icon: 'gameDuett',
     text: iRight && theyRight ? 'Gefühls-Duett: ihr habt euch beide erraten'
       : iRight ? 'Gefühls-Duett: du lagst richtig'
       : theyRight ? 'Gefühls-Duett: er/sie lag richtig'
@@ -96,7 +97,8 @@ export function handleRemote(state, msg, { partnerName }) {
   if (rev) {
     return {
       kind: 'gameResult',
-      emoji: rev.iRight ? '🎯' : '🎭',
+      icon: rev.iRight ? 'trophy' : 'gameDuett',
+      avatar: 'them',
       title: rev.iRight ? 'Du hast ihn/sie richtig gelesen' : 'Aufgedeckt',
       sub: `${partnerName} fühlt sich ${moodByKey(g.theirs.actual)?.label.toLowerCase() || '…'}`,
       body: `Gefühls-Duett aufgedeckt. ${partnerName} fühlt sich ${moodByKey(g.theirs.actual)?.label.toLowerCase() || '…'}${rev.theyRight ? ' — und hat dich auch richtig erraten.' : '.'}`,
@@ -107,7 +109,8 @@ export function handleRemote(state, msg, { partnerName }) {
 
   return {
     kind: 'gameTurn',
-    emoji: '🎭',
+    icon: 'gameDuett',
+    avatar: 'them',
     title: `${partnerName} hat getippt`,
     sub: 'Gefühls-Duett wartet auf dich',
     body: `${partnerName} hat verraten, wie es ihm/ihr geht — und geraten, wie es dir geht. Sichtbar wird beides, sobald du dran warst.`,
@@ -133,8 +136,8 @@ export function mount(root, ctx) {
   function shell(inner) {
     return `<div class="game-wrap">
       <div class="game-top">
-        <button class="game-x" data-close aria-label="Schließen">✕</button>
-        <div class="game-title">🎭 Gefühls-Duett</div>
+        <button class="game-x" data-close aria-label="Schließen">${icon('close', { size: 15 })}</button>
+        <div class="game-title">Gefühls-Duett</div>
         <div class="game-right"></div>
       </div>
       <div class="game-scroll">${inner}</div>
@@ -145,7 +148,7 @@ export function mount(root, ctx) {
   function moodGrid(name, selected) {
     return `<div class="mood-grid">
       ${MOODS.map((m) => `<button class="mood-cell ${selected === m.key ? 'on' : ''}" data-${name}="${m.key}">
-        <span class="mood-e">${m.emoji}</span><span class="mood-l">${m.label}</span>
+        <span class="mood-e">${icon(m.icon, { size: 26 })}</span><span class="mood-l">${m.label}</span>
       </button>`).join('')}
     </div>`;
   }
@@ -197,7 +200,7 @@ export function mount(root, ctx) {
   function screenWaiting() {
     root.innerHTML = shell(`
       <div class="card game-card center">
-        <div class="game-hero">🎭</div>
+        <div class="game-hero">${icon('gameDuett', { size: 68 })}</div>
         <h2 class="game-h">Verdeckt abgelegt</h2>
         <p class="game-p">Sobald ${esc(partner)} auch geantwortet hat, klappt bei euch beiden gleichzeitig alles auf.</p>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
@@ -210,11 +213,11 @@ export function mount(root, ctx) {
     const g = mm(get());
     const mMine = moodByKey(g.mine.actual), mTheirs = moodByKey(g.theirs.actual);
     const mMyGuess = moodByKey(g.mine.guess), mTheirGuess = moodByKey(g.theirs.guess);
-    if (rev?.iRight && rev?.theyRight) confetti(['🎯', '💗', '✨']);
+    if (rev?.iRight && rev?.theyRight) confetti(['trophy', 'statJoy', 'sparkle']);
 
     root.innerHTML = shell(`
       <div class="card game-card center">
-        <div class="game-hero">${rev?.iRight && rev?.theyRight ? '🎯' : rev?.iRight || rev?.theyRight ? '💛' : '🎭'}</div>
+        <div class="game-hero">${icon(rev?.iRight && rev?.theyRight ? 'trophy' : rev?.iRight || rev?.theyRight ? 'statJoy' : 'gameDuett', { size: 68 })}</div>
         <h2 class="game-h">${rev?.iRight && rev?.theyRight ? 'Ihr habt euch beide gelesen'
           : rev?.iRight ? 'Du lagst richtig'
           : rev?.theyRight ? `${esc(partner)} lag richtig`
@@ -225,18 +228,18 @@ export function mount(root, ctx) {
       <div class="duett-cards">
         <div class="card duett-card">
           <div class="duett-who">Du fühlst dich</div>
-          <div class="duett-e">${mMine?.emoji || '❓'}</div>
+          <div class="duett-e">${mMine ? icon(mMine.icon, { size: 46 }) : ''}</div>
           <div class="duett-l">${esc(mMine?.label || '—')}</div>
           <div class="duett-guess ${g.theirs.guess === g.mine.actual ? 'hit' : ''}">
-            ${esc(partner)} tippte: ${mTheirGuess?.emoji || '❓'} ${esc(mTheirGuess?.label || '—')}
+            ${esc(partner)} tippte: ${mTheirGuess ? icon(mTheirGuess.icon, { size: 18, cls: 'ic-inline' }) : ''} ${esc(mTheirGuess?.label || '—')}
           </div>
         </div>
         <div class="card duett-card">
           <div class="duett-who">${esc(partner)} fühlt sich</div>
-          <div class="duett-e">${mTheirs?.emoji || '❓'}</div>
+          <div class="duett-e">${mTheirs ? icon(mTheirs.icon, { size: 46 }) : ''}</div>
           <div class="duett-l">${esc(mTheirs?.label || '—')}</div>
           <div class="duett-guess ${g.mine.guess === g.theirs.actual ? 'hit' : ''}">
-            Du tipptest: ${mMyGuess?.emoji || '❓'} ${esc(mMyGuess?.label || '—')}
+            Du tipptest: ${mMyGuess ? icon(mMyGuess.icon, { size: 18, cls: 'ic-inline' }) : ''} ${esc(mMyGuess?.label || '—')}
           </div>
         </div>
       </div>
@@ -248,9 +251,9 @@ export function mount(root, ctx) {
     const t = root.querySelector('[data-talk]');
     if (t) t.onclick = () => {
       sendEvent('nudge', { key: 'knuddel' });
-      burst(['🫂', '💗'], { from: t, count: 8 });
+      burst(['careCuddle', 'statJoy'], { from: t, count: 8 });
       fx('love');
-      t.textContent = 'Geknuddelt 💗';
+      t.textContent = 'Geknuddelt';
       t.disabled = true;
     };
   }
@@ -261,9 +264,10 @@ export function mount(root, ctx) {
     return `<div class="section-label">Frühere Tage</div>
       <div class="list">
         ${g.hist.slice(0, 7).map((h) => `<div class="li">
-          <div class="li-ico">${h.iGuessedRight && h.theyGuessedRight ? '🎯' : h.iGuessedRight || h.theyGuessedRight ? '💛' : '🎭'}</div>
+          <div class="li-ico">${icon(h.iGuessedRight && h.theyGuessedRight ? 'trophy' : h.iGuessedRight || h.theyGuessedRight ? 'statJoy' : 'gameDuett', { size: 19 })}</div>
           <div class="grow">
-            <div class="li-title">${moodByKey(h.mine.actual)?.emoji || '·'} du · ${moodByKey(h.theirs.actual)?.emoji || '·'} ${esc(partner)}</div>
+            <div class="li-title">${icon(moodByKey(h.mine.actual)?.icon || 'info', { size: 18, cls: 'ic-inline' })} du ·
+              ${icon(moodByKey(h.theirs.actual)?.icon || 'info', { size: 18, cls: 'ic-inline' })} ${esc(partner)}</div>
             <div class="li-sub">${relTime(h.at)}</div>
           </div>
         </div>`).join('')}

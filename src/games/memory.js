@@ -9,11 +9,12 @@ import { rng, shuffle } from '../util/rng.js';
 import { esc } from '../util/dom.js';
 import { fx, burst } from '../util/feedback.js';
 import { get } from '../state/store.js';
+import { icon } from '../ui/icons.js';
 import { duel, seedFor, submitScore, inviteToPlay } from './index.js';
 
 export const meta = {
   id: 'memo',
-  emoji: '🃏',
+  icon: 'gameMemo',
   title: 'Feder-Memory',
   tagline: 'Acht Paare, gleiches Blatt für euch beide',
   modes: ['async'],
@@ -21,7 +22,8 @@ export const meta = {
   howto: 'Schnell und mit wenigen Fehlversuchen — daraus entsteht der Punktestand.'
 };
 
-const FACES = ['🐣', '🌽', '🪶', '🥚', '🪱', '🌻', '🫐', '🧺', '🌾', '🐛', '🍄', '☀️'];
+const FACES = ['egg', 'corn', 'feather', 'worm', 'berries', 'nest', 'grain',
+  'statJoy', 'cake', 'coffee', 'salad', 'sparkle'];
 
 function deckFor(seed) {
   const r = rng(seed);
@@ -48,8 +50,8 @@ export function mount(root, ctx) {
   function shell(inner, right = '') {
     return `<div class="game-wrap">
       <div class="game-top">
-        <button class="game-x" data-close aria-label="Schließen">✕</button>
-        <div class="game-title">🃏 Feder-Memory</div>
+        <button class="game-x" data-close aria-label="Schließen">${icon('close', { size: 15 })}</button>
+        <div class="game-title">Feder-Memory</div>
         <div class="game-right">${right}</div>
       </div>
       ${inner}
@@ -62,7 +64,7 @@ export function mount(root, ctx) {
     const target = d.theirs?.score ?? null;
     root.innerHTML = shell(`
       <div class="game-center">
-        <div class="game-hero">🃏</div>
+        <div class="game-hero">${icon('gameMemo', { size: 68 })}</div>
         <h2 class="game-h">Runde ${d.r}</h2>
         <p class="game-p">${target != null
           ? `<b>${esc(partner)}</b> hat <b>${target}</b> Punkte. Gleiches Blatt, gleiche Reihenfolge.`
@@ -73,7 +75,7 @@ export function mount(root, ctx) {
     bind();
     root.querySelector('[data-go]').onclick = () => { fx('pop'); play(); };
     const inv = root.querySelector('[data-invite]');
-    if (inv) inv.onclick = () => { inviteToPlay(meta.id); fx('tap'); inv.textContent = 'Angestupst 💌'; inv.disabled = true; };
+    if (inv) inv.onclick = () => { inviteToPlay(meta.id); fx('tap'); inv.textContent = 'Angestupst'; inv.disabled = true; };
   }
 
   function play() {
@@ -93,8 +95,8 @@ export function mount(root, ctx) {
       <div class="memo-grid" data-grid>
         ${deck.map((f, i) => `<button class="memo-card" data-i="${i}">
           <span class="memo-in">
-            <span class="memo-back">🪶</span>
-            <span class="memo-front">${f}</span>
+            <span class="memo-back">${icon('feather', { size: 26 })}</span>
+            <span class="memo-front">${icon(f, { size: 34 })}</span>
           </span>
         </button>`).join('')}
       </div>`);
@@ -149,7 +151,7 @@ export function mount(root, ctx) {
     fx(settled?.result === 'me' ? 'yay' : 'pop');
     root.innerHTML = shell(`
       <div class="game-center">
-        <div class="game-hero">${settled ? (settled.result === 'me' ? '🏆' : settled.result === 'draw' ? '🤝' : '🃏') : '🃏'}</div>
+        <div class="game-hero">${icon(settled ? (settled.result === 'me' ? 'trophy' : settled.result === 'draw' ? 'nudgeHug' : 'gameMemo') : 'gameMemo', { size: 68 })}</div>
         <h2 class="game-h">${score} Punkte</h2>
         <p class="game-p">${(ms / 1000).toFixed(1)} Sekunden, ${misses} Fehlversuche.
           ${settled

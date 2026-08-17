@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v1';
+const VERSION = 'knuddl-v2';
 const SHELL = [
   './',
   './index.html',
@@ -7,16 +7,19 @@ const SHELL = [
   './config.js',
   './styles/tokens.css',
   './styles/base.css',
-  './styles/island.css',
+  './styles/chicken.css',
   './styles/screens.css',
   './styles/games.css',
   './src/main.js',
+  './src/games/doodle.js',
   './src/games/eggDuel.js',
+  './src/games/featherFlight.js',
   './src/games/grainRush.js',
   './src/games/heartbeat.js',
   './src/games/index.js',
   './src/games/memory.js',
   './src/games/moodMatch.js',
+  './src/games/nestTower.js',
   './src/pet/chicken.js',
   './src/pet/moods.js',
   './src/state/catalog.js',
@@ -28,8 +31,9 @@ const SHELL = [
   './src/sync/index.js',
   './src/sync/solo.js',
   './src/ui/actions.js',
+  './src/ui/banner.js',
   './src/ui/gameHost.js',
-  './src/ui/island.js',
+  './src/ui/icons.js',
   './src/ui/sheet.js',
   './src/ui/shell.js',
   './src/ui/toast.js',

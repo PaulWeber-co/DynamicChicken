@@ -156,10 +156,10 @@ export function urgentNeed(pet) {
   if (pet.asleep) return null;
   const s = pet.stats;
   const needs = [
-    { key: 'full',   v: s.full,   emoji: '🌽', text: 'hat Hunger' },
-    { key: 'energy', v: s.energy, emoji: '💤', text: 'ist müde' },
-    { key: 'clean',  v: s.clean,  emoji: '🫧', text: 'braucht ein Bad' },
-    { key: 'joy',    v: s.joy,    emoji: '🎈', text: 'langweilt sich' }
+    { key: 'full',   v: s.full,   icon: 'statFull',  text: 'hat Hunger' },
+    { key: 'energy', v: s.energy, icon: 'careSleep', text: 'ist müde' },
+    { key: 'clean',  v: s.clean,  icon: 'careWash',  text: 'braucht ein Bad' },
+    { key: 'joy',    v: s.joy,    icon: 'carePlay',  text: 'langweilt sich' }
   ].filter((n) => n.v < 30).sort((a, b) => a.v - b.v);
   return needs[0] || null;
 }

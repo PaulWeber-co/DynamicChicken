@@ -9,13 +9,14 @@
 import { esc } from '../util/dom.js';
 import { fx, burst, confetti } from '../util/feedback.js';
 import { get, commit } from '../state/store.js';
+import { icon } from '../ui/icons.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
 
 export const meta = {
   id: 'egg',
-  emoji: '🥚',
+  icon: 'gameEgg',
   title: 'Ei-Duell',
   tagline: 'Fünf Symbole, fünf Runden, null Zeitdruck',
   modes: ['async', 'live'],
@@ -24,11 +25,11 @@ export const meta = {
 };
 
 export const SYMBOLS = [
-  { id: 'korn',  e: '🌽', label: 'Korn' },
-  { id: 'ei',    e: '🥚', label: 'Ei' },
-  { id: 'feder', e: '🪶', label: 'Feder' },
-  { id: 'wurm',  e: '🪱', label: 'Wurm' },
-  { id: 'stein', e: '🪨', label: 'Stein' }
+  { id: 'korn',  icon: 'symKorn',  label: 'Korn' },
+  { id: 'ei',    icon: 'symEi',    label: 'Ei' },
+  { id: 'feder', icon: 'symFeder', label: 'Feder' },
+  { id: 'wurm',  icon: 'symWurm',  label: 'Wurm' },
+  { id: 'stein', icon: 'symStein', label: 'Stein' }
 ];
 
 const IDX = Object.fromEntries(SYMBOLS.map((s, i) => [s.id, i]));
@@ -91,7 +92,7 @@ function advance(state, partnerName) {
     g.wins[result]++;
     addBondXp(state, 5);
     pushFeed(state, {
-      from: 'system', type: 'game', emoji: '🥚',
+      from: 'system', type: 'game', icon: 'gameEgg',
       text: result === 'me'
         ? `Ei-Duell gewonnen ${g.score.me}:${g.score.them}`
         : result === 'them'
@@ -132,7 +133,8 @@ export function handleRemote(state, msg, { partnerName }) {
     const won = finished.result === 'me';
     return {
       kind: 'gameResult',
-      emoji: won ? '🏆' : finished.result === 'draw' ? '🤝' : '🥚',
+      icon: won ? 'trophy' : finished.result === 'draw' ? 'nudgeHug' : 'gameEgg',
+      avatar: 'them',
       title: won ? 'Ei-Duell gewonnen!' : finished.result === 'draw' ? 'Ei-Duell: unentschieden' : `${partnerName} gewinnt das Ei-Duell`,
       sub: `${finished.score.me}:${finished.score.them}`,
       body: `Das Ei-Duell ist durch: ${finished.score.me}:${finished.score.them}. +${finished.reward} Körner.`,
@@ -144,7 +146,8 @@ export function handleRemote(state, msg, { partnerName }) {
   const waitingForMe = !g.mine[g.n - 1];
   return {
     kind: 'gameTurn',
-    emoji: '🥚',
+    icon: 'gameEgg',
+    avatar: 'them',
     title: `${partnerName} hat gewählt`,
     sub: waitingForMe ? `Ei-Duell · Runde ${g.n} von ${ROUNDS}` : 'Warte auf die Auflösung',
     body: waitingForMe
@@ -179,8 +182,8 @@ export function mount(root, ctx) {
     root.innerHTML = `
       <div class="game-wrap">
         <div class="game-top">
-          <button class="game-x" data-close aria-label="Schließen">✕</button>
-          <div class="game-title">🥚 Ei-Duell</div>
+          <button class="game-x" data-close aria-label="Schließen">${icon('close', { size: 15 })}</button>
+          <div class="game-title">Ei-Duell</div>
           <div class="game-right"><span class="badge">${g.score.me} : ${g.score.them}</span></div>
         </div>
         <div class="game-scroll">
@@ -190,7 +193,9 @@ export function mount(root, ctx) {
               const open = a && b;
               const r = open ? beats(a, b) : null;
               const cls = !open ? (i === g.n - 1 ? 'now' : '') : r > 0 ? 'win' : r < 0 ? 'lose' : 'tie';
-              return `<span class="egg-pip ${cls}">${open ? (r > 0 ? '✓' : r < 0 ? '✕' : '=') : i + 1}</span>`;
+              return `<span class="egg-pip ${cls}">${open
+                ? (r > 0 ? icon('check', { size: 14 }) : r < 0 ? icon('close', { size: 12 }) : '=')
+                : i + 1}</span>`;
             }).join('')}
           </div>
 
@@ -205,9 +210,9 @@ export function mount(root, ctx) {
               const r = beats(a, b);
               return `<div class="egg-row ${r > 0 ? 'win' : r < 0 ? 'lose' : 'tie'}">
                 <span class="egg-r">R${i + 1}</span>
-                <span class="egg-sym">${SYMBOLS[IDX[a]].e}</span>
+                <span class="egg-sym">${icon(SYMBOLS[IDX[a]].icon, { size: 22 })}</span>
                 <span class="egg-vs">${r > 0 ? 'schlägt' : r < 0 ? 'verliert gegen' : 'gleich wie'}</span>
-                <span class="egg-sym">${SYMBOLS[IDX[b]].e}</span>
+                <span class="egg-sym">${icon(SYMBOLS[IDX[b]].icon, { size: 22 })}</span>
                 <span class="egg-line">${esc(lineFor(a, b))}</span>
               </div>`;
             }).join('')}
@@ -217,7 +222,8 @@ export function mount(root, ctx) {
             <summary>Wer schlägt wen?</summary>
             <div class="egg-wheel">
               ${SYMBOLS.map((s, i) => `<div class="egg-wheel-row">
-                <b>${s.e} ${s.label}</b> schlägt ${SYMBOLS[(i + 1) % 5].e} und ${SYMBOLS[(i + 2) % 5].e}
+                ${icon(s.icon, { size: 20 })}<b>${s.label}</b> schlägt
+                ${icon(SYMBOLS[(i + 1) % 5].icon, { size: 18 })} und ${icon(SYMBOLS[(i + 2) % 5].icon, { size: 18 })}
               </div>`).join('')}
             </div>
           </details>
@@ -246,7 +252,7 @@ export function mount(root, ctx) {
         : `Deine Wahl bleibt geheim, bis ${esc(partner)} auch gewählt hat.`}</p>
       <div class="egg-picks">
         ${SYMBOLS.map((s) => `<button class="egg-pick" data-pick="${s.id}">
-          <span class="egg-pick-e">${s.e}</span>
+          <span class="egg-pick-e">${icon(s.icon, { size: 30 })}</span>
           <span class="egg-pick-l">${s.label}</span>
         </button>`).join('')}
       </div>
@@ -257,7 +263,7 @@ export function mount(root, ctx) {
     const mine = SYMBOLS[IDX[g.mine[g.n - 1]]];
     return `<div class="card game-card center">
       <div class="game-kicker">Runde ${g.n} von ${ROUNDS}</div>
-      <div class="egg-sealed">${mine.e}</div>
+      <div class="egg-sealed">${icon(mine.icon, { size: 62 })}</div>
       <h2 class="game-h">Verdeckt abgelegt</h2>
       <p class="game-p">Du hast ${mine.label} gewählt. Sobald ${esc(partner)} zieht, klappt die Runde auf — bei euch beiden gleichzeitig.</p>
     </div>`;
@@ -266,7 +272,7 @@ export function mount(root, ctx) {
   function doneCard(g) {
     const res = g.score.me > g.score.them ? 'me' : g.score.them > g.score.me ? 'them' : 'draw';
     return `<div class="card game-card center">
-      <div class="game-hero">${res === 'me' ? '🏆' : res === 'draw' ? '🤝' : '🐣'}</div>
+      <div class="game-hero">${icon(res === 'me' ? 'trophy' : res === 'draw' ? 'nudgeHug' : 'gameEgg', { size: 68 })}</div>
       <h2 class="game-h">${res === 'me' ? 'Gewonnen!' : res === 'draw' ? 'Unentschieden' : `${esc(partner)} gewinnt`}</h2>
       <p class="game-p">Endstand ${g.score.me}:${g.score.them} · Gesamtbilanz ${g.wins.me}–${g.wins.them}</p>
       <button class="btn btn-primary btn-block" data-again>Neues Duell</button>
@@ -276,9 +282,9 @@ export function mount(root, ctx) {
   function reveal(x) {
     if (!x) return '';
     return `<div class="egg-reveal ${x.r > 0 ? 'win' : x.r < 0 ? 'lose' : 'tie'}">
-      <span>${SYMBOLS[IDX[x.a]].e}</span>
+      <span>${icon(SYMBOLS[IDX[x.a]].icon, { size: 28 })}</span>
       <b>${x.r > 0 ? 'gewinnt' : x.r < 0 ? 'verliert' : 'gleich'}</b>
-      <span>${SYMBOLS[IDX[x.b]].e}</span>
+      <span>${icon(SYMBOLS[IDX[x.b]].icon, { size: 28 })}</span>
       <em>${esc(lineFor(x.a, x.b))}</em>
     </div>`;
   }
@@ -289,7 +295,7 @@ export function mount(root, ctx) {
     if (g.done || g.mine[g.n - 1]) return;
     g.mine[g.n - 1] = id;
     fx('pop');
-    burst([SYMBOLS[IDX[id]].e], { from: btn, count: 4, rise: 90 });
+    burst([SYMBOLS[IDX[id]].icon], { from: btn, count: 4, rise: 90 });
 
     sendEvent('game', { g: 'egg', kind: 'pick', m: g.m, n: g.n, pick: id });
 
@@ -297,7 +303,7 @@ export function mount(root, ctx) {
     commit('egg');
     if (finished) {
       fx(finished.result === 'me' ? 'yay' : 'pop');
-      if (finished.result === 'me') confetti(['🥚', '🏆', '✨', '💛']);
+      if (finished.result === 'me') confetti(['symEi', 'trophy', 'sparkle']);
     }
     render(resolved);
   }
