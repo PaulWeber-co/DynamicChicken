@@ -18,16 +18,38 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      # enablement schaltet Pages ein und stellt die Quelle auf "GitHub
+      # Actions". Ohne das scheitert der Lauf mit "Get Pages site failed",
+      # solange in den Repo-Einstellungen noch nichts gesetzt ist — und bei
+      # der Quelle "Deploy from a branch" würden sich zwei Deployments in
+      # die Quere kommen.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # Es gibt keinen Build-Schritt: Die App ist bereits statisch.
       # Wir laden das Repository so hoch, wie es ist.
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
+      # Die Pages-API antwortet gelegentlich mit 503. Das ist keine
+      # Fehlkonfiguration, sondern eine Störung auf GitHub-Seite — also
+      # einmal warten und noch einmal versuchen, statt rot zu bleiben.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deployment.outcome == 'failure'
+        run: |
+          echo "Erster Versuch fehlgeschlagen — 45 Sekunden warten."
+          sleep 45
+
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

@@ -3,7 +3,7 @@
  *
  * Alle Sync-Wege (Solo-Simulation, Cloud, Brieftauben-Code) enden hier.
  * Ein Ereignis kommt rein, der Zustand ändert sich, und wenn es etwas zu
- * zeigen gibt, kommt eine Beschreibung für die Dynamic Island zurück.
+ * zeigen gibt, kommt eine Beschreibung für das Banner zurück.
  */
 
 import { get, commit } from './store.js';
@@ -71,7 +71,7 @@ function mergeProfile(state, profile) {
 
 /**
  * Wendet ein Partner-Ereignis an.
- * @returns {object|null} Beschreibung für die Dynamic Island
+ * @returns {object|null} Beschreibung für das Banner
  */
 export function applyEvent(ev, { silent = false } = {}) {
   if (!ev || !ev.t) return null;

@@ -300,6 +300,32 @@ export const pollWaitingForMe = (state) => (state.polls || []).filter((p) => p.m
    Bewerten und Raten
    ═══════════════════════════════════════════════════════ */
 
+/**
+ * Nur echte Web-Adressen dürfen zu einem anklickbaren Link werden.
+ *
+ * Der Link kommt aus fremder Hand. `javascript:` oder `data:` in einem href
+ * führt Code aus, sobald jemand darauf tippt — Escaping hilft dagegen nicht,
+ * weil das Problem nicht die Anführungszeichen sind, sondern das Schema.
+ * Was hier nicht durchkommt, wird als Text angezeigt statt als Link.
+ *
+ * @returns {string} die Adresse, oder '' wenn sie nicht sicher verlinkbar ist
+ */
+export function safeUrl(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(s);
+  try {
+    // Ohne Schema als https lesen — „open.spotify.com/…“ ist gut gemeint
+    const u = new URL(hasScheme ? s : `https://${s}`);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    // Ohne Punkt im Namen ist es kein Host, sondern nur Text
+    if (!hasScheme && !u.hostname.includes('.')) return '';
+    return u.href;
+  } catch {
+    return '';
+  }
+}
+
 /** Song, Link oder einfach eine Sache — bestimmt nur das Bild. */
 export function kindOf(url) {
   const u = String(url || '').toLowerCase();
@@ -319,7 +345,7 @@ export function rateCreate(state, { title, url = '', note = '' }, mine = null) {
   const entry = {
     id: newId(state, 'r'),
     title: String(title || '').slice(0, 100),
-    url: String(url || '').slice(0, 500),
+    url: safeUrl(url).slice(0, 500),
     note: String(note || '').slice(0, 200),
     kind,
     by: state.me.code,
@@ -353,7 +379,7 @@ export function rateApplyRemote(state, d = {}) {
     e = {
       id: d.id,
       title: String(d.title || '').slice(0, 100),
-      url: String(d.url || '').slice(0, 500),
+      url: safeUrl(d.url).slice(0, 500),
       note: String(d.note || '').slice(0, 200),
       kind: d.kind || kindOf(d.url),
       by: d.by || state.partner?.code || '',

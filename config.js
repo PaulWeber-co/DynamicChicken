@@ -24,7 +24,7 @@ export const CONFIG = {
    */
   cloudNamespace: 'knuddl',
 
-  /** Sekunden bis der Partner als „offline" gilt. */
+  /** Sekunden bis der Partner als „offline“ gilt. */
   presenceTimeout: 75,
 
   /** Standardname für das eigene Chicken. */

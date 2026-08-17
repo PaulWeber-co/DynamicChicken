@@ -92,7 +92,7 @@ export function render(root, ctx) {
 
       <div class="card">
         <div class="row-between" style="margin-bottom:12px">
-          <b style="font-size:15px">Wie geht's <span data-name2></span>?</b>
+          <b style="font-size:15px">Wie geht’s <span data-name2></span>?</b>
           <span class="badge" data-wellbeing></span>
         </div>
         <div data-stats></div>
