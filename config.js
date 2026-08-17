@@ -16,7 +16,7 @@
  */
 export const CONFIG = {
   /** z. B. 'https://knuddl-xyz-default-rtdb.europe-west1.firebasedatabase.app' */
-  cloudUrl: '',
+  cloudUrl: 'https://chicken-702b6-default-rtdb.europe-west1.firebasedatabase.app/',
 
   /**
    * Optionaler gemeinsamer Namensraum. Nur relevant, wenn ihr euch eine
