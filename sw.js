@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v3';
+const VERSION = 'knuddl-v4';
 const SHELL = [
   './',
   './index.html',
@@ -90,7 +90,33 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Assets: aus dem Cache, im Hintergrund auffrischen
+  /*
+   * Code und Stile: Netz zuerst.
+   *
+   * Vorher kam alles zuerst aus dem Cache und wurde nur im Hintergrund
+   * erneuert. Nach einem Deployment sah man deshalb noch die alte App und
+   * musste ein zweites Mal neu laden — was sich anfühlt, als wäre nichts
+   * angekommen. Für ein paar Dateien pro Start ist das Netz schnell genug,
+   * und offline greift die Kopie unverändert.
+   */
+  const fresh = /\.(?:js|css|webmanifest)$/i.test(url.pathname);
+  if (fresh) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(VERSION).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req, { ignoreSearch: true }))
+    );
+    return;
+  }
+
+  // Bilder und Icons ändern sich praktisch nie: aus dem Cache, im
+  // Hintergrund auffrischen.
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       const net = fetch(req)
