@@ -23,11 +23,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # enablement schaltet Pages ein und stellt die Quelle auf "GitHub
-      # Actions". Ohne das scheitert der Lauf mit "Get Pages site failed",
-      # solange in den Repo-Einstellungen noch nichts gesetzt ist — und bei
-      # der Quelle "Deploy from a branch" würden sich zwei Deployments in
-      # die Quere kommen.
+      # Die Quelle muss auf "GitHub Actions" stehen.
+      #
+      # Steht sie auf "Deploy from a branch", startet GitHub bei jedem Push
+      # zusätzlich seine eigene Jekyll-Pipeline ("pages build and
+      # deployment") — und die ist es dann auch, die die Seite ausliefert.
+      # Zwei Deployments für denselben Commit vertragen sich nicht: eines
+      # gewinnt, das andere scheitert mit 503. Bleibt die alte Pipeline die
+      # ausliefernde, hängt die Seite auf dem letzten Stand fest, der dort
+      # durchlief — auch wenn dieser Workflow grün ist.
+      #
+      # configure-pages richtet Pages zwar ein, ändert aber die Quelle eines
+      # bereits eingerichteten Repos nicht. Also stellen wir sie selbst um.
+      # Schlägt das fehl (fehlende Rechte), läuft der Rest trotzdem weiter.
+      - name: Quelle auf GitHub Actions stellen
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            gh api -X PUT "repos/${{ github.repository }}/pages" -f build_type=workflow
+            echo "Quelle auf 'GitHub Actions' gesetzt."
+          else
+            gh api -X POST "repos/${{ github.repository }}/pages" -f build_type=workflow
+            echo "Pages eingerichtet, Quelle 'GitHub Actions'."
+          fi
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
