@@ -1,12 +1,12 @@
 /**
  * Knuddl — Einstiegspunkt.
  *
- * Reihenfolge: Zustand laden → Erscheinungsbild → Insel → Tabs → Sync.
+ * Reihenfolge: Zustand laden → Erscheinungsbild → Banner → Tabs → Sync.
  * Danach läuft nur noch ein sehr ruhiger Herzschlag im Hintergrund, der
  * nachrechnet, wie es Knuddl inzwischen geht.
  */
 
-import { load, get, commit, subscribe, emit } from './state/store.js';
+import { load, get, commit, emit, flushSave } from './state/store.js';
 import { tickPet, urgentNeed, touchStreak } from './state/model.js';
 import { setFeedbackPrefs, fx, confetti } from './util/feedback.js';
 import { initBanners } from './ui/banner.js';
@@ -197,9 +197,9 @@ function openOnboarding() {
       return `<div class="onb">
         <div class="onb-chick">${renderChicken(look, { mood: 'happy', size: 160 })}</div>
         <h2 class="onb-h">Hallo!</h2>
-        <p class="onb-p">Das hier ist ein dickes gelbes Huhn. Es wohnt oben in der Pille,
-          es will gefüttert werden — und es hat einen Zwilling bei dem Menschen,
-          den du vermisst.</p>
+        <p class="onb-p">Das hier ist ein dickes gelbes Huhn. Es will gefüttert
+          werden, es langweilt sich, wenn du zu lange weg bist — und es hat einen
+          Zwilling bei dem Menschen, den du vermisst.</p>
         <button class="btn btn-primary btn-block" data-next>Los</button>
       </div>`;
     }
@@ -297,7 +297,17 @@ function wireLifecycle() {
     publishProfile();
   });
 
+  // Das Speichern ist gedrosselt. Wer die App wegwischt, während der Timer
+  // noch läuft, verlöre die letzten Sekunden — also hier sofort schreiben.
+  // pagehide feuert auch auf iOS zuverlässig, beforeunload nicht.
+  const flush = () => { try { flushSave(); } catch { /* egal */ } };
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
+  });
+
   window.addEventListener('beforeunload', () => {
+    flush();
     // Ein letztes Mal „ich war da“ — sonst wirkt man sofort offline
     try { sendEvent('profile', { at: Date.now() }, { volatile: true }); } catch { /* egal */ }
   });
@@ -306,9 +316,30 @@ function wireLifecycle() {
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol === 'file:') return;
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => {
+
+  window.addEventListener('load', async () => {
+    let reg;
+    try {
+      reg = await navigator.serviceWorker.register('./sw.js');
+    } catch (err) {
       console.warn('[knuddl] Service Worker nicht registriert:', err);
+      return;
+    }
+
+    // Der neue Worker übernimmt sofort (skipWaiting). Die offene Seite läuft
+    // aber weiter mit dem alten Code — bei einer App, die tagelang offen
+    // liegt, hieße das: neue Version installiert, nie zu sehen. Ein einziger
+    // Neuaufbau beim Übernehmen räumt das auf.
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+
+    // Beim Zurückkommen nachsehen, ob es etwas Neues gibt
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
     });
   });
 }

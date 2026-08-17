@@ -150,7 +150,13 @@ export function formatInvite(code, secret) {
  * @returns {{code:string, secret:string}|null}
  */
 export function parseInvite(text) {
-  const raw = String(text || '').trim();
+  // Messenger ersetzen den Bindestrich gern durch einen Gedankenstrich, und
+  // wer die Einladung aus der Anzeige heraus markiert, nimmt Zeilenumbrüche
+  // mit. Beides soll trotzdem funktionieren.
+  const raw = String(text || '')
+    .replace(/[‐-―−]/g, '-')   // – — ‒ … alle zu -
+    .replace(/\s*-\s*/g, '-')                  // Leerraum um den Strich weg
+    .trim();
 
   // Link mit ?join=…
   const url = raw.match(/[?&]join=([A-Za-z0-9-]+)/);

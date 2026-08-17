@@ -30,17 +30,75 @@ export function load() {
   return state;
 }
 
+/**
+ * Der Speicher ist begrenzt (meist 5 MB) und Zeichnungen aus dem
+ * Kritzel-Telefon sind das Größte, was hier hineinwandert. Läuft er voll,
+ * hilft stilles Scheitern niemandem — dann fliegt der älteste Ballast raus
+ * und es wird noch einmal versucht. Erst wenn auch das nichts bringt, geben
+ * wir auf und sagen es.
+ */
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
+    return true;
   } catch (err) {
-    console.warn('[knuddl] Konnte nicht speichern:', err);
+    if (!isQuota(err)) { console.warn('[knuddl] Konnte nicht speichern:', err); return false; }
+
+    // Nach Größe geordnet: die liegen gebliebene Zeichnung ist der dickste
+    // Brocken, danach Verlauf und Briefkasten.
+    const trims = [
+      () => { if (state.games?.doodle) state.games.doodle.pending = null; },
+      () => { state.games?.doodle?.hist?.splice(6); },
+      () => { state.feed.splice(30); },
+      () => { state.outbox.splice(0, Math.max(0, state.outbox.length - 20)); },
+      () => { state.rates?.splice(12); state.polls?.splice(12); },
+      () => { state.seen.splice(0, Math.max(0, state.seen.length - 60)); },
+      () => { state.feed.splice(8); }
+    ];
+
+    for (const trim of trims) {
+      try { trim(); } catch { /* egal */ }
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+        console.warn('[knuddl] Speicher war voll — Ältestes verworfen.');
+        return true;
+      } catch (again) {
+        if (!isQuota(again)) return false;
+      }
+    }
+
+    console.error('[knuddl] Speicher voll, nichts mehr zu verwerfen.');
+    emit('storage-full', null);
+    return false;
   }
 }
 
+const isQuota = (err) =>
+  err && (err.name === 'QuotaExceededError'
+    || err.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    || err.code === 22 || err.code === 1014);
+
+let pendingSave = false;
+
 function scheduleSave() {
+  pendingSave = true;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(save, 350);
+  saveTimer = setTimeout(() => { pendingSave = false; save(); }, 350);
+}
+
+/**
+ * Sofort schreiben, aber nur wenn wirklich etwas aussteht.
+ *
+ * Gedacht für den Moment, in dem die App weggewischt wird — da wäre der
+ * gedrosselte Timer noch nicht gelaufen. Ohne die Prüfung würde jeder
+ * Tabwechsel den Stand blind überschreiben, auch den, den ein zweiter
+ * offener Tab gerade frisch geschrieben hat.
+ */
+export function flushSave() {
+  if (!pendingSave) return false;
+  clearTimeout(saveTimer);
+  pendingSave = false;
+  return save();
 }
 
 /* ── Lesen / Schreiben ──────────────────────────────────── */

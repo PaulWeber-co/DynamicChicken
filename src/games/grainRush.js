@@ -101,7 +101,7 @@ export function mount(root, ctx) {
           <div class="game-legend">
             ${KINDS.map((k) => `<span class="legend">${icon(k.icon, { size: 20 })} ${k.pts > 0 ? '+' : ''}${k.pts}</span>`).join('')}
           </div>
-          <button class="btn btn-primary btn-block" data-go>Los geht's</button>
+          <button class="btn btn-primary btn-block" data-go>Los geht’s</button>
           ${target == null && get().partner ? `<button class="btn btn-ghost btn-block" data-invite>${esc(partner)} anstupsen</button>` : ''}
         </div>
       </div>`;

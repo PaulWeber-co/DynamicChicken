@@ -20,8 +20,8 @@ import { MOODS, ACTIVITIES, NUDGES, moodByKey, activityByKey, petMood, questionF
 import { tickPet, pushFeed, addBondXp, bondXpForLevel } from '../../state/model.js';
 import { REWARDS } from '../../state/catalog.js';
 import {
-  ensureShared, NEST_CATALOG, NEST_CATS, WEIGHTS, weightLabel, nestSummary,
-  POLL_TEMPLATES, rateScore, rateStats, KIND_ICON, KIND_LABEL, kindOf
+  ensureShared, NEST_CATALOG, NEST_CATS, weightLabel, nestSummary,
+  POLL_TEMPLATES, rateScore, rateStats, KIND_ICON, KIND_LABEL, kindOf, safeUrl
 } from '../../state/shared.js';
 import {
   sendNudge, setMood, setActivity,
@@ -505,8 +505,7 @@ export function render(root, ctx) {
         </div>
       </div>
       ${e.note ? `<div class="rate-note">„${esc(e.note)}“</div>` : ''}
-      ${e.url ? `<a class="rate-link" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">
-        ${icon('link', { size: 14 })} ${esc(prettyUrl(e.url))}</a>` : ''}
+      ${linkRow(e.url)}
 
       ${revealed ? `
         <div class="rate-grid">
@@ -544,6 +543,15 @@ export function render(root, ctx) {
     <span class="rbar-l">${who}</span>
     <span class="rbar-t"><i style="width:${v * 10}%;background:${color}"></i></span>
     <b>${v}</b></div>`;
+
+  /* Nur echte Web-Adressen werden zum Link — sonst bliebe ein
+     javascript:-Schema aus fremder Hand anklickbar. */
+  const linkRow = (raw) => {
+    const url = safeUrl(raw);
+    if (!url) return '';
+    return `<a class="rate-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+      ${icon('link', { size: 14 })} ${esc(prettyUrl(url))}</a>`;
+  };
 
   const prettyUrl = (u) => {
     try { return new URL(u).hostname.replace(/^www\./, ''); }
@@ -950,8 +958,7 @@ export function render(root, ctx) {
     sheet({
       title: e.title,
       body: `
-        ${e.url ? `<a class="rate-link" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">
-          ${icon('link', { size: 14 })} ${esc(prettyUrl(e.url))}</a>` : ''}
+        ${linkRow(e.url)}
         ${e.note ? `<div class="rate-note" style="margin-bottom:14px">„${esc(e.note)}“</div>` : ''}
 
         <div class="score-block">

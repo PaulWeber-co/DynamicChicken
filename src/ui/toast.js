@@ -1,4 +1,10 @@
-/** Kurze Rückmeldungen am unteren Rand. */
+/**
+ * Kurze Rückmeldungen am unteren Rand.
+ *
+ * Der Text kommt oft aus fremder Hand — „unterwegs zu <Name des Partners>“ —
+ * und wird deshalb als Text gesetzt, nicht als Markup. Nur das Icon davor
+ * ist eigenes SVG.
+ */
 
 import { $ } from '../util/dom.js';
 import { icon } from './icons.js';
@@ -11,7 +17,10 @@ export function toast(text, iconName = '') {
 
   const t = document.createElement('div');
   t.className = 'toast';
-  t.innerHTML = `${iconName ? icon(iconName, { size: 20 }) : ''}<span>${text}</span>`;
+  if (iconName) t.innerHTML = icon(iconName, { size: 20 });
+  const span = document.createElement('span');
+  span.textContent = String(text ?? '');
+  t.appendChild(span);
   root.appendChild(t);
 
   // Höchstens drei gleichzeitig — sonst wird es eine Wand.

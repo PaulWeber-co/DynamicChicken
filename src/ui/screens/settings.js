@@ -66,7 +66,7 @@ export function render(root, ctx) {
       <div class="section-label">Verbindung</div>
       <div class="card code-card">
         <div class="code-label">Deine Einladung</div>
-        <div class="code-big" data-mycode>${esc(invite)}</div>
+        ${inviteBlock(invite)}
         <div class="row" style="gap:8px">
           <button class="btn btn-line btn-sm grow" data-copy-code>Kopieren</button>
           <button class="btn btn-primary btn-sm grow" data-share-code>Teilen</button>
@@ -174,8 +174,8 @@ export function render(root, ctx) {
         <div class="about-title">${icon('tabPet', { size: 22 })}<span>Knuddl</span></div>
         <p class="tiny muted" style="margin:6px 0 0">
           Eine statische Seite ohne Backend. Der Spielstand liegt in deinem Browser,
-          nicht bei uns. Zum Startbildschirm hinzufügen macht daraus eine App —
-          samt Insel direkt unter der Notch.
+          nicht bei uns. Zum Startbildschirm hinzufügen macht daraus eine App,
+          die ohne Adressleiste startet.
         </p>
       </div>
       <div style="height:20px"></div>`;
@@ -184,6 +184,21 @@ export function render(root, ctx) {
   }
 
   /* ── Solo ── */
+  /**
+   * Code und Geheimnis getrennt zeigen.
+   *
+   * Als ein Wort bricht der Text irgendwo mittendrin um — schlecht zum
+   * Vorlesen und zum Vergleichen. Getrennt sieht man außerdem, woraus die
+   * Einladung besteht. Kopiert und geteilt wird trotzdem die ganze Zeile.
+   */
+  function inviteBlock(invite) {
+    const [code, secret] = String(invite).split('-');
+    return `<div class="code-big" data-mycode>
+      <span class="code-part">${esc(code || invite)}</span>
+      ${secret ? `<span class="code-dash">-</span><span class="code-key">${esc(secret)}</span>` : ''}
+    </div>`;
+  }
+
   function soloPanel(s) {
     return `<button class="li card" data-solo-name style="margin-top:12px">
       <div class="li-ico">${icon('tabPet', { size: 19 })}</div>

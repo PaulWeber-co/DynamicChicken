@@ -1,6 +1,6 @@
 /**
  * Die Handlungen, die man an mehreren Stellen auslösen kann:
- * aus dem Knuddl-Screen, aus der Dynamic Island, aus dem Wir-Tab.
+ * aus dem Knuddl-Screen, aus einem Banner, aus dem Wir-Tab.
  */
 
 import { get, commit } from '../state/store.js';
