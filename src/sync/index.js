@@ -16,6 +16,7 @@ import { get, commit, emit } from '../state/store.js';
 import { publicProfile } from '../state/model.js';
 import { applyEvent } from '../state/events.js';
 import CONFIG from '../../config.js';
+import { newSecret, derive, formatInvite, parseInvite, isSupported } from '../util/crypto.js';
 
 import * as solo from './solo.js';
 import * as cloud from './cloud.js';
@@ -73,7 +74,7 @@ export async function setMode(mode, { silent = false } = {}) {
     ctx.setStatus('error');
   }
 
-  // Profil regelmäßig auffrischen — das ist gleichzeitig unser „online".
+  // Profil regelmäßig auffrischen — das ist gleichzeitig unser „online“.
   if (mode === 'cloud') {
     publishTimer = setInterval(() => publishProfile(), 32_000);
   }
@@ -136,7 +137,7 @@ export function sendEvent(type, data, opts = {}) {
   return ev;
 }
 
-/** Mein öffentliches Profil hochladen (Aussehen, Level, Stimmung, „online"). */
+/** Mein öffentliches Profil hochladen (Aussehen, Level, Stimmung, „online“). */
 export function publishProfile() {
   const s = get();
   s.me.lastActive = Date.now();
@@ -145,15 +146,73 @@ export function publishProfile() {
 
 /* ── Verbinden ──────────────────────────────────────────── */
 
-export async function pairWith(code) {
+/**
+ * Legt das gemeinsame Geheimnis fest.
+ *
+ * Falls beide Seiten unabhängig eines erzeugt haben, gewinnt das
+ * alphabetisch kleinere. Weil beide dieselbe Regel anwenden, landen sie nach
+ * einem einzigen Austausch beim selben Schlüssel.
+ */
+export function adoptSecret(theirs) {
   const s = get();
-  const clean = String(code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (clean.length !== 6) throw new Error('Ein Knuddl-Code hat sechs Zeichen.');
-  if (clean === s.me.code) throw new Error('Das ist dein eigener Code.');
+  s.pair ||= { secret: null, room: null, at: 0 };
+  if (!theirs) return s.pair.secret;
+  const mine = s.pair.secret;
+  const winner = !mine ? theirs : (mine < theirs ? mine : theirs);
+  if (winner !== mine) {
+    s.pair = { secret: winner, room: null, at: Date.now() };
+    commit('pair-secret');
+  }
+  return winner;
+}
+
+/** Die Einladung, die du deinem Menschen schickst. */
+export function myInvite() {
+  const s = get();
+  s.pair ||= { secret: null, room: null, at: 0 };
+  if (!s.pair.secret && isSupported()) {
+    s.pair = { secret: newSecret(), room: null, at: Date.now() };
+    commit('pair-secret');
+  }
+  return s.pair.secret ? formatInvite(s.me.code, s.pair.secret) : s.me.code;
+}
+
+export function inviteLink() {
+  const base = location.href.split('#')[0].split('?')[0];
+  return `${base}?join=${encodeURIComponent(myInvite())}`;
+}
+
+/** Verschlüsselt diese Verbindung? */
+export const isEncrypted = () => !!get().pair?.secret && isSupported();
+
+/**
+ * Verbinden. Nimmt eine ganze Einladung, einen Link oder einen nackten Code.
+ */
+export async function pairWith(input) {
+  const s = get();
+  const parsed = parseInvite(input);
+  if (!parsed) throw new Error('Das sieht nicht nach einer Einladung aus.');
+  if (parsed.code === s.me.code) throw new Error('Das ist deine eigene Einladung.');
+
+  if (!parsed.secret) {
+    // Ein nackter Code trägt keinen Schlüssel. Das funktioniert nur, wenn die
+    // Gegenseite ebenfalls ohne Einladung verbindet — und bleibt Klartext.
+    console.warn('[knuddl] Ohne Einladung: unverschlüsselte Verbindung.');
+  }
+
+  if (parsed.secret) {
+    // Die Einladung bringt das Geheimnis mit — sie gewinnt immer, sonst
+    // würde der Einladende in einen anderen Raum schreiben.
+    s.pair = { secret: parsed.secret, room: null, at: Date.now() };
+    commit('pair-secret');
+    // Prüfen, ob wir daraus wirklich Schlüssel ableiten können
+    try { await derive(parsed.secret); }
+    catch { throw new Error('Der Code ist unvollständig oder vertippt.'); }
+  }
 
   s.partner = {
     linked: true,
-    code: clean,
+    code: parsed.code,
     name: 'Dein Mensch',
     tz: s.me.tz,
     pet: s.partner?.pet || null,
@@ -169,17 +228,18 @@ export async function pairWith(code) {
   if (!s.bond.since) s.bond.since = Date.now();
   commit('pair');
 
-  if (current?.onPair) await current.onPair(clean, s);
+  if (current?.onPair) await current.onPair(parsed.code, s);
   publishProfile();
-  sendEvent('hello', publicProfile(s));
+  sendEvent('hello', { ...publicProfile(s), k: s.pair?.secret || null });
   emit('sync', syncStatus());
-  return s.partner;
+  return { ...s.partner, encrypted: !!parsed.secret };
 }
 
 export function unpair() {
   const s = get();
   s.partner = null;
   s.outbox = [];
+  s.pair = { secret: null, room: null, at: 0 };
   commit('unpair');
   current?.onUnpair?.(s);
   emit('sync', syncStatus());

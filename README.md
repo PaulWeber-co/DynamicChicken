@@ -14,14 +14,14 @@ Läuft so, wie es hier liegt, auf GitHub Pages.
 
 ## Auf GitHub Pages bringen
 
-**Settings → Pages → Source: „Deploy from a branch" → `main` / `/ (root)` → Save.**
+**Settings → Pages → Source: „Deploy from a branch“ → `main` / `/ (root)` → Save.**
 
 Das war's. Nach ein bis zwei Minuten läuft die App unter
 `https://<dein-name>.github.io/DynamicChicken/`.
 
 Es liegt zusätzlich ein Workflow (`.github/workflows/pages.yml`) bereit, falls du
 lieber über GitHub Actions deployst — dann in den Pages-Einstellungen
-„GitHub Actions" als Source wählen. Beides funktioniert; der Branch-Weg ist
+„GitHub Actions“ als Source wählen. Beides funktioniert; der Branch-Weg ist
 weniger Bewegung, weil ohnehin nichts gebaut werden muss.
 
 Lokal ausprobieren:
@@ -35,7 +35,7 @@ Knuddl im Vollbild, offline und mit eigenem Icon.
 
 ---
 
-## „Gehen die ganzen Funktionen auf GitHub Pages überhaupt?"
+## „Gehen die ganzen Funktionen auf GitHub Pages überhaupt?“
 
 Kurz: **ja** — mit einer bewussten Entscheidung an genau einer Stelle.
 
@@ -44,7 +44,7 @@ weiterleiten. Alles, was rein im Browser passiert, funktioniert deshalb
 uneingeschränkt: Pflege-Simulation, Personalisierung, alle acht Spiele,
 Offline-Betrieb, Installation als App.
 
-Für „mein Gefühl kommt bei dir an" braucht es dagegen irgendetwas dazwischen.
+Für „mein Gefühl kommt bei dir an“ braucht es dagegen irgendetwas dazwischen.
 Knuddl bietet dafür **drei Wege**, umschaltbar unter *Mehr → Wie synchronisiert
 ihr?*:
 
@@ -108,13 +108,63 @@ Echtzeit.
    [`config.js`](config.js) eintragen, dann müsst ihr es nie wieder tun.
 6. Beide Geräte: derselbe Eintrag, dann Codes tauschen. Fertig.
 
-**Zur Ehrlichkeit:** Diese Regeln erlauben jedem, der die URL kennt, unter
-`/knuddl` zu lesen und zu schreiben. Für zwei Menschen und ein paar Hühner ist
-das vertretbar — es liegen dort Kosenamen und Spielstände, keine Geheimnisse.
-Wer mag, setzt `cloudNamespace` in `config.js` auf eine zufällige Zeichenfolge
-und ersetzt oben `"knuddl"` durch denselben Wert; dann ist der Namensraum
-praktisch unauffindbar. Wer es richtig dicht will, schaltet Firebase Anonymous
-Auth ein und setzt `".read": "auth != null"`.
+## „Kann da jemand anders mitlesen?“
+
+Kurze Antwort: **nein, nicht bei den Inhalten.** Die Datenbank bekommt nichts
+Lesbares zu sehen.
+
+Die längere: Eine statische Seite hat keinen Server, dem sie vertrauen könnte.
+Die Datenbank-URL steht in `config.js`, also im Quelltext der Seite — jeder,
+der sie kennt, kann hineinschauen. Deshalb steht dort nichts, womit sich etwas
+anfangen ließe.
+
+Beim Verbinden erzeugt dein Gerät ein **Geheimnis** — 96 Bit Zufall, als
+20 Zeichen lesbar. Es hängt hinten an deiner Einladung:
+
+```
+ABC123-K7F2M9QX4R8TWE7HJ2NP
+└code┘ └───── Geheimnis ─────┘
+```
+
+Diese Einladung läuft über euren eigenen Messenger und wird **niemals
+hochgeladen**. Beide Geräte leiten daraus mit HKDF-SHA256 zwei Dinge ab:
+
+| | wozu |
+|---|---|
+| **Raum-ID** (20 Zeichen) | wohin geschrieben wird — praktisch unauffindbar |
+| **AES-GCM-256-Schlüssel** | verschlüsselt jeden Inhalt |
+
+In der Datenbank landet dann das hier — an einer Stelle, die niemand errät:
+
+```json
+{ "r": { "YT45VWWVEJDP9SWN4YKA": { "u": { "T9YZ4P": {
+  "v": 1, "iv": "oYSmCPghOEkU1Pv5", "ct": "s6PbSdN2ufSOGZ9aO1VLC7koh…" } } } } }
+```
+
+Namen, Stimmungen, Notizen, Nest-Wünsche, Abstimmungen, Bewertungen, dein
+Ort — alles steckt im `ct`. Nachgeprüft: nach einer kompletten Sitzung zu
+zweit taucht im Datenbank-Abzug kein einziges Klartextwort auf. Vor dem
+Verbinden wird gar nichts hochgeladen, weil es dann noch niemanden gibt, der
+es lesen könnte.
+
+Was ein Neugieriger mit Datenbankzugriff trotzdem sieht: dass es diesen Raum
+gibt, wie viele Datensätze darin liegen und wann sie geschrieben wurden.
+Metadaten also, keine Inhalte. AES-GCM merkt außerdem, wenn jemand an einem
+Datensatz herumgepfuscht hat — dann wird er verworfen statt angezeigt.
+
+**Was ihr dafür tun müsst:** die *vollständige* Einladung austauschen, nicht
+nur den sechsstelligen Code. Ein nackter Code verbindet zwar auch, aber
+unverschlüsselt — die App sagt das dann deutlich, in den Einstellungen und
+als Hinweis nach dem Verbinden.
+
+Wer zusätzlich verhindern will, dass Fremde überhaupt schreiben dürfen:
+Firebase Anonymous Auth einschalten und `".read"`/`".write"` auf
+`"auth != null"` setzen. Nötig ist es für die Vertraulichkeit nicht mehr.
+
+**Zum Ort:** gespeichert wird nur eine Stadt, die du selbst ausgesucht hast,
+mit auf zwei Nachkommastellen gerundeten Koordinaten — etwa ein Kilometer
+genau. Kein GPS, kein Verlauf, und im Zweifel gar nichts. Die Wetterabfrage
+selbst geht direkt an Open-Meteo, ohne Konto und ohne Schlüssel.
 
 ### Benachrichtigungen
 
@@ -124,7 +174,7 @@ lange sanft nach. Liegt die App im Hintergrund und hast du es unter *Mehr*
 erlaubt, geht dieselbe Meldung zusätzlich als Systembenachrichtigung raus.
 
 Echte Push-Nachrichten bei komplett geschlossener App bräuchten einen
-Push-Server mit VAPID-Schlüsseln — das sprengt „statische Seite". Solange die
+Push-Server mit VAPID-Schlüsseln — das sprengt „statische Seite“. Solange die
 App im Hintergrund offen ist, funktioniert es.
 
 ---
@@ -169,14 +219,41 @@ XP, Level, Körner als Währung.
 manches schaltet euer gemeinsames Bond-Level frei.
 
 ### Kommunizieren
+Der Wir-Tab hat vier Abschnitte, weil vier verschiedene Zeitgefühle
+dahinterstecken: **Heute** (was gerade ist), **Nest** (was mal sein soll),
+**Wählen** (was als Nächstes ansteht) und **Raten** (wie gut ihr euch kennt).
+
+**Heute**
 - **Stimmungen** aus 12 Gefühlen, optional mit einem Satz dazu
 - **Status** — was du gerade machst, aus 12 Aktivitäten
-- **Kleine Gesten** — Knuddeln, Kuss, „Denk an dich", Kaffee spendieren …
+- **Kleine Gesten** — Knuddeln, Kuss, „Denk an dich“, Kaffee spendieren …
   Jede löst beim Empfänger eine eigene Bewegung aus
 - **Kuschel-Knopf** — beide gleichzeitig halten, dann vibrieren beide Geräte
 - **Frage des Tages** — beide antworten, aufgedeckt wird gemeinsam
-- **Zeitzonen** — seine/ihre Uhrzeit, Stundenversatz, „schläft wahrscheinlich"
+- **Wetter am Ort des anderen** — Temperatur, Lage, Höchst- und Tiefstwert,
+  Sonnenuntergang, dazu ein Satz („Regenjacke wäre klug.“) und der Vergleich
+  zu deinem Wetter. Dreizehn selbst gezeichnete Wetterbilder, Tag und Nacht
+  getrennt. Quelle ist Open-Meteo: kein Konto, kein Schlüssel, CORS erlaubt
+- **Zeitzonen** — seine/ihre Uhrzeit, Stundenversatz, „schläft wahrscheinlich“
 - **Streak, Bond-Level, gemeinsamer Verlauf**
+
+**Gemeinsames Nest** — die Wohnung, die ihr euch vorstellt. 26 konkrete
+Wünsche in fünf Kategorien (plus eigene), jeder gewichtet für sich in vier
+Stufen von *egal* bis *unverzichtbar*. Daraus rechnet die App eine
+Übereinstimmung in Prozent und sortiert in zwei Listen: **worin ihr euch
+einig seid** und **worüber ihr reden solltet** — Letzteres nach Abstand
+sortiert, das Streitträchtigste zuerst.
+
+**Abstimmen** — „Was machen wir heute Abend?“ mit zwei bis sechs Optionen,
+vier Vorlagen für die üblichen Fragen. Was der andere gewählt hat, siehst du
+erst, wenn du selbst gewählt hast. Gleiche Wahl gibt Konfetti und Körner,
+unterschiedliche zeigt beide Antworten nebeneinander.
+
+**Bewerten & Raten** — ein Song, ein Link, irgendeine Sache. Beide geben eine
+Note von 1 bis 10 **und** tippen, was der andere sagen wird. Beides zusammen,
+sonst könnte man die Vermutung nachträglich anpassen. Aufgedeckt wird, wenn
+beide dran waren: Punkte gibt es fürs Kennen (10 minus doppelter Abstand),
+nicht fürs Mögen. Dazu ein laufender Punktestand und eine Geschmacks-Nähe.
 
 ### Acht Minispiele
 
@@ -203,16 +280,19 @@ Auf der Spiele-Seite gibt es außerdem eine **Arena**: Die Form eures Huhns
 
 ## Ideen für später
 
-- **Gemeinsames Nest** — ein Ort, den ihr zusammen einrichtet; jede Woche
-  Pflege schaltet ein Möbelstück frei
 - **Eier legen** — bei gutem Pflegezustand legt Knuddl Eier, aus denen bei
   gemeinsamem Ausbrüten ein Küken schlüpft
 - **Countdown** bis zum nächsten Wiedersehen, mit eigener Karte im Wir-Tab
+- **Nest zum Anschauen** — aus den Wünschen, bei denen ihr euch einig seid,
+  wächst ein gezeichneter Grundriss statt einer Liste
+- **Wetter in der Szene** — regnet es bei deinem Menschen, regnet es auch
+  hinter seinem/ihrem Huhn
 - **Wunschzettel** — Dinge fürs nächste Treffen, auslosbar
 - **Foto-Kritzel** — dasselbe Spiel, aber mit einem echten Foto als Vorlage
-- **Wetter am Ort des anderen** in der Szene (bräuchte eine Wetter-API)
 - **Duett-Modus für Herzschlag** — beide tippen gleichzeitig, die App misst,
   wie synchron ihr seid
+- **Abstimmung mit Frist** — wer bis 18 Uhr nicht gewählt hat, überlässt die
+  Entscheidung dem anderen
 
 ## Aufbau
 
@@ -242,19 +322,24 @@ src/
     store.js          Winziger reaktiver Store mit Persistenz
     model.js          Datenmodell, Echtzeit-Simulation, Level, Migration
     catalog.js        Futter, Preise, Belohnungen, Bond-Freischaltungen
+    shared.js         Nest, Abstimmungen, Bewerten — Katalog und Auswertung
     events.js         Eingehende Partner-Ereignisse
   sync/
     index.js          Adapter-Umschaltung, Senden, Pairing
     solo.js           Simulierter Mensch
-    cloud.js          Firebase RTDB über fetch + EventSource
+    cloud.js          Firebase RTDB über fetch + EventSource, verschlüsselt
     carrier.js        Brieftauben-Codes
   games/              Registry + acht Spiele
   ui/
-    icons.js          ~100 selbst gezeichnete SVG-Icons
+    icons.js          ~145 selbst gezeichnete SVG-Icons
     banner.js         Benachrichtigungen von oben
     shell.js          Tabs und Routing
+    placeSheet.js     Ortssuche fürs Wetter
     …                 Sheets, Toasts, Aktionen, fünf Screens
-  util/               DOM, Zufall, Zeit, Haptik/Ton/Konfetti, Codec
+  util/
+    crypto.js         HKDF-Ableitung, AES-GCM, Einladungen
+    weather.js        Open-Meteo, WMO-Codes, Ortssuche
+    …                 DOM, Zufall, Zeit, Haptik/Ton/Konfetti, Codec
 
 tools/make-icons.mjs  Erzeugt die PNG-App-Icons (nur bei Änderungen nötig)
 ```

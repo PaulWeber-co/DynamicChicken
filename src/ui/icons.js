@@ -40,6 +40,32 @@ function face(expr, extra = '') {
   return `<g>${head}${cheeks}${expr}${beak}${extra}</g>`;
 }
 
+/* ── Bausteine fürs Wetter ──────────────────────────────
+   Alle Wetterlagen teilen sich dieselbe Wolke und dieselbe Sonne. Dadurch
+   sieht die Reihe zusammengehörig aus, auch wenn sie sich täglich ändert. */
+const sunDisc = (cx, cy, r) =>
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${C.yolk}"/>
+   <path d="M${cx} ${cy - r}a${r} ${r} 0 0 1 0 ${r * 2} ${r} ${r} 0 0 0 0-${r * 2}z" fill="${C.yolkD}" opacity=".3"/>`;
+const sunRays = (cx, cy, len = 10.4) =>
+  `<g stroke="${C.yolkD}" stroke-width="2.2" stroke-linecap="round" opacity=".9">${
+    [0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+      const r = (a * Math.PI) / 180;
+      const x1 = cx + Math.cos(r) * (len - 2.4), y1 = cy + Math.sin(r) * (len - 2.4);
+      const x2 = cx + Math.cos(r) * len, y2 = cy + Math.sin(r) * len;
+      return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}"/>`;
+    }).join('')}</g>`;
+/** Bewährte Wolkenkontur — dieselbe wie bei cloudSync, nur verschiebbar. */
+const cloudShape = (dx = 0, dy = 0, fill = '#F4F9FE', shade = '#C9DAEA') =>
+  `<g transform="translate(${dx} ${dy})">
+     <path d="M10 24a6.4 6.4 0 0 1-.6-12.8 8.4 8.4 0 0 1 15.8 2A5.4 5.4 0 0 1 23.4 24H10z" fill="${fill}"/>
+     <path d="M10 24a6.4 6.4 0 0 1-.6-12.8 8.4 8.4 0 0 1 4-3.1 8.4 8.4 0 0 0-2 6.9A6.4 6.4 0 0 0 13.6 24z" fill="${shade}" opacity=".45"/>
+     <path d="M10 24a6.4 6.4 0 0 1-.6-12.8 8.4 8.4 0 0 1 15.8 2A5.4 5.4 0 0 1 23.4 24H10z"
+       fill="none" stroke="${shade}" stroke-width="1.3" stroke-linejoin="round"/>
+   </g>`;
+const drops = (xs, y, len) =>
+  `<g stroke="${C.skyD}" stroke-width="2.2" stroke-linecap="round">${
+    xs.map((x) => `<path d="M${x} ${y}l-1 ${len}"/>`).join('')}</g>`;
+
 const eyeDot = (x, y = 15.4, r = 1.7) =>
   `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.cocoa}"/><circle cx="${x + 0.6}" cy="${y - 0.6}" r=".6" fill="#fff"/>`;
 const eyeArc = (x, y = 15.6) =>
@@ -467,7 +493,172 @@ const ICONS = {
     <circle cx="16" cy="10.4" r="1.5" fill="currentColor"/>`,
   handTap: () => `<path d="M13 15V7.6a2.6 2.6 0 0 1 5.2 0V15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
     <path d="M18.2 13.6a2.2 2.2 0 0 1 4.4 0v1.8M22.6 15.4a2.2 2.2 0 0 1 4.4 0v5.2c0 4.4-3.4 8-8 8h-2.4c-2.6 0-4-1-5.6-3l-4-5.6a2.4 2.4 0 0 1 3.6-3.2l2.4 2.4"
-      fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`
+      fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+
+  /* ── Wetter ──────────────────────────────────────────────
+     Nach WMO-Codes gruppiert. Sonne und Mond teilen sich die
+     Wolkenform, damit Tag und Nacht dieselbe Silhouette haben. */
+  wSun: () => `${sunDisc(16, 16, 6.6)}${sunRays(16, 16)}`,
+  wMoon: () => `<path d="M23.4 20.2A9.2 9.2 0 0 1 12 8.8a9.8 9.8 0 1 0 11.4 11.4z" fill="${C.lav}"/>
+    <path d="M20.6 17.6a7 7 0 0 1-6.6-8.8 8 8 0 1 0 8.6 10 7 7 0 0 1-2 -1.2z" fill="${C.lavD}" opacity=".3"/>
+    <circle cx="25.6" cy="7.4" r="1.5" fill="${C.yolkL}"/><circle cx="21.6" cy="4.6" r="1" fill="${C.yolkL}"/>`,
+  wPartly: () => `${sunDisc(10.6, 10, 5)}${sunRays(10.6, 10, 8)}${cloudShape(1.6, 2.6)}`,
+  wPartlyNight: () => `<path d="M15.2 13.2A7.2 7.2 0 0 1 8.6 3.6a7.6 7.6 0 1 0 8.8 8.8 7.2 7.2 0 0 1-2.2.8z" fill="${C.lav}"/>
+    ${cloudShape(1.6, 2.6)}`,
+  wCloud: () => cloudShape(0, 1),
+  wFog: () => `${cloudShape(0, -2)}
+    <path d="M6 26h20M8.4 29.4h15.2" stroke="#B0C2D2" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+  wDrizzle: () => `${cloudShape(0, -3)}${drops([11, 16, 21], 22.4, 3.2)}`,
+  wRain: () => `${cloudShape(0, -4)}${drops([10, 15.4, 20.8], 21.4, 5.4)}`,
+  wShower: () => `${sunDisc(24.4, 7.6, 4)}${cloudShape(-2.4, -3.4)}${drops([9.4, 15], 21.8, 4.8)}`,
+  wSnow: () => `${cloudShape(0, -4)}
+    ${[10.6, 16, 21.4].map((x) => `<g transform="translate(${x} 24.6)" stroke="${C.skyD}" stroke-width="1.7" stroke-linecap="round">
+      <path d="M0-2.6V2.6M-2.3-1.3 2.3 1.3M-2.3 1.3 2.3-1.3"/></g>`).join('')}`,
+  wSleet: () => `${cloudShape(0, -4)}${drops([10.6, 21.4], 21.6, 4.6)}
+    <g transform="translate(16 24.6)" stroke="${C.skyD}" stroke-width="1.7" stroke-linecap="round">
+      <path d="M0-2.6V2.6M-2.3-1.3 2.3 1.3M-2.3 1.3 2.3-1.3"/></g>`,
+  wThunder: () => `${cloudShape(0, -5, '#D3DEE9', '#A9BACB')}
+    <path d="M18 16.6 10.6 26h4.4l-1 5 7-9h-4.2z" fill="${C.yolk}" stroke="${C.yolkD}" stroke-width="1" stroke-linejoin="round"/>`,
+  wWind: () => `${cloudShape(0, -2.6)}
+    <path d="M5 22.6h12.6a2.6 2.6 0 1 0-2.6-2.6M7.4 27h9.6a2.4 2.4 0 1 1-2.4 2.4"
+      fill="none" stroke="#9FB4C8" stroke-width="2.2" stroke-linecap="round"/>`,
+  pin: () => `<path d="M16 3.4c5 0 9 3.9 9 8.9 0 6.3-9 16.3-9 16.3S7 18.6 7 12.3c0-5 4-8.9 9-8.9z" fill="${C.rose}"/>
+    <circle cx="16" cy="12.2" r="3.6" fill="${C.cream}"/>`,
+  thermo: () => `<path d="M13 6.4a3 3 0 0 1 6 0v11.2a5.6 5.6 0 1 1-6 0z" fill="none" stroke="${C.roseD}" stroke-width="2.2"/>
+    <path d="M16 10.4v8.4" stroke="${C.rose}" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="16" cy="22.2" r="3" fill="${C.rose}"/>`,
+  sunrise: () => `${sunDisc(16, 16.4, 5.2)}
+    <path d="M16 4.6v3.4M7.4 8 9.8 10.4M24.6 8 22.2 10.4" stroke="${C.yolkD}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M4 22.4h24" stroke="${C.wood}" stroke-width="2.4" stroke-linecap="round"/>`,
+
+  /* ── Gemeinsames Nest ────────────────────────────────── */
+  tabNest: () => `<path d="M16 4.6 28 14v12.4a2.6 2.6 0 0 1-2.6 2.6H6.6A2.6 2.6 0 0 1 4 26.4V14z" fill="${C.beak}"/>
+    <path d="M16 4.6 28 14v12.4a2.6 2.6 0 0 1-2.6 2.6H16z" fill="${C.beakD}" opacity=".35"/>
+    <path d="M2.6 15 16 4.2 29.4 15" fill="none" stroke="${C.woodD}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 25c-3.8-2.9-5.8-4.7-5.8-7 0-1.7 1.4-3 3-3 1.1 0 2 .5 2.8 1.5.8-1 1.7-1.5 2.8-1.5 1.6 0 3 1.3 3 3 0 2.3-2 4.1-5.8 7z" fill="${C.rose}"/>`,
+  roomKitchen: () => `<path d="M6.6 13.4h18.8l-1.4 12.2a2.6 2.6 0 0 1-2.6 2.3H10.6a2.6 2.6 0 0 1-2.6-2.3z" fill="${C.shell}"/>
+    <rect x="4.4" y="11" width="23.2" height="3.6" rx="1.8" fill="${C.woodD}"/>
+    <circle cx="12.4" cy="20.4" r="2.8" fill="${C.beak}"/><circle cx="19.6" cy="20.4" r="2.8" fill="${C.beak}"/>
+    <path d="M9.4 8.6c0-1.6 1.4-1.6 1.4-3.2M15.4 8.6c0-1.6 1.4-1.6 1.4-3.2M21.4 8.6c0-1.6 1.4-1.6 1.4-3.2"
+      stroke="${C.roseL}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+  roomBalcony: () => `<path d="M5 12h22v3H5z" fill="${C.wood}"/>
+    <path d="M6.6 15v11M12 15v11M17.4 15v11M22.8 15v11M5 26h22" stroke="${C.woodD}" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M21 12c0-4 2.4-6.6 5.4-7-1 3.4-1.6 5.4-1.6 7z" fill="${C.leaf}"/>
+    <path d="M11 12c0-3.4-2-5.6-4.6-6 .9 3 1.4 4.6 1.4 6z" fill="${C.leafL}"/>`,
+  roomBath: () => `<path d="M6 15.4h5V9.4a2.6 2.6 0 0 1 5.2 0" fill="none" stroke="${C.mud}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M3.4 15.4h25.2v4.2a6.6 6.6 0 0 1-6.6 6.6H10A6.6 6.6 0 0 1 3.4 19.6z" fill="${C.sky}"/>
+    <path d="M3.4 15.4h25.2v2.8H3.4z" fill="${C.white}" opacity=".75"/>
+    <rect x="2.6" y="14" width="26.8" height="2.8" rx="1.4" fill="${C.skyD}"/>
+    <circle cx="19.4" cy="10.6" r="1.9" fill="${C.sky}" opacity=".8"/><circle cx="24.2" cy="7.6" r="1.3" fill="${C.sky}" opacity=".8"/>
+    <path d="M8 26.4v2.4M24 26.4v2.4" stroke="${C.mud}" stroke-width="2.2" stroke-linecap="round"/>`,
+  roomBed: () => `<path d="M3.4 22.4V11a2 2 0 0 1 4 0v4.4h17.2A4 4 0 0 1 28.6 19.4v3z" fill="${C.lav}"/>
+    <rect x="3.4" y="22.4" width="25.2" height="3.6" rx="1.8" fill="${C.lavD}"/>
+    <rect x="9" y="11.4" width="8.4" height="4" rx="2" fill="${C.white}"/>
+    <path d="M5.4 26v2.4M26.6 26v2.4" stroke="${C.lavD}" stroke-width="2" stroke-linecap="round"/>`,
+  roomDesk: () => `<rect x="4" y="17.4" width="24" height="2.8" rx="1.4" fill="${C.wood}"/>
+    <path d="M6.6 20.2v7.4M25.4 20.2v7.4" stroke="${C.woodD}" stroke-width="2.2" stroke-linecap="round"/>
+    <rect x="15.4" y="8.6" width="11" height="8" rx="1.8" fill="${C.lav}"/>
+    <path d="M6.4 17.4c0-3 2-5 4.6-5" fill="none" stroke="${C.beakD}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M8.4 11.4 13.4 8l1.6 3.6-5 3.4z" fill="${C.yolk}"/>`,
+  roomSofa: () => `<path d="M5 15.4a3 3 0 0 1 6 0v3h10v-3a3 3 0 0 1 6 0v6.2H5z" fill="${C.roseL}"/>
+    <rect x="4" y="17.6" width="24" height="7" rx="3.2" fill="${C.rose}"/>
+    <path d="M7.6 24.6v3M24.4 24.6v3" stroke="${C.roseD}" stroke-width="2.2" stroke-linecap="round"/>`,
+  roomPlant: () => `<path d="M11 18.6h10l-1.2 8.4a2 2 0 0 1-2 1.6h-3.6a2 2 0 0 1-2-1.6z" fill="${C.beak}"/>
+    <path d="M16 18.6V9.4" stroke="${C.leafD}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M16 12.6c-3.4 0-5.6-2-5.6-5.4 3.4 0 5.6 2 5.6 5.4z" fill="${C.leaf}"/>
+    <path d="M16 15.4c3.4 0 5.6-2 5.6-5.4-3.4 0-5.6 2-5.6 5.4z" fill="${C.leafL}"/>`,
+  roomPet: () => `<ellipse cx="16" cy="21.4" rx="6" ry="5" fill="${C.wood}"/>
+    <ellipse cx="8.6" cy="14.4" rx="2.8" ry="3.6" fill="${C.wood}" transform="rotate(-18 8.6 14.4)"/>
+    <ellipse cx="23.4" cy="14.4" rx="2.8" ry="3.6" fill="${C.wood}" transform="rotate(18 23.4 14.4)"/>
+    <ellipse cx="13.2" cy="9.4" rx="2.6" ry="3.4" fill="${C.woodD}"/>
+    <ellipse cx="18.8" cy="9.4" rx="2.6" ry="3.4" fill="${C.woodD}"/>`,
+  roomLight: () => `<path d="M16 4.4a8 8 0 0 1 5 14.2v2.8h-10v-2.8A8 8 0 0 1 16 4.4z" fill="${C.yolkL}"/>
+    <path d="M16 8.4a4.6 4.6 0 0 0-3.4 7.6" fill="none" stroke="${C.yolkD}" stroke-width="1.7" stroke-linecap="round"/>
+    <rect x="11.4" y="21.4" width="9.2" height="2.6" rx="1.3" fill="${C.mud}"/>
+    <rect x="12.6" y="24.6" width="6.8" height="2.4" rx="1.2" fill="${C.mud}"/>`,
+  roomBooks: () => `<rect x="5" y="8" width="5.2" height="18" rx="1.4" fill="${C.rose}"/>
+    <rect x="11" y="10.6" width="5" height="15.4" rx="1.4" fill="${C.sky}"/>
+    <rect x="16.8" y="7.4" width="4.8" height="18.6" rx="1.4" fill="${C.leaf}"/>
+    <rect x="21.4" y="13.4" width="6.2" height="12.6" rx="1.4" fill="${C.yolk}" transform="rotate(9 24.5 19.7)"/>
+    <path d="M4 26h24" stroke="${C.woodD}" stroke-width="2.2" stroke-linecap="round"/>`,
+  roomMusic: () => `<path d="M12.4 22.4V8.6l12-2.4v13.6" fill="none" stroke="${C.lavD}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="9.4" cy="22.6" rx="4" ry="3.2" fill="${C.lav}"/>
+    <ellipse cx="21.4" cy="19.8" rx="3.6" ry="2.9" fill="${C.lav}"/>`,
+  roomCity: () => `<rect x="4" y="13" width="7" height="14" rx="1.4" fill="${C.lav}"/>
+    <rect x="12.4" y="7.6" width="7.2" height="19.4" rx="1.4" fill="${C.lavD}"/>
+    <rect x="21" y="16" width="7" height="11" rx="1.4" fill="${C.lav}"/>
+    <g fill="${C.yolkL}"><rect x="6" y="16" width="1.8" height="2.4" rx=".6"/><rect x="8.4" y="20" width="1.8" height="2.4" rx=".6"/>
+    <rect x="14.4" y="11" width="1.8" height="2.4" rx=".6"/><rect x="17" y="15.4" width="1.8" height="2.4" rx=".6"/>
+    <rect x="23" y="19.4" width="1.8" height="2.4" rx=".6"/></g>`,
+  roomNature: () => `<path d="M2 27c3-6.6 6-9.9 9-9.9S17 20.4 20 27z" fill="${C.leafL}"/>
+    <path d="M12 27c4-8.6 7.4-12.9 10-12.9S28.6 18.4 31 27z" fill="${C.leaf}"/>
+    <circle cx="24.6" cy="7.6" r="4" fill="${C.yolk}"/>`,
+  roomWater: () => `<circle cx="24" cy="8.4" r="3.6" fill="${C.yolkL}"/>
+    <path d="M2 17q4-3 8 0t8 0 8-3 6 3v4H2z" fill="${C.sky}"/>
+    <path d="M2 22q4-3 8 0t8 0 8-3 6 3v6H2z" fill="${C.skyD}"/>`,
+  roomStorage: () => `<rect x="4" y="14" width="11" height="12.6" rx="1.6" fill="${C.wood}"/>
+    <rect x="16.6" y="9" width="11.4" height="17.6" rx="1.6" fill="${C.woodD}"/>
+    <path d="M9.4 14v12.6M22.4 9v17.6" stroke="${C.cream}" stroke-width="1.6" opacity=".5"/>
+    <circle cx="12.4" cy="20.4" r="1.2" fill="${C.cream}"/><circle cx="25.4" cy="18.4" r="1.2" fill="${C.cream}"/>`,
+  roomWash: () => `<rect x="6" y="4.6" width="20" height="23.4" rx="3.4" fill="${C.shell}"/>
+    <rect x="6" y="4.6" width="20" height="7" rx="3.4" fill="${C.cream}"/>
+    <circle cx="16" cy="19" r="7" fill="${C.white}"/>
+    <circle cx="16" cy="19" r="5.2" fill="${C.sky}"/>
+    <path d="M10.8 19a5.2 5.2 0 0 0 10.4 0 5.2 5.2 0 0 1-10.4 0z" fill="${C.skyD}" opacity=".55"/>
+    <circle cx="10.4" cy="8.4" r="1.5" fill="${C.roseL}"/><circle cx="14.4" cy="8.4" r="1.5" fill="${C.leafL}"/>
+    <rect x="18.4" y="7.2" width="6" height="2.4" rx="1.2" fill="${C.wood}"/>`,
+  roomGuests: () => `<circle cx="11" cy="10.6" r="4.2" fill="${C.beak}"/>
+    <path d="M3.6 26c0-4.2 3.3-7 7.4-7s7.4 2.8 7.4 7z" fill="${C.beak}"/>
+    <circle cx="22" cy="12.4" r="3.6" fill="${C.roseL}"/>
+    <path d="M15.4 26c0-3.6 2.9-6 6.6-6s6.6 2.4 6.6 6z" fill="${C.roseL}"/>`,
+  roomQuiet: () => `<path d="M13.4 10.6 8 14.6H4.4v7H8l5.4 4z" fill="${C.lavD}"/>
+    <path d="M18.6 11.4a7.4 7.4 0 0 1 0 13.2" fill="none" stroke="${C.lav}" stroke-width="2.2" stroke-linecap="round" opacity=".4"/>
+    <path d="M21.4 8.4 28.6 25.6M28.6 8.4 21.4 25.6" stroke="${C.rose}" stroke-width="2.4" stroke-linecap="round"/>`,
+  roomSport: () => `<rect x="3" y="12.6" width="4.6" height="7" rx="2.3" fill="${C.roseD}"/>
+    <rect x="24.4" y="12.6" width="4.6" height="7" rx="2.3" fill="${C.roseD}"/>
+    <rect x="7.6" y="10.4" width="4" height="11.4" rx="2" fill="${C.rose}"/>
+    <rect x="20.4" y="10.4" width="4" height="11.4" rx="2" fill="${C.rose}"/>
+    <rect x="11.6" y="14.6" width="8.8" height="3" rx="1.5" fill="${C.roseD}"/>`,
+
+  /* ── Abstimmen & Bewerten ───────────────────────────── */
+  tabVote: () => `<rect x="4.4" y="6" width="23.2" height="17" rx="3" fill="${C.cream}" stroke="${C.wood}" stroke-width="1.8"/>
+    <rect x="8.4" y="15.4" width="3.6" height="4.4" rx="1.3" fill="${C.sky}"/>
+    <rect x="14.2" y="11.4" width="3.6" height="8.4" rx="1.3" fill="${C.leaf}"/>
+    <rect x="20" y="13.4" width="3.6" height="6.4" rx="1.3" fill="${C.rose}"/>
+    <path d="M6 26.4h20" stroke="${C.woodD}" stroke-width="2.4" stroke-linecap="round"/>`,
+  ballot: () => `<path d="M8 4.6h12.6l6 6v16.8a2.4 2.4 0 0 1-2.4 2.4H8a2.4 2.4 0 0 1-2.4-2.4V7A2.4 2.4 0 0 1 8 4.6z" fill="${C.cream}"/>
+    <path d="M20.6 4.6v6h6z" fill="${C.shell}"/>
+    <path d="M9.6 17.4l2.8 2.8 6-6.2" fill="none" stroke="${C.leafD}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9.6 24.4h12.8" stroke="${C.wood}" stroke-width="2.2" stroke-linecap="round"/>`,
+  dial: () => `<path d="M5 22a11 11 0 1 1 22 0" fill="none" stroke="${C.shell}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M5 22A11 11 0 0 1 13.6 11.3" fill="none" stroke="${C.leaf}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M22 13.6 16.6 20.4" stroke="${C.cocoa}" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="16" cy="22" r="2.8" fill="${C.cocoa}"/>`,
+  guess: () => `<path d="M8 5.6h16a4 4 0 0 1 4 4v8.6a4 4 0 0 1-4 4h-8.4L9 27.4v-5.2H8a4 4 0 0 1-4-4V9.6a4 4 0 0 1 4-4z" fill="${C.lav}"/>
+    <path d="M13 12.4a3.2 3.2 0 1 1 3.7 3.2v1.6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="16.7" cy="19.6" r="1.4" fill="#fff"/>`,
+  link: () => `<path d="M13 19a5 5 0 0 1 0-7l3.6-3.6a5 5 0 1 1 7 7l-1.6 1.6" fill="none" stroke="${C.skyD}" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M19 13a5 5 0 0 1 0 7l-3.6 3.6a5 5 0 1 1-7-7L10 15" fill="none" stroke="${C.sky}" stroke-width="2.6" stroke-linecap="round"/>`,
+  disc: () => `<circle cx="16" cy="16" r="12.4" fill="${C.cocoa}"/>
+    <circle cx="16" cy="16" r="7.4" fill="none" stroke="${C.leaf}" stroke-width="1.8" opacity=".9"/>
+    <circle cx="16" cy="16" r="10.2" fill="none" stroke="${C.leaf}" stroke-width="1.6" opacity=".55"/>
+    <circle cx="16" cy="16" r="4.6" fill="none" stroke="${C.leafL}" stroke-width="1.6"/>
+    <circle cx="16" cy="16" r="2" fill="${C.cream}"/>`,
+  globe: () => `<circle cx="16" cy="16" r="12" fill="${C.sky}"/>
+    <path d="M16 4c3.4 3.2 3.4 20.8 0 24M16 4c-3.4 3.2-3.4 20.8 0 24" fill="none" stroke="${C.white}" stroke-width="1.6" opacity=".85"/>
+    <path d="M4.8 12h22.4M4.8 20h22.4" fill="none" stroke="${C.white}" stroke-width="1.6" opacity=".85"/>
+    <circle cx="16" cy="16" r="12" fill="none" stroke="${C.skyD}" stroke-width="1.8"/>`,
+  scale: () => `<path d="M16 6.4v19" stroke="${C.woodD}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M6.6 10.6h18.8" stroke="${C.woodD}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M11.6 26.4h8.8" stroke="${C.woodD}" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="16" cy="10.6" r="2" fill="${C.woodD}"/>
+    <path d="M2.4 16.6h8.4a4.2 4.2 0 0 1-8.4 0z" fill="${C.roseL}"/>
+    <path d="M6.6 12v4.6" stroke="${C.woodD}" stroke-width="1.4"/>
+    <path d="M21.2 16.6h8.4a4.2 4.2 0 0 1-8.4 0z" fill="${C.sky}"/>
+    <path d="M25.4 12v4.6" stroke="${C.woodD}" stroke-width="1.4"/>`,
+  handshake: () => `<path d="M3.4 13.4 8.6 10l6 3.4 3-1.4 6.6 1.4 4.4 3.4-4 6.4-3-2-4 3.2-3.4-2.4-3.4 2-7.4-7z" fill="${C.beak}"/>
+    <path d="M14.6 13.4 11 16.4a1.8 1.8 0 0 0 2.4 2.6l2.6-2" fill="none" stroke="${C.cream}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M17.6 16.4l3.4 2.6M15.4 19.4l3 2.4" stroke="${C.cream}" stroke-width="1.8" stroke-linecap="round"/>`
 };
 
 /* ═══════════════════════════════════════════════════════════

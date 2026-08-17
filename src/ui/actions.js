@@ -4,8 +4,12 @@
  */
 
 import { get, commit } from '../state/store.js';
-import { pushFeed, addBondXp, addXp, clamp100, tickPet } from '../state/model.js';
+import { pushFeed, addBondXp, addXp, clamp100, tickPet, validPlace } from '../state/model.js';
 import { FOODS, foodById, CARE_ACTIONS, REWARDS } from '../state/catalog.js';
+import {
+  nestSet, nestRemove, pollCreate, pollVote,
+  rateCreate, rateSubmit, rewardShared, KIND_ICON
+} from '../state/shared.js';
 import { NUDGES, nudgeByKey, moodByKey, activityByKey } from '../pet/moods.js';
 import { sendEvent } from '../sync/index.js';
 import { fx, burst, confetti } from '../util/feedback.js';
@@ -209,4 +213,119 @@ export function setActivity(key) {
   fx('tap');
   toast(`Status: ${a?.label || '…'}`, a?.icon || 'info');
   return true;
+}
+
+/* ── Gemeinsames Nest ───────────────────────────────────── */
+
+/** Wunsch bewerten und den Stand hinüberschicken. */
+export function setNestWeight(wish, w) {
+  const s = get();
+  const item = nestSet(s, wish, w);
+  addBondXp(s, 1);
+  commit('nest');
+  sendEvent('nest', {
+    id: item.id, key: item.key, text: item.text,
+    icon: item.icon, cat: item.cat, by: item.by, w: item.mine
+  });
+  fx('tap');
+  return item;
+}
+
+export function dropNestWish(id) {
+  const s = get();
+  const ok = nestRemove(s, id);
+  if (ok) {
+    commit('nest-remove');
+    // Der andere erfährt es als „egal“ — löschen darf niemand für beide
+    sendEvent('nest', { id, w: 0 });
+  }
+  return ok;
+}
+
+/* ── Abstimmung ─────────────────────────────────────────── */
+
+export function createPoll(q, opts, myVote = null) {
+  const s = get();
+  if (!s.partner) { toast('Dafür braucht es zwei', 'info'); return null; }
+  const poll = pollCreate(s, q, opts, myVote);
+  addBondXp(s, 2);
+  pushFeed(s, { from: 'me', type: 'poll', icon: 'tabVote', text: `Du fragst: ${poll.q}` });
+  commit('poll-new');
+  sendEvent('poll', { id: poll.id, q: poll.q, opts: poll.opts, by: poll.by, at: poll.at, v: myVote });
+  fx('pop');
+  return poll;
+}
+
+/** @returns {{poll,revealed,fresh,agree}|null} */
+export function votePoll(id, k) {
+  const s = get();
+  const res = pollVote(s, id, k);
+  if (!res) return null;
+  if (res.fresh) {
+    rewardShared(s, 'poll',
+      res.agree ? `Einig: ${res.poll.opts.find((o) => o.k === k)?.label}` : 'Abstimmung ausgewertet',
+      res.agree ? 'handshake' : 'scale');
+    if (res.agree) s.me.coins += REWARDS.dailyBoth;
+  }
+  commit('poll-vote');
+  sendEvent('poll', { id: res.poll.id, q: res.poll.q, opts: res.poll.opts, by: res.poll.by, at: res.poll.at, v: k });
+  if (res.fresh) {
+    if (res.agree) { confetti(['handshake', 'statJoy', 'sparkle']); fx('yay'); animatePet('celebrate'); }
+    else { fx('pop'); animatePet('think'); }
+  } else {
+    fx('tap');
+  }
+  return res;
+}
+
+/* ── Bewerten und Raten ─────────────────────────────────── */
+
+export function createRate({ title, url, note }, mine = null) {
+  const s = get();
+  if (!s.partner) { toast('Dafür braucht es zwei', 'info'); return null; }
+  const entry = rateCreate(s, { title, url, note }, mine);
+  addBondXp(s, 2);
+  pushFeed(s, { from: 'me', type: 'rate', icon: KIND_ICON[entry.kind] || 'dial', text: `Du fragst nach: „${entry.title}“` });
+  commit('rate-new');
+  sendEvent('rate', {
+    id: entry.id, title: entry.title, url: entry.url, note: entry.note,
+    kind: entry.kind, by: entry.by, at: entry.at,
+    ...(mine ? { s: mine.score, g: mine.guess } : {})
+  });
+  fx('pop');
+  return entry;
+}
+
+/** @returns {{entry,revealed,fresh,...Punkte}|null} */
+export function submitRate(id, score, guess) {
+  const s = get();
+  const res = rateSubmit(s, id, score, guess);
+  if (!res) return null;
+  const e = res.entry;
+  if (res.fresh) {
+    rewardShared(s, 'rate', `„${e.title}“ ist ausgewertet`, KIND_ICON[e.kind] || 'dial');
+    s.me.coins += Math.max(2, Math.round((res.myPts || 0) / 2));
+  }
+  commit('rate-submit');
+  sendEvent('rate', {
+    id: e.id, title: e.title, url: e.url, note: e.note,
+    kind: e.kind, by: e.by, at: e.at, s: e.mine.score, g: e.mine.guess
+  });
+  if (res.fresh) {
+    if ((res.total || 0) >= 16) { confetti(['trophy', 'sparkle', 'statJoy']); fx('yay'); animatePet('celebrate'); }
+    else { fx('love'); animatePet('nod'); }
+  } else {
+    fx('tap');
+  }
+  return res;
+}
+
+/* ── Ort fürs Wetter ────────────────────────────────────── */
+
+export function setPlace(place) {
+  const s = get();
+  s.me.place = validPlace(place);
+  commit('place');
+  sendEvent('profile', { place: s.me.place });
+  return s.me.place;
 }

@@ -4,11 +4,13 @@ import { esc } from '../../util/dom.js';
 import { icon } from '../icons.js';
 import { fx, confetti, setFeedbackPrefs } from '../../util/feedback.js';
 import { get, commit, subscribe, exportJson, importJson, reset } from '../../state/store.js';
-import { setMode, pairWith, unpair, syncStatus, buildCarrierCode, consumeCarrierCode, publishProfile } from '../../sync/index.js';
+import { setMode, pairWith, unpair, syncStatus, buildCarrierCode, consumeCarrierCode,
+  publishProfile, myInvite, inviteLink, isEncrypted } from '../../sync/index.js';
 import { guessTz, relTime } from '../../util/time.js';
 import CONFIG from '../../../config.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
+import { openPlaceSheet } from '../placeSheet.js';
 
 const MODES = [
   {
@@ -29,6 +31,8 @@ export function render(root, ctx) {
   function paint() {
     const s = get();
     const st = syncStatus();
+    const invite = myInvite();
+    const enc = isEncrypted();
 
     root.innerHTML = `
       <div class="title-lg">Mehr</div>
@@ -50,20 +54,33 @@ export function render(root, ctx) {
           <span class="li-val">${esc(s.me.tz)}</span>
           <span class="li-chev">${icon('chevron', { size: 15 })}</span>
         </button>
+        <button class="li" data-edit-place>
+          <div class="li-ico">${icon('pin', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Dein Ort</div>
+            <div class="li-sub">Nur fürs Wetter — grob gerundet, keine Adresse</div></div>
+          <span class="li-val">${esc(s.me.place?.name || 'nicht gesetzt')}</span>
+          <span class="li-chev">${icon('chevron', { size: 15 })}</span>
+        </button>
       </div>
 
       <div class="section-label">Verbindung</div>
       <div class="card code-card">
-        <div class="code-label">Dein Knuddl-Code</div>
-        <div class="code-big" data-mycode>${esc(s.me.code)}</div>
+        <div class="code-label">Deine Einladung</div>
+        <div class="code-big" data-mycode>${esc(invite)}</div>
         <div class="row" style="gap:8px">
           <button class="btn btn-line btn-sm grow" data-copy-code>Kopieren</button>
           <button class="btn btn-primary btn-sm grow" data-share-code>Teilen</button>
         </div>
-        <p class="tiny muted center" style="margin:12px 0 0">
+        <div class="crypt-note ${enc ? 'ok' : 'warn'}">
+          ${icon(enc ? 'lock' : 'warn', { size: 15 })}
+          <span>${enc
+            ? 'Enthält euren Schlüssel. Schick sie nur deinem Menschen — wer sie hat, kann mitlesen.'
+            : 'Dieser Browser kann nicht verschlüsseln. Die Verbindung läuft im Klartext.'}</span>
+        </div>
+        <p class="tiny muted center" style="margin:10px 0 0">
           ${s.partner
             ? `Verbunden mit <b>${esc(s.partner.name)}</b> (${esc(s.partner.code)})${s.partner.lastSeen ? ` · zuletzt ${relTime(s.partner.lastSeen)}` : ''}`
-            : 'Schick ihn deinem Menschen — oder gib seinen/ihren Code unten ein.'}
+            : 'Schick sie deinem Menschen — oder füge unten seine/ihre ein.'}
         </p>
       </div>
 
@@ -71,10 +88,13 @@ export function render(root, ctx) {
         <button class="btn btn-line btn-block" data-unpair style="margin-top:12px">Verbindung lösen</button>
       ` : `
         <div class="card" style="margin-top:12px">
-          <label class="field-label">Code deines Menschen</label>
-          <input class="input input-code" data-pair-input maxlength="6" placeholder="ABC123"
-                 autocapitalize="characters" autocomplete="off" spellcheck="false">
+          <label class="field-label">Einladung deines Menschen</label>
+          <textarea class="input" data-pair-input rows="2" placeholder="ABC123-K7F2M9QX4R8TWE7HJ2NP"
+                    autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea>
           <button class="btn btn-primary btn-block" data-pair style="margin-top:12px">Verbinden</button>
+          <p class="tiny muted" style="margin:10px 4px 0">
+            Ganze Nachricht oder Link einfügen reicht — der Rest wird herausgesucht.
+          </p>
         </div>
       `}
 
@@ -101,6 +121,7 @@ export function render(root, ctx) {
 
       ${s.settings.syncMode === 'solo' ? soloPanel(s) : ''}
       ${s.settings.syncMode === 'cloud' ? cloudPanel(s) : ''}
+      ${s.settings.syncMode === 'cloud' ? cryptPanel(enc, !!s.partner) : ''}
       ${s.settings.syncMode === 'post' ? carrierPanel(s) : ''}
 
       <div class="section-label">App</div>
@@ -175,6 +196,25 @@ export function render(root, ctx) {
     </button>`;
   }
 
+  /* ── Was die Datenbank sieht ── */
+  function cryptPanel(enc, linked) {
+    return `<div class="card" style="margin-top:12px">
+      <div class="li-title row" style="gap:7px;margin-bottom:6px">
+        ${icon(enc ? 'lock' : 'warn', { size: 19 })}
+        ${enc ? 'Ende-zu-Ende-verschlüsselt' : 'Nicht verschlüsselt'}
+      </div>
+      <p class="tiny muted" style="margin:0">
+        ${enc
+          ? `Euer Schlüssel entsteht aus der Einladung und wird nie hochgeladen.
+             In der Datenbank liegt nur Chiffrat an einer Stelle, die aus dem
+             Schlüssel abgeleitet ist — ohne eure Einladung findet man sie nicht
+             und könnte sie auch nicht lesen.`
+          : `Ohne gemeinsames Geheimnis läuft alles im Klartext. Löst die
+             Verbindung und verbindet euch neu über die Einladung.`}
+      </p>
+    </div>`;
+  }
+
   /* ── Cloud ── */
   function cloudPanel(s) {
     const configured = !!(s.settings.cloudUrl || CONFIG.cloudUrl);
@@ -225,10 +265,12 @@ export function render(root, ctx) {
       }
     });
 
-    q('[data-copy-code]').onclick = () => copy(get().me.code, 'Code kopiert');
+    q('[data-edit-place]').onclick = () => openPlaceSheet(() => paint());
+
+    q('[data-copy-code]').onclick = () => copy(myInvite(), 'Einladung kopiert');
     q('[data-share-code]').onclick = () => shareText(
-      `Hol dir Knuddl und verbinde dich mit mir: ${get().me.code}\n${location.href.split('#')[0]}`,
-      'Knuddl-Code'
+      `Hol dir Knuddl und verbinde dich mit mir:\n${inviteLink()}`,
+      'Knuddl-Einladung'
     );
 
     const pairBtn = q('[data-pair]');
@@ -238,7 +280,12 @@ export function render(root, ctx) {
         const p = await pairWith(inp.value);
         fx('yay');
         confetti(['statJoy', 'egg', 'sparkle']);
-        toast(`Verbunden mit ${p.code}`, 'dove');
+        toast(p.encrypted
+          ? `Verbunden mit ${p.code} — verschlüsselt`
+          : `Verbunden mit ${p.code}, aber ohne Schlüssel`, p.encrypted ? 'lock' : 'warn');
+        if (!p.encrypted) {
+          setTimeout(() => toast('Nutzt lieber die vollständige Einladung', 'info'), 2600);
+        }
         paint();
       } catch (err) {
         fx('fail');

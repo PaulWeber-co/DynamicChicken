@@ -438,23 +438,80 @@
   position: absolute; inset: 0;
   background: linear-gradient(180deg, var(--calm-soft) 0%, var(--surface-2) 62%, var(--accent-soft) 100%);
 }
+/* Wolken und Hügel ziehen langsamer als der Zaun — daher die Tiefe */
+.fly-clouds { position: absolute; inset: 0; will-change: transform; }
+.fly-cloud {
+  position: absolute;
+  background: #fff;
+  border-radius: 999px;
+  opacity: .72;
+  box-shadow: 22px 6px 0 -4px #fff, 44px -2px 0 -8px #fff;
+}
+.fly-cloud.c1 { top: 12%; left: 8%;  width: 46px; height: 18px; }
+.fly-cloud.c2 { top: 26%; left: 54%; width: 34px; height: 14px; opacity: .55; }
+.fly-cloud.c3 { top: 44%; left: 88%; width: 52px; height: 20px; opacity: .45; }
+.fly-cloud.c4 { top:  8%; left: 128%; width: 40px; height: 16px; opacity: .6; }
+.fly-hills {
+  position: absolute;
+  left: 0; right: 0; bottom: 22px;
+  height: 78px;
+  background-repeat: repeat-x;
+  background-size: 220px 78px;
+  background-image:
+    radial-gradient(56px 46px at 54px 82px, #BEE3B4 99%, transparent 100%),
+    radial-gradient(74px 58px at 160px 88px, #CDEAC3 99%, transparent 100%);
+  opacity: .8;
+}
+
 .fly-gates { position: absolute; inset: 0; }
-.fly-gate { position: absolute; top: 0; bottom: 0; width: 52px; left: 0; will-change: transform; }
+.fly-gate { position: absolute; top: 0; bottom: 0; width: 56px; left: 0; will-change: transform; }
 .fly-post {
   position: absolute;
-  left: 0; right: 0;
-  background: linear-gradient(90deg, #C99268, #B8834F 60%, #A9724A);
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .06);
+  left: 4px; right: 4px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #D0A177 0 18%, #BE8B5C 46%, #A9744B 82%, #97653F 100%);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px rgba(90, 56, 30, .22), 0 2px 6px rgba(90, 56, 30, .14);
 }
-.fly-post.top { top: 0; border-radius: 0 0 10px 10px; }
-.fly-post.bot { bottom: 0; border-radius: 10px 10px 0 0; }
+.fly-post.top { top: 0; }
+.fly-post.bot { bottom: 22px; }
+/* Latten quer über den Pfosten, damit er wie ein Zaun wirkt und nicht wie ein Balken */
+.fly-plank {
+  position: absolute;
+  left: -2px; right: -2px;
+  height: 7px;
+  top: calc(14px + var(--k) * 46px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(120, 76, 40, .16));
+  border-top: 1.5px solid rgba(255, 255, 255, .3);
+  border-bottom: 1.5px solid rgba(120, 76, 40, .2);
+}
+.fly-post.bot .fly-plank { top: auto; bottom: calc(14px + var(--k) * 46px); }
+.fly-grain {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(120, 76, 40, .1) 0 1px, transparent 1px 9px);
+}
+.fly-cap {
+  position: absolute;
+  left: -5px; right: -5px;
+  height: 13px;
+  background: linear-gradient(180deg, #E0B78F, #C08A5C);
+  box-shadow: inset 0 0 0 1.5px rgba(90, 56, 30, .2);
+}
+.fly-cap.down { bottom: 0; border-radius: 4px 4px 8px 8px; }
+.fly-cap.up   { top: 0;    border-radius: 8px 8px 4px 4px; }
 .fly-flag {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  z-index: 2;
   display: grid;
   place-items: center;
+  width: 30px; height: 30px;
+  margin-left: -15px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .16);
   animation: bobY 1.6s ease-in-out infinite;
 }
 .fly-hero {
@@ -463,13 +520,20 @@
   width: 84px;
   will-change: transform;
 }
-.fly-hero.crashed { animation: crash .7s ease-in forwards; }
-@keyframes crash { to { transform: translateY(120px) rotate(180deg); opacity: .2; } }
+/* Beim Aufprall trudelt Knuddl zu Boden — kein Überschlag, das Gesicht bleibt vorn */
+.fly-hero.crashed { animation: crash .8s cubic-bezier(.4, 0, .5, 1) forwards; }
+@keyframes crash {
+  40%  { transform: translate(var(--hx, 0), calc(var(--hy, 0px) + var(--land, 60px) * .55)) rotate(calc(var(--tilt, 0deg) + 14deg)); }
+  70%  { transform: translate(var(--hx, 0), calc(var(--hy, 0px) + var(--land, 60px))) rotate(24deg); }
+  85%  { transform: translate(var(--hx, 0), calc(var(--hy, 0px) + var(--land, 60px) - 10px)) rotate(18deg); }
+  100% { transform: translate(var(--hx, 0), calc(var(--hy, 0px) + var(--land, 60px))) rotate(22deg); }
+}
 .fly-ground {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 22px;
   background: linear-gradient(180deg, #C6E7BC, #A9D89E);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .4);
 }
 
 /* ── Nest-Turm ─────────────────────────────────────────── */

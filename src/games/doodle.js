@@ -101,10 +101,10 @@ export function handleRemote(state, msg, { partnerName }) {
       icon: msg.right ? 'trophy' : 'gameDoodle',
       avatar: 'them',
       title: msg.right ? `${partnerName} hat es erkannt!` : `${partnerName} lag daneben`,
-      sub: `Es war „${msg.word}"`,
+      sub: `Es war „${msg.word}“`,
       body: msg.right
         ? `${partnerName} hat dein Bild richtig erraten. Ihr versteht euch auch ohne Worte.`
-        : `${partnerName} kam nicht drauf — es war „${msg.word}".`,
+        : `${partnerName} kam nicht drauf — es war „${msg.word}“.`,
       actions: [{ label: 'Neues malen', act: 'game:doodle', primary: true }, { label: 'Ok', act: 'dismiss' }],
       tone: msg.right ? 'warm' : 'calm'
     };
@@ -259,7 +259,7 @@ export function mount(root, ctx) {
       g2.sent++;
       g2.round++;
       addBondXp(st2, 4);
-      pushFeed(st2, { from: 'me', type: 'game', icon: 'gameDoodle', text: `„${answer}" für ${partner} gemalt` });
+      pushFeed(st2, { from: 'me', type: 'game', icon: 'gameDoodle', text: `„${answer}“ für ${partner} gemalt` });
       commit('doodle');
       sendEvent('game', { g: 'doodle', kind: 'doodle', id, key, strokes });
       fx('love');
@@ -274,7 +274,7 @@ export function mount(root, ctx) {
       <div class="game-center">
         <div class="game-hero">${icon('dove', { size: 68 })}</div>
         <h2 class="game-h">Unterwegs</h2>
-        <p class="game-p">Dein „${esc(word)}" fliegt zu ${esc(partner)}. Du erfährst, ob es erkannt wurde.</p>
+        <p class="game-p">Dein „${esc(word)}“ fliegt zu ${esc(partner)}. Du erfährst, ob es erkannt wurde.</p>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       </div>
       ${history()}`);
@@ -361,7 +361,7 @@ export function mount(root, ctx) {
     addBondXp(st, right ? 8 : 3);
     pushFeed(st, {
       from: 'me', type: 'game', icon: 'gameDoodle',
-      text: right ? `„${answer}" richtig erraten` : `„${answer}" nicht erkannt`
+      text: right ? `„${answer}“ richtig erraten` : `„${answer}“ nicht erkannt`
     });
     commit('doodle');
     sendEvent('game', { g: 'doodle', kind: 'doodleGuess', id, word: answer, right });
@@ -375,7 +375,7 @@ export function mount(root, ctx) {
     root.innerHTML = shell(`
       <div class="game-center">
         <div class="game-hero">${icon(right ? 'trophy' : 'gameDoodle', { size: 68 })}</div>
-        <h2 class="game-h">${right ? 'Richtig!' : `Es war „${esc(answer)}"`}</h2>
+        <h2 class="game-h">${right ? 'Richtig!' : `Es war „${esc(answer)}“`}</h2>
         <p class="game-p">${right
           ? `Ihr versteht euch auch ohne Worte. ${esc(partner)} erfährt es sofort.`
           : `Knapp daneben. ${esc(partner)} bekommt Bescheid — und du bist jetzt dran mit Malen.`}</p>

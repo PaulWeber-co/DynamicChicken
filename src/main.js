@@ -12,10 +12,11 @@ import { setFeedbackPrefs, fx, confetti } from './util/feedback.js';
 import { initBanners } from './ui/banner.js';
 import { initShell, go, refresh } from './ui/shell.js';
 import { applyTheme } from './ui/screens/settings.js';
+import { setUsTab } from './ui/screens/us.js';
 import { applyBondUnlocks } from './ui/screens/shop.js';
 import { openFeedSheet, sendNudge, careAction } from './ui/actions.js';
 import { openGame } from './ui/gameHost.js';
-import { initSync, publishProfile, sendEvent } from './sync/index.js';
+import { initSync, publishProfile, sendEvent, pairWith } from './sync/index.js';
 import { sheet, closeSheet } from './ui/sheet.js';
 import { toast } from './ui/toast.js';
 import { renderChicken, BODY_COLORS, defaultLook } from './pet/chicken.js';
@@ -42,7 +43,7 @@ async function boot() {
   await initSync();
 
   if (!s.onboarded) openOnboarding();
-  else welcomeBack(wokeUp);
+  else if (!(await maybeJoinFromLink())) welcomeBack(wokeUp);
 
   startHeartbeat();
   registerServiceWorker();
@@ -53,12 +54,13 @@ async function boot() {
 
 function handleBannerAction(act) {
   if (!act) return;
-  const [kind, arg] = act.split(':');
+  const [kind, arg, sub] = act.split(':');
   switch (kind) {
     case 'nudge': sendNudge(arg); break;
     case 'open':
       if (arg === 'feed') openFeedSheet();
-      else if (arg === 'us') go('us');
+      // „open:us:nest“ springt direkt in den richtigen Abschnitt
+      else if (arg === 'us') { if (sub) setUsTab(sub); go('us'); }
       else if (arg === 'games') go('games');
       else go(arg);
       break;
@@ -153,6 +155,31 @@ function welcomeBack(wokeUp) {
       body: `Während du weg warst, ist etwas passiert.`,
       actions: [{ label: 'Ansehen', act: 'open:us', primary: true }]
     });
+  }
+}
+
+/**
+ * Wer einen Einladungslink antippt, soll nicht erst in die Einstellungen
+ * müssen — die Frage kommt direkt.
+ */
+async function maybeJoinFromLink() {
+  const join = new URLSearchParams(location.search).get('join');
+  if (!join) return false;
+  history.replaceState(null, '', location.pathname + location.hash);
+
+  const s = get();
+  if (s.partner) { toast('Du bist schon verbunden'); return false; }
+
+  try {
+    const p = await pairWith(join);
+    fx('yay');
+    confetti(['statJoy', 'egg', 'sparkle']);
+    toast(`Verbunden mit ${p.code}`, 'dove');
+    go('us');
+    return true;
+  } catch (err) {
+    toast(err.message || 'Diese Einladung konnte ich nicht lesen', 'warn');
+    return false;
   }
 }
 
@@ -271,7 +298,7 @@ function wireLifecycle() {
   });
 
   window.addEventListener('beforeunload', () => {
-    // Ein letztes Mal „ich war da" — sonst wirkt man sofort offline
+    // Ein letztes Mal „ich war da“ — sonst wirkt man sofort offline
     try { sendEvent('profile', { at: Date.now() }, { volatile: true }); } catch { /* egal */ }
   });
 }

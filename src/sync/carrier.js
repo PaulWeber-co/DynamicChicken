@@ -15,6 +15,7 @@ import { get, commit, emit } from '../state/store.js';
 import { publicProfile, newPet } from '../state/model.js';
 import { applyEvent } from '../state/events.js';
 import { pack, unpack, extractCode } from '../util/codec.js';
+import { adoptSecret } from './index.js';
 
 export const id = 'post';
 
@@ -43,11 +44,15 @@ export function onUnpair() {}
  */
 export async function buildCode() {
   const state = get();
+  // Auch beim ersten Code soll ein Geheimnis dabei sein
+  if (!state.pair?.secret) { const { myInvite } = await import('./index.js'); myInvite(); }
   const events = state.outbox.slice(-40);
   const payload = {
     v: 1,
     p: publicProfile(state),
-    e: events
+    e: events,
+    // Damit ein späterer Wechsel in den Cloud-Modus sofort verschlüsselt ist
+    k: state.pair?.secret || null
   };
   const code = await pack(payload);
   return { code, events: events.length, chars: code.length };
@@ -69,6 +74,7 @@ export async function consumeCode(text) {
 
   const state = get();
   const profile = payload.p;
+  if (payload.k) adoptSecret(payload.k);
   if (profile.code === state.me.code) {
     throw new Error('Das ist dein eigener Code — den braucht dein Mensch.');
   }

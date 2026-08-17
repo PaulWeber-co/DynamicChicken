@@ -260,7 +260,7 @@ function subline(s, pet) {
   if (pet.asleep) return `${pet.name} schläft — Energie füllt sich auf.`;
   const need = urgentNeed(pet);
   if (need) return `${pet.name} ${need.text}.`;
-  if (!s.partner) return 'Verbinde dich unter „Mehr" mit deinem Menschen.';
+  if (!s.partner) return 'Verbinde dich unter „Mehr“ mit deinem Menschen.';
   const w = wellbeing(pet);
   if (w > 85) return `${pet.name} könnte nicht zufriedener sein.`;
   return `${pet.name} ist zufrieden.`;

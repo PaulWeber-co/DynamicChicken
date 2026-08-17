@@ -38,13 +38,23 @@ export function createState() {
       owned: { hat: ['none'], acc: ['none'] },
       mood: null,
       activity: null,
+      /** Grob gerundeter Ort fürs Wetter — nur, wenn selbst ausgesucht. */
+      place: null,
       lastActive: t
     },
     partner: null,
+    /** Gemeinsames Geheimnis für Raum-ID und Verschlüsselung. */
+    pair: { secret: null, room: null, at: 0 },
     bond: { xp: 0, level: 1, streak: 0, lastDay: null, hugs: 0, since: null },
     feed: [],
     games: {},
     daily: null,
+    /** Gemeinsames Nest: Wohnwünsche mit Gewichtung von beiden Seiten. */
+    nest: [],
+    /** Abstimmungen — sichtbar, sobald beide gewählt haben. */
+    polls: [],
+    /** Bewerten und Raten: eigene Note plus Tipp über den anderen. */
+    rates: [],
     outbox: [],
     seen: [],
     settings: {
@@ -101,7 +111,7 @@ export function addBondXp(state, amount) {
 /* ── Simulation ─────────────────────────────────────────── */
 
 /**
- * Holt die Statuswerte auf „jetzt" nach.
+ * Holt die Statuswerte auf „jetzt“ nach.
  * @returns {{hours:number, wokeUp:boolean}} was in der Pause passiert ist
  */
 export function tickPet(pet, t = Date.now()) {
@@ -140,7 +150,7 @@ export function tickPet(pet, t = Date.now()) {
   return { hours, wokeUp };
 }
 
-/** Gesamtzustand 0–100, für Level-Boni und die „Turnierform". */
+/** Gesamtzustand 0–100, für Level-Boni und die „Turnierform“. */
 export function wellbeing(pet) {
   const s = pet.stats;
   return Math.round((s.full + s.energy + s.clean + s.joy) / 4);
@@ -212,10 +222,15 @@ export function migrate(raw) {
   s.me.inv = { ...(raw.me?.inv || {}) };
   s.settings = { ...base.settings, ...(raw.settings || {}) };
   s.bond = { ...base.bond, ...(raw.bond || {}) };
+  s.pair = { ...base.pair, ...(raw.pair || {}) };
   s.feed = Array.isArray(raw.feed) ? raw.feed.slice(0, 90) : [];
   s.games = raw.games && typeof raw.games === 'object' ? raw.games : {};
   s.outbox = Array.isArray(raw.outbox) ? raw.outbox : [];
   s.seen = Array.isArray(raw.seen) ? raw.seen.slice(-200) : [];
+  s.nest = Array.isArray(raw.nest) ? raw.nest : [];
+  s.polls = Array.isArray(raw.polls) ? raw.polls.slice(0, 40) : [];
+  s.rates = Array.isArray(raw.rates) ? raw.rates.slice(0, 40) : [];
+  s.me.place = validPlace(raw.me?.place);
 
   if (raw.partner && raw.partner.code) {
     s.partner = {
@@ -226,6 +241,7 @@ export function migrate(raw) {
       pet: { ...newPet('Pieps', 3), ...(raw.partner.pet || {}) },
       mood: raw.partner.mood || null,
       activity: raw.partner.activity || null,
+      place: validPlace(raw.partner.place),
       lastSeen: raw.partner.lastSeen || 0,
       updatedAt: raw.partner.updatedAt || 0
     };
@@ -233,6 +249,21 @@ export function migrate(raw) {
     s.partner = null;
   }
   return s;
+}
+
+/** Ein Ort ist nur gültig, wenn er wirklich Koordinaten hat. */
+export function validPlace(p) {
+  if (!p || typeof p !== 'object') return null;
+  const lat = Number(p.lat), lon = Number(p.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return {
+    name: String(p.name || '').slice(0, 60),
+    region: String(p.region || '').slice(0, 60),
+    country: String(p.country || '').slice(0, 60),
+    lat: Math.round(lat * 100) / 100,
+    lon: Math.round(lon * 100) / 100
+  };
 }
 
 /** Das, was der Partner von mir sehen darf. */
@@ -251,6 +282,8 @@ export function publicProfile(state) {
     },
     mood: state.me.mood,
     activity: state.me.activity,
+    // Nur der grobe Ort, und nur wenn selbst gesetzt — fürs Wetter reicht das
+    place: state.me.place || null,
     bondXp: state.bond.xp,
     at: Date.now()
   };

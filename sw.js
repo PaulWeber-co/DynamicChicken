@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v2';
+const VERSION = 'knuddl-v3';
 const SHELL = [
   './',
   './index.html',
@@ -23,6 +23,7 @@ const SHELL = [
   './src/pet/chicken.js',
   './src/pet/moods.js',
   './src/state/catalog.js',
+  './src/state/shared.js',
   './src/state/events.js',
   './src/state/model.js',
   './src/state/store.js',
@@ -34,6 +35,7 @@ const SHELL = [
   './src/ui/banner.js',
   './src/ui/gameHost.js',
   './src/ui/icons.js',
+  './src/ui/placeSheet.js',
   './src/ui/sheet.js',
   './src/ui/shell.js',
   './src/ui/toast.js',
@@ -43,10 +45,12 @@ const SHELL = [
   './src/ui/screens/shop.js',
   './src/ui/screens/us.js',
   './src/util/codec.js',
+  './src/util/crypto.js',
   './src/util/dom.js',
   './src/util/feedback.js',
   './src/util/rng.js',
   './src/util/time.js',
+  './src/util/weather.js',
   './icons/favicon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

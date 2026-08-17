@@ -37,8 +37,8 @@ export const ACTIVITIES = [
 export const NUDGES = [
   { key: 'knuddel',   icon: 'nudgeHug',     label: 'Knuddeln',       text: 'schickt eine feste Umarmung',    self: 'Umarmung geschickt',       bond: 3, act: 'hop' },
   { key: 'kuss',      icon: 'nudgeKiss',    label: 'Kuss',           text: 'schickt einen Kuss',             self: 'Kuss geschickt',           bond: 3, act: 'nod' },
-  { key: 'denkan',    icon: 'nudgeThink',   label: 'Denk an dich',   text: 'denkt gerade an dich',           self: '„Denk an dich" geschickt', bond: 2, act: 'think' },
-  { key: 'stolz',     icon: 'nudgeProud',   label: 'Bin stolz',      text: 'ist stolz auf dich',             self: '„Bin stolz auf dich"',     bond: 4, act: 'celebrate' },
+  { key: 'denkan',    icon: 'nudgeThink',   label: 'Denk an dich',   text: 'denkt gerade an dich',           self: '„Denk an dich“ geschickt', bond: 2, act: 'think' },
+  { key: 'stolz',     icon: 'nudgeProud',   label: 'Bin stolz',      text: 'ist stolz auf dich',             self: '„Bin stolz auf dich“',     bond: 4, act: 'celebrate' },
   { key: 'kaffee',    icon: 'nudgeCoffee',  label: 'Kaffee',         text: 'spendiert dir einen Kaffee',     self: 'Kaffee spendiert',         bond: 2, act: 'peck' },
   { key: 'gutenacht', icon: 'nudgeNight',   label: 'Gute Nacht',     text: 'wünscht dir eine gute Nacht',    self: 'Gute Nacht gewünscht',     bond: 3, act: 'nod' },
   { key: 'guten',     icon: 'nudgeMorning', label: 'Guten Morgen',   text: 'wünscht dir einen guten Morgen', self: 'Guten Morgen gewünscht',   bond: 3, act: 'stretch' },
