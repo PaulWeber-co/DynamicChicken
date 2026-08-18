@@ -33,17 +33,25 @@ Echtzeit.
    {
      "rules": {
        "knuddl": {
-         ".read": true,
-         ".write": true
+         "ping": { ".read": true },
+         "r": { "$room": { ".read": true, ".write": true } },
+         "m": { "$code": { ".read": true, ".write": true } },
+         "u": { "$code": { ".read": true, ".write": true } }
        }
      }
    }
    ```
 
-   Bewusst ohne Pfad-Prüfungen: Die Daten liegen unter einem aus eurem
-   Geheimnis abgeleiteten Raum, dessen Länge sich ändern kann. Eine Regel,
-   die auf eine feste Pfadform baut, würde Schreibzugriffe stillschweigend
-   ablehnen.
+   Was diese Regeln bewirken: Zugriff gibt es nur *innerhalb* eines Raums,
+   nicht auf die Ebene darüber. Wer nur die Datenbank-URL kennt, kann damit
+   weder die Räume auflisten noch die Datenbank leeren — beides ginge, wenn
+   `.read`/`.write` direkt auf `knuddl` stünde. Um an einen Raum zu kommen,
+   müsste man seine zwanzig Zeichen raten, und die hängen am Geheimnis.
+
+   Keine Prüfung auf die Pfadform: Der Raumname ist aus eurem Geheimnis
+   abgeleitet, seine Länge kann sich mit einer neuen Fassung ändern. Eine
+   Regel wie `".validate": "$code.length <= 12"` würde dann jeden
+   Schreibzugriff ablehnen — still, ohne Fehlermeldung in der App.
 
 4. Die Datenbank-URL kopieren
    (`https://…-default-rtdb.europe-west1.firebasedatabase.app`).
@@ -64,3 +72,24 @@ Bewertungen und Ort stecken alle im Chiffrat.
 
 Tauscht ihr nur den nackten Code, verbindet das zwar auch, aber
 unverschlüsselt. Die App sagt das dann deutlich.
+
+**Was damit nicht geschützt ist** — der Vollständigkeit halber:
+
+- **Die Einladung selbst.** Wer sie in die Finger bekommt (Screenshot,
+  weitergeleitete Nachricht, offenes Handy), kann alles mitlesen. Sie ist
+  der Schlüssel, nicht nur eine Adresse.
+- **Metadaten.** Dass es einen Raum gibt, wie viele Datensätze darin liegen
+  und wann geschrieben wurde, sieht jeder mit Datenbankzugriff. Der Inhalt
+  bleibt Zufallsrauschen.
+- **Eure Geräte.** Der Spielstand liegt im Klartext im Browser-Speicher.
+  Wer euer entsperrtes Handy hat, liest alles.
+- **Wer die Seite ausliefert.** GitHub Pages liefert das JavaScript aus, das
+  verschlüsselt. Wer den Code austauschen könnte, könnte auch mitlesen —
+  das gilt für jede Web-App und lässt sich nicht wegprogrammieren.
+- **Verkehrsdaten.** Firebase sieht IP-Adressen und Zeitpunkte, Open-Meteo
+  sieht die Koordinaten, für die Wetter geholt wird.
+
+Wer auch das Schreiben absichern will: In Firebase **Authentication →
+Anonymous** einschalten und in den Regeln `".read"`/`".write"` auf
+`"auth != null"` setzen. Für die Vertraulichkeit der Inhalte ist es nicht
+nötig, gegen Störer schon.

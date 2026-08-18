@@ -205,10 +205,55 @@ export function pushFeed(state, entry) {
 
 /* ── Migration ──────────────────────────────────────────── */
 
+/**
+ * Umbauten, die alte Daten wirklich umformen müssen.
+ *
+ * Neue Felder brauchen hier nichts: `migrate()` legt den Standard aus
+ * `createState()` darunter, alles Alte bleibt stehen. Auch ein neues Spiel
+ * kommt von allein, weil `games` ein freier Container ist.
+ *
+ * Nötig wird ein Schritt erst, wenn ein Feld umbenannt wird, seinen Typ
+ * ändert oder etwas anders gemeint ist als vorher. Dann:
+ *
+ *   1. SCHEMA_VERSION um eins erhöhen
+ *   2. hier einen Eintrag mit der *neuen* Nummer anlegen
+ *
+ * Der Schritt bekommt den Stand so, wie er auf dem Gerät lag, und darf ihn
+ * direkt anfassen. Sie laufen der Reihe nach, ein Gerät holt also auch
+ * mehrere verpasste Versionen auf einmal nach.
+ *
+ * @type {Record<number, (s: object) => void>}
+ */
+const STEPS = {
+  // 2: (s) => { s.timeline = s.feed; delete s.feed; }
+};
+
+/** Vor einem Umbau eine Kopie wegschreiben — einmal, nicht bei jedem Start. */
+function backup(raw, from) {
+  try {
+    const key = `knuddl.backup.v${from}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, JSON.stringify(raw));
+    console.info(`[knuddl] Sicherung des alten Stands unter ${key} abgelegt.`);
+  } catch { /* voller Speicher: dann eben ohne Netz und doppelten Boden */ }
+}
+
 /** Macht aus einem alten oder kaputten Speicherstand einen gültigen. */
 export function migrate(raw) {
   const base = createState();
   if (!raw || typeof raw !== 'object') return base;
+
+  const from = Number(raw.v) || 1;
+  if (from < SCHEMA_VERSION) {
+    backup(raw, from);
+    for (let v = from + 1; v <= SCHEMA_VERSION; v++) {
+      try {
+        STEPS[v]?.(raw);
+      } catch (err) {
+        console.warn(`[knuddl] Migrationsschritt ${v} fehlgeschlagen:`, err);
+      }
+    }
+  }
 
   const s = { ...base, ...raw, v: SCHEMA_VERSION };
   s.me = { ...base.me, ...(raw.me || {}) };
