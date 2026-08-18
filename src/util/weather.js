@@ -154,3 +154,43 @@ export async function forecast(lat, lon, { fresh = false } = {}) {
 
 /** Nur die Uhrzeit aus „2024-05-04T05:31“. */
 export const clockOf = (iso) => (typeof iso === 'string' && iso.length >= 16 ? iso.slice(11, 16) : '');
+
+/* ── Entfernung ─────────────────────────────────────────── */
+
+/**
+ * Luftlinie zwischen zwei Orten in Kilometern (Haversine).
+ *
+ * Beide Positionen sind auf zwei Nachkommastellen gerundet, die Zahl ist
+ * also auf ein bis zwei Kilometer genau — für „wie weit weg ist mein
+ * Mensch“ mehr als ausreichend.
+ */
+export function distanceKm(a, b) {
+  if (!a || !b) return null;
+  const R = 6371;
+  const rad = (d) => (d * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** Lesbar gerundet: unter 10 km mit einer Nachkommastelle, sonst ganz. */
+export function formatKm(km) {
+  if (km == null) return '';
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  if (km < 10) return `${km.toFixed(1).replace('.', ',')} km`;
+  return `${Math.round(km).toLocaleString('de-DE')} km`;
+}
+
+/** Ein Satz zur Entfernung — die nackte Zahl allein ist etwas kalt. */
+export function distanceLine(km) {
+  if (km == null) return '';
+  if (km < 1) return 'Ihr seid quasi im selben Raum.';
+  if (km < 30) return 'Das ist eine Fahrradtour.';
+  if (km < 120) return 'Eine gute Stunde mit dem Zug.';
+  if (km < 400) return 'Ein Wochenende reicht dafür locker.';
+  if (km < 1000) return 'Ein halber Reisetag.';
+  if (km < 3000) return 'Einmal fliegen.';
+  return 'Ein anderer Kontinent, aber dasselbe Nest.';
+}

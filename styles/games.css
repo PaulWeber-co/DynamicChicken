@@ -637,3 +637,120 @@
   .doodle-word b { font-size: 21px; }
   .catch-hero, .fly-hero { transform-origin: bottom center; }
 }
+
+/* ── Farbfunk ──────────────────────────────────────────── */
+
+.hue-lead { text-align: center; margin-bottom: 12px; }
+.hue-lead b { display: block; font-size: 19px; font-weight: 850; letter-spacing: -.02em; margin-top: 2px; }
+.hue-target-swatch {
+  display: grid;
+  place-items: center;
+  height: 76px;
+  margin-bottom: 14px;
+  border-radius: var(--r-lg);
+  color: rgba(255, 255, 255, .8);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .5), var(--card-shadow);
+}
+.hue-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  margin-bottom: 14px;
+  padding: 6px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.hue-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 5px;
+  transition: transform var(--t-fast) var(--spring-pop);
+}
+.hue-grid.pickable .hue-cell:active { transform: scale(.86); }
+/* Marker sitzen mittig auf dem Feld und müssen auf jeder Farbe lesbar sein */
+.hue-cell i {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+.hue-cell i.hue-target { background: #fff; box-shadow: 0 0 0 2.5px #2E2833; }
+.hue-cell i.hue-guess  { background: #2E2833; box-shadow: 0 0 0 2.5px #fff; }
+.hue-cell i.hue-pick {
+  width: 100%; height: 100%;
+  border-radius: 5px;
+  background: none;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 5px #2E2833;
+}
+.hue-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.hue-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.hue-legend i {
+  position: static;
+  display: block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+.hue-legend i.hue-target { background: #fff; box-shadow: 0 0 0 2.5px #2E2833; }
+.hue-legend i.hue-guess  { background: #2E2833; box-shadow: 0 0 0 2.5px #fff; }
+
+/* ── Federpoker ────────────────────────────────────────── */
+
+.pk-hand {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.pk-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  aspect-ratio: .68;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--hairline), 0 3px 10px -4px rgba(122, 88, 54, .5);
+  color: var(--suit, var(--ink));
+  transition: transform var(--t-fast) var(--spring-pop), opacity var(--t-fast);
+}
+.pk-card:not(:disabled):active { transform: scale(.93); }
+/* Abgeworfene Karten kippen weg — man sieht sofort, was man tauscht */
+.pk-card:not(.held):not(:disabled) {
+  opacity: .42;
+  transform: translateY(6px) rotate(-4deg);
+}
+.pk-rank { font-size: 17px; font-weight: 850; letter-spacing: -.02em; }
+.pk-suit { display: grid; place-items: center; }
+.pk-held {
+  position: absolute;
+  top: 4px; right: 4px;
+  display: grid;
+  place-items: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--grow);
+  color: #fff;
+}
+.pk-hand.small .pk-card { aspect-ratio: .74; }
+.pk-hand.small .pk-rank { font-size: 14px; }
+.pk-card.dim { opacity: .9; background: var(--surface-2); }
+
+.pk-side { margin-top: 14px; }
+.pk-side-h {
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.pk-side-h b { color: var(--ink); font-weight: 850; }

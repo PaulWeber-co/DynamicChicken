@@ -12,7 +12,7 @@ import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
 import { STARTER_INVENTORY } from './catalog.js';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** Verfall pro Stunde, wach. */
 const DECAY = { full: 6.5, energy: 4.6, clean: 3.2, joy: 4.0 };
@@ -55,6 +55,8 @@ export function createState() {
     polls: [],
     /** Bewerten und Raten: eigene Note plus Tipp über den anderen. */
     rates: [],
+    /** Nächstes Wiedersehen: { date: 'YYYY-MM-DD', label, by, at } */
+    reunion: null,
     outbox: [],
     seen: [],
     settings: {
@@ -64,7 +66,9 @@ export function createState() {
       notify: false,
       syncMode: 'solo',
       cloudUrl: '',
-      soloName: 'Mila'
+      soloName: 'Mila',
+      /** Zweiter, freizügigerer Fragenkatalog — nur auf Wunsch. */
+      spicy: false
     }
   };
 }
@@ -225,7 +229,9 @@ export function pushFeed(state, entry) {
  * @type {Record<number, (s: object) => void>}
  */
 const STEPS = {
-  // 2: (s) => { s.timeline = s.feed; delete s.feed; }
+  // Herzschlag ist raus — die Vibration war auf zu vielen Geräten still.
+  // Der Spielstand bliebe sonst als toter Ballast liegen.
+  2: (s) => { if (s.games) delete s.games.beat; }
 };
 
 /** Vor einem Umbau eine Kopie wegschreiben — einmal, nicht bei jedem Start. */
@@ -275,6 +281,7 @@ export function migrate(raw) {
   s.nest = Array.isArray(raw.nest) ? raw.nest : [];
   s.polls = Array.isArray(raw.polls) ? raw.polls.slice(0, 40) : [];
   s.rates = Array.isArray(raw.rates) ? raw.rates.slice(0, 40) : [];
+  s.reunion = validReunion(raw.reunion);
   s.me.place = validPlace(raw.me?.place);
 
   if (raw.partner && raw.partner.code) {
@@ -294,6 +301,20 @@ export function migrate(raw) {
     s.partner = null;
   }
   return s;
+}
+
+/** Ein Wiedersehen braucht ein Datum, das der Browser auch versteht. */
+export function validReunion(r) {
+  if (!r || typeof r !== 'object') return null;
+  const date = String(r.date || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  if (Number.isNaN(Date.parse(`${date}T12:00:00`))) return null;
+  return {
+    date,
+    label: String(r.label || '').slice(0, 60),
+    by: String(r.by || '').slice(0, 12),
+    at: Number(r.at) || Date.now()
+  };
 }
 
 /** Ein Ort ist nur gültig, wenn er wirklich Koordinaten hat. */

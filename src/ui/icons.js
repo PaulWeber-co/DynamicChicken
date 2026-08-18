@@ -409,11 +409,76 @@ const ICONS = {
     <rect x="9.4" y="16" width="13.6" height="4.6" rx="2.3" fill="${C.woodD}"/>
     <rect x="11.4" y="10.6" width="10" height="4.6" rx="2.3" fill="${C.wood}"/>
     <ellipse cx="16.4" cy="7" rx="3.6" ry="2.8" fill="${C.cream}"/>`,
+  gamePoker: () => `<rect x="4.6" y="8" width="14" height="19" rx="2.4" fill="#fff" stroke="${C.wood}" stroke-width="1.6" transform="rotate(-11 11.6 17.5)"/>
+    <rect x="13.4" y="6" width="14" height="19" rx="2.4" fill="#fff" stroke="${C.woodD}" stroke-width="1.6" transform="rotate(9 20.4 15.5)"/>
+    <path d="M20.6 17.4c-3-2.2-4.6-3.8-4.6-5.6 0-1.4 1.1-2.5 2.5-2.5.9 0 1.6.4 2.1 1.2.5-.8 1.2-1.2 2.1-1.2 1.4 0 2.5 1.1 2.5 2.5 0 1.8-1.6 3.4-4.6 5.6z" fill="${C.rose}"/>
+    <circle cx="10.4" cy="19" r="2.6" fill="${C.yolk}"/>`,
   gameDoodle: () => `<path d="M5 24.6l1-4.4L19.4 6.8a2.8 2.8 0 0 1 4 0l1.2 1.2a2.8 2.8 0 0 1 0 4L11.2 25.4l-4.4 1a1.4 1.4 0 0 1-1.8-1.8z" fill="${C.yolk}"/>
     <path d="M18.4 8.4l5.2 5.2" stroke="${C.yolkD}" stroke-width="1.8" stroke-linecap="round"/>
     <path d="M6 20.2l5.2 5.2" stroke="${C.woodD}" stroke-width="1.8" stroke-linecap="round"/>`,
 
   /* ── Hüte ────────────────────────────────────────────── */
+  hatCap: () => `<path d="M6.6 18c0-5.6 4.2-9.6 9.4-9.6s9.4 4 9.4 9.6z" fill="${C.rose}"/>
+    <path d="M16 8.4c5.2 0 9.4 4 9.4 9.6h-3.4c0-5-2.4-8.2-6-9.6z" fill="${C.roseD}"/>
+    <path d="M6.6 17.4h13c4.6 0 7 1.2 7 2.6H6.6z" fill="${C.roseD}"/>
+    <circle cx="16" cy="9" r="1.5" fill="${C.cream}"/>`,
+  hatBunny: () => `<ellipse cx="11.4" cy="10" rx="3" ry="8.4" fill="#3A3038" transform="rotate(-10 11.4 10)"/>
+    <ellipse cx="11.4" cy="10.6" rx="1.4" ry="5.8" fill="${C.roseL}" transform="rotate(-10 11.4 10.6)"/>
+    <ellipse cx="20.6" cy="10" rx="3" ry="8.4" fill="#3A3038" transform="rotate(10 20.6 10)"/>
+    <ellipse cx="20.6" cy="10.6" rx="1.4" ry="5.8" fill="${C.roseL}" transform="rotate(10 20.6 10.6)"/>
+    <path d="M8.6 24c0-2.4 3.4-4 7.4-4s7.4 1.6 7.4 4z" fill="#3A3038"/>`,
+  hatCowboy: () => `<path d="M10.4 17c0-5.4 2.6-8.6 5.6-8.6s5.6 3.2 5.6 8.6z" fill="${C.wood}"/>
+    <path d="M16 8.4c3 0 5.6 3.2 5.6 8.6h-2.2c0-4.6-1.4-7.4-3.4-8.6z" fill="${C.woodD}"/>
+    <path d="M3 18.4c0-1.6 5.8-2.6 13-2.6s13 1 13 2.6c0 1.8-5.8 2.9-13 2.9S3 20.2 3 18.4z" fill="#D8A472"/>
+    <path d="M11 14h10" stroke="#7C5433" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="16" cy="14" r="1.5" fill="${C.yolk}"/>`,
+  hatDevil: () => `<path d="M12 20c-3.4-4-4.8-8.4-4-12.4 3.4 1.6 6.2 5 7.2 9.4z" fill="${C.rose}"/>
+    <path d="M20 20c3.4-4 4.8-8.4 4-12.4-3.4 1.6-6.2 5-7.2 9.4z" fill="${C.rose}"/>
+    <path d="M12 20c-2.4-3.2-3.6-6.4-3.4-9.4 2 1.6 3.6 4.2 4.6 7.4z" fill="${C.roseD}"/>
+    <path d="M20 20c2.4-3.2 3.6-6.4 3.4-9.4-2 1.6-3.6 4.2-4.6 7.4z" fill="${C.roseD}"/>`,
+  hatVeil: () => `<path d="M5 24c0-10.4 4.6-17 11-17s11 6.6 11 17c-3.4-2-8-3-11-3s-7.6 1-11 3z" fill="#fff" opacity=".8"/>
+    <path d="M5 24c0-10.4 4.6-17 11-17s11 6.6 11 17" fill="none" stroke="${C.shell}" stroke-width="1.6"/>
+    <g transform="translate(16 8)">
+      ${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="-4.4" rx="2.6" ry="3.8" fill="${C.cream}" transform="rotate(${a})"/>`).join('')}
+      <circle r="2.2" fill="${C.yolkL}"/></g>`,
+  hatCrownDark: () => `<path d="M6.6 21 4.6 8.6l5.2 3.6L16 5.4l6.2 6.8 5.2-3.6L25.4 21z" fill="#5B4A7A"/>
+    <path d="M16 5.4l6.2 6.8 5.2-3.6L25.4 21h-4l1.2-8.4-4.6 2.6z" fill="#463A5F"/>
+    <rect x="6.6" y="19.4" width="18.8" height="3.4" rx="1.7" fill="#463A5F"/>
+    <circle cx="16" cy="11.6" r="1.7" fill="${C.rose}"/>
+    <circle cx="10.4" cy="14" r="1.3" fill="${C.lav}"/><circle cx="21.6" cy="14" r="1.3" fill="${C.lav}"/>`,
+
+  accTie: () => `<path d="M9 8.6q7 4 14 0 .8 2-.4 3.4-6.6 3-13.2 0-1.2-1.4-.4-3.4z" fill="${C.cream}"/>
+    <path d="M16 11.4l-2.6 2.4 2.6 3.4 2.6-3.4z" fill="#5B4A7A"/>
+    <path d="M16 17.8l-2 8.4 2 3.2 2-3.2z" fill="#6C5A8F"/>`,
+  accApron: () => `<path d="M11.4 6.6q4.6 2 9.2 0l-.8 2.6h-7.6z" fill="${C.leafL}"/>
+    <path d="M10.6 9.2h10.8q2 6 .8 13.4-6.2 3-12.4 0-1.2-7.4.8-13.4z" fill="#B8ECD6"/>
+    <path d="M10.6 9.2h10.8q.4 1.2.7 2.4H9.9q.3-1.2.7-2.4z" fill="${C.leaf}"/>
+    <rect x="13.4" y="14" width="5.2" height="4.4" rx="1" fill="${C.leaf}"/>`,
+  accMonocle: () => `<circle cx="14" cy="13" r="7.4" fill="${C.sky}" opacity=".25"/>
+    <circle cx="14" cy="13" r="7.4" fill="none" stroke="#C9A24B" stroke-width="2.2"/>
+    <path d="M14 20.4v6.4" stroke="#C9A24B" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M14 26.8q4 1.6 8 0" fill="none" stroke="#C9A24B" stroke-width="1.6" stroke-linecap="round"/>`,
+  accMask: () => `<path d="M4 11q6-3 12-3t12 3q1 6.4-3 9-4.4 2.4-6.4-1.4h-5.2Q11.4 22.4 7 20q-4-2.6-3-9z" fill="#5B4A7A"/>
+    <ellipse cx="10.6" cy="14" rx="3.4" ry="2.6" fill="${C.cream}" opacity=".28"/>
+    <ellipse cx="21.4" cy="14" rx="3.4" ry="2.6" fill="${C.cream}" opacity=".28"/>
+    <path d="M4 11q6-3 12-3t12 3" fill="none" stroke="${C.lav}" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="27" cy="9.4" r="1.8" fill="${C.yolk}"/>`,
+  accLace: () => `<path d="M6 11q10 5 20 0 .8 3-.6 4.6-9.4 4.4-18.8 0-1.4-1.6-.6-4.6z" fill="#2E2833"/>
+    <g fill="#2E2833" opacity=".9">
+      <circle cx="8.4" cy="17.4" r="1.5"/><circle cx="12.8" cy="18.4" r="1.5"/>
+      <circle cx="17.2" cy="18.4" r="1.5"/><circle cx="21.6" cy="17.4" r="1.5"/></g>
+    <path d="M6 11q10 5 20 0" fill="none" stroke="${C.rose}" stroke-width="1.5"/>
+    <path d="M16 19.4v3" stroke="${C.rose}" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="16" cy="24" r="1.8" fill="${C.rose}"/>`,
+  accCatsuit: () => `<path d="M8 17q0-8 8-8t8 8q0 9.6-8 11.4Q8 26.6 8 17z" fill="#2E2833"/>
+    <path d="M16 9q8 0 8 8 0 9.6-8 11.4z" fill="#221D26"/>
+    <path d="M10.4 14.4q5.6 2.6 11.2 0" fill="none" stroke="#4A4150" stroke-width="1.4"/>
+    <path d="M16 9.6v18" stroke="#4A4150" stroke-width="1.1" opacity=".7"/>
+    <path d="M9.6 10q6.4 3.2 12.8 0 .6 2-.4 3-6 2.6-12 0-1-1-.4-3z" fill="#3C3444"/>
+    <circle cx="16" cy="15" r="1.6" fill="${C.rose}"/>`,
+  accWings: () => `<path d="M15 22Q6 15 4 5q9 2 13 8 3 4 2.6 9z" fill="#FFFCF4" stroke="#E0D0B6" stroke-width="1.2"/>
+    <path d="M17 22Q26 15 28 5q-9 2-13 8-3 4-2.6 9z" fill="#FFFCF4" stroke="#E0D0B6" stroke-width="1.2"/>
+    <path d="M13.6 18Q8 13 6.4 7M18.4 18Q24 13 25.6 7" fill="none" stroke="#E8DAC2" stroke-width="1.2"/>`,
   hatNone: () => `<circle cx="16" cy="16" r="10.4" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>
     <path d="M9 23 23 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35"/>`,
   hatBeanie: () => `<path d="M6.6 19c0-5.4 4.2-9.6 9.4-9.6s9.4 4.2 9.4 9.6z" fill="${C.sky}"/>

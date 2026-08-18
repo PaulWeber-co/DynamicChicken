@@ -4,7 +4,7 @@
  */
 
 import { get, commit } from '../state/store.js';
-import { pushFeed, addBondXp, addXp, clamp100, tickPet, validPlace } from '../state/model.js';
+import { pushFeed, addBondXp, addXp, clamp100, tickPet, validPlace, validReunion } from '../state/model.js';
 import { FOODS, foodById, CARE_ACTIONS, REWARDS } from '../state/catalog.js';
 import {
   nestSet, nestRemove, pollCreate, pollVote,
@@ -318,6 +318,24 @@ export function submitRate(id, score, guess) {
     fx('tap');
   }
   return res;
+}
+
+/* ── Wiedersehen ────────────────────────────────────────── */
+
+/** @param {{date:string,label?:string}|null} r */
+export function setReunion(r) {
+  const s = get();
+  const next = r ? validReunion({ ...r, by: s.me.code, at: Date.now() }) : null;
+  if (r && !next) { toast('Das Datum konnte ich nicht lesen', 'warn'); return null; }
+  s.reunion = next;
+  pushFeed(s, {
+    from: 'me', type: 'reunion', icon: 'sunrise',
+    text: next ? `Wiedersehen gesetzt: ${next.date}` : 'Wiedersehen entfernt'
+  });
+  commit('reunion');
+  sendEvent('reunion', next);
+  fx(next ? 'love' : 'tap');
+  return next;
 }
 
 /* ── Ort fürs Wetter ────────────────────────────────────── */

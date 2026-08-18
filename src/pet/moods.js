@@ -89,9 +89,46 @@ export function petMood(pet, { asleep = false, moodKey = null } = {}) {
   return 'happy';
 }
 
-/** Frage des Tages, stabil pro Datum und Paar. */
-export function questionForDay(dateKey, salt = 0) {
+/**
+ * Der zweite Katalog — nur wenn beide ihn eingeschaltet haben.
+ *
+ * Absichtlich getrennt und nicht untergemischt: Diese Fragen sollen nicht
+ * unerwartet auftauchen, wenn jemand nebenan mitliest oder gerade nicht in
+ * der Stimmung ist. Ein Schalter unter *Mehr* entscheidet, und die App
+ * kennzeichnet die Karte deutlich.
+ */
+export const SPICY_QUESTIONS = [
+  'Woran denkst du, wenn du an mich denkst und keiner zuschaut?',
+  'Was hast du das letzte Mal gedacht, als du ein Foto von mir gesehen hast?',
+  'Was würdest du als Erstes tun, wenn ich jetzt zur Tür reinkäme?',
+  'Was vermisst du körperlich am meisten?',
+  'Welches Kleidungsstück von mir hättest du gern hier?',
+  'Was findest du an mir attraktiv, das ich selbst nicht sehe?',
+  'Wo hast du dir uns schon mal vorgestellt?',
+  'Was war unser bisher bester gemeinsamer Moment im Bett?',
+  'Was möchtest du beim nächsten Mal ausprobieren?',
+  'Was macht dich sofort schwach an mir?',
+  'Welche Nachricht von mir hat dich am meisten angemacht?',
+  'Was würdest du gerne öfter hören von mir?',
+  'Beschreib unseren perfekten Morgen danach.',
+  'Was ist dein liebster Ort an meinem Körper?',
+  'Woran hast du zuletzt gedacht, das du mir nie erzählt hast?',
+  'Wenn wir eine Nacht ohne Regeln hätten: was passiert?',
+  'Was findest du sexy, das gar nichts mit Aussehen zu tun hat?',
+  'Was war der Moment, in dem du mich am meisten wolltest?'
+];
+
+/**
+ * Frage des Tages, stabil pro Datum und Paar.
+ * @param {string} dateKey  YYYY-MM-DD
+ * @param {number} salt     aus dem Paar-Code, damit ihr eigene Reihenfolge habt
+ * @param {boolean} spicy   den zweiten Katalog nehmen
+ */
+export function questionForDay(dateKey, salt = 0, spicy = false) {
   let h = salt >>> 0;
   for (let i = 0; i < dateKey.length; i++) h = (h * 31 + dateKey.charCodeAt(i)) >>> 0;
-  return DAILY_QUESTIONS[h % DAILY_QUESTIONS.length];
+  const pool = spicy ? SPICY_QUESTIONS : DAILY_QUESTIONS;
+  // Ein anderer Startwert, damit beide Kataloge nicht im Gleichtakt laufen
+  const idx = (spicy ? (h ^ 0x9e3779b9) >>> 0 : h) % pool.length;
+  return pool[idx];
 }

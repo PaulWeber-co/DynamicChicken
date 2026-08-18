@@ -185,6 +185,7 @@ export function render(root, ctx) {
 
   /* Knuddl streicheln — jede Berührung hat eine Reaktion */
   let petCount = 0;
+  let lastPetMove = '';
   root.querySelector('[data-pet]').onclick = (e) => {
     const st = get();
     const pet = st.me.pet;
@@ -200,10 +201,17 @@ export function render(root, ctx) {
     petCount++;
     // Jedes dritte Streicheln fällt größer aus — kleine Überraschung
     const special = petCount % 3 === 0;
-    if (!careAction('cuddle', e.currentTarget)) {
-      fx('cluck');
-      playAction(svg, special ? 'dance' : 'shake');
-    }
+
+    // Die Reaktion wechselt, damit Streicheln nicht zur immer gleichen
+    // Bewegung wird. Zweimal dasselbe hintereinander gibt es nicht.
+    const move = special
+      ? pickOther(BIG_REACTIONS, lastPetMove)
+      : pickOther(SMALL_REACTIONS, lastPetMove);
+    lastPetMove = move;
+
+    if (!careAction('cuddle', e.currentTarget)) fx('cluck');
+    playAction(svg, move);
+
     if (svg) {
       svg.classList.remove('squish');
       void svg.getBoundingClientRect();
@@ -239,6 +247,20 @@ export function render(root, ctx) {
   }, 14_000);
 
   return () => { unsub(); clearInterval(timer); clearInterval(idle); };
+}
+
+/* ── Reaktionen aufs Streicheln ─────────────────────────── */
+
+/** Kurze Regungen — was ein Huhn eben so macht, wenn man es anstupst. */
+const SMALL_REACTIONS = ['shake', 'nod', 'peck', 'hop', 'wave', 'shiver'];
+/** Jedes dritte Mal darf es größer ausfallen. */
+const BIG_REACTIONS = ['dance', 'celebrate', 'sing', 'flap', 'stretch'];
+
+/** Zufällig, aber nie zweimal dasselbe hintereinander. */
+function pickOther(list, last) {
+  const rest = list.filter((x) => x !== last);
+  const from = rest.length ? rest : list;
+  return from[Math.floor(Math.random() * from.length)];
 }
 
 /* ── Textbausteine ──────────────────────────────────────── */
