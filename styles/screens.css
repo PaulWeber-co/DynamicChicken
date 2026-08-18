@@ -348,19 +348,22 @@
 /* ── Spiele-Liste ──────────────────────────────────────── */
 
 .game-list { display: flex; flex-direction: column; gap: 10px; }
+/* Was auf dich wartet, steht ganz oben — kompakt, damit auch bei drei
+   offenen Spielen noch das Raster darunter zu sehen ist. */
+.game-list.tight { gap: 7px; }
 .game-item {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 13px;
   width: 100%;
   text-align: left;
-  padding: 15px 16px;
+  padding: 12px 14px;
   transition: transform var(--t-fast) var(--spring-pop);
 }
 .game-item:active { transform: scale(.985); }
 .game-item-e {
-  width: 52px; height: 52px;
-  border-radius: 17px;
+  width: 44px; height: 44px;
+  border-radius: 15px;
   display: grid;
   place-items: center;
   flex: none;
@@ -371,23 +374,34 @@
 .game-item.tone-warm .game-item-e { background: var(--accent-soft); }
 .game-item.tone-love .game-item-e { background: var(--love-soft); }
 .game-item.tone-calm .game-item-e { background: var(--calm-soft); }
-.game-item-t { font-size: 16px; font-weight: 800; letter-spacing: -.015em; }
-.game-item-s { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.game-item-t { font-size: 15.5px; font-weight: 800; letter-spacing: -.015em; line-height: 1.2; }
+.game-item-s { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
 .game-item-m { display: flex; align-items: center; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+/* Live-Punkt in der Wartekarte: currentColor wäre hier Tintenbraun */
+.game-item > .dot-live { flex: none; color: var(--grow); }
 
-.arena { padding: 16px; }
-.arena-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.arena-side { flex: 1; text-align: center; }
-.arena-side svg { display: inline-block; }
-.arena-name { font-size: 13px; font-weight: 750; margin-top: 2px; }
-.arena-pow { font-size: 21px; font-weight: 850; letter-spacing: -.02em; }
-.arena-vs { font-size: 12px; font-weight: 850; color: var(--ink-3); letter-spacing: .08em; }
+/* Kräftevergleich: eine Zeile, kein Podest — er soll das Raster nicht
+   vom Bildschirm schieben. */
+.arena { padding: 11px 14px 13px; }
+.arena-row { display: flex; align-items: center; gap: 9px; }
+.arena-side { flex: 1; display: flex; align-items: center; gap: 7px; min-width: 0; }
+.arena-side.end { justify-content: flex-end; }
+.arena-side svg { flex: none; }
+.arena-name {
+  font-size: 12.5px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-pow { flex: none; font-size: 17px; font-weight: 850; letter-spacing: -.02em; }
+.arena-vs { flex: none; font-size: 10.5px; font-weight: 850; color: var(--ink-3); letter-spacing: .08em; }
 .arena-bar {
-  height: 9px;
+  height: 7px;
   border-radius: var(--r-full);
   background: var(--love);
   overflow: hidden;
-  margin-top: 12px;
+  margin-top: 9px;
 }
 .arena-bar > span {
   display: block;
@@ -1300,3 +1314,69 @@
 /* Spicy Frage — deutlich als solche erkennbar, nicht heimlich untergemischt */
 .daily-card.daily-spicy { background: linear-gradient(160deg, var(--love-soft), var(--accent-soft)); }
 .daily-card.daily-spicy .daily-kicker { color: #C2456E; }
+
+/* ── Spiele als Raster ─────────────────────────────────── */
+
+.game-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* Gleiche Höhe für alle Zeilen — sonst versetzen zweizeilige Titel
+     („Kritzel-Telefon“) die ganze Spalte gegen ihre Nachbarin. */
+  grid-auto-rows: 1fr;
+  gap: 8px;
+}
+.game-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 64px;
+  padding: 10px 11px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  transition: transform var(--t-fast) var(--spring-pop);
+}
+.game-tile:active { transform: scale(.96); }
+.game-tile .grow { min-width: 0; }
+.game-tile-e {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  background: var(--surface-sunk);
+  transition: transform var(--t-med) var(--spring-pop);
+}
+.game-tile:active .game-tile-e { transform: scale(1.1) rotate(-5deg); }
+.game-tile.tone-warm .game-tile-e { background: var(--accent-soft); }
+.game-tile.tone-love .game-tile-e { background: var(--love-soft); }
+.game-tile.tone-calm .game-tile-e { background: var(--calm-soft); }
+.game-tile-t {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.game-tile-s {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Statuspunkt oben rechts — mehr Platz für ein Abzeichen ist nicht */
+.game-dot {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+}
+.game-dot.off { background: var(--ink-3); opacity: .45; }
+.game-dot.live { background: var(--grow); animation: breathe 1.6s ease-in-out infinite; }

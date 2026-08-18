@@ -96,7 +96,7 @@ nötig, gegen Störer schon.
 
 ## Spiele
 
-Neun Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
+Elf Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
 sein. Die Runde kommt aus einem Seed, den beide Geräte allein aus dem
 Paar-Code berechnen: gleiche Karten, gleiche Farben, gleicher Zaun, ohne
 Server und ohne Schiedsrichter.
@@ -108,10 +108,34 @@ Server und ohne Schiedsrichter.
 | **Ei-Duell** | Fünf Symbole, fünf Runden, verdeckt gelegt |
 | **Nest-Turm** | Zweig auf Zweig stapeln |
 | **Kritzel-Telefon** | Du malst ein Wort, drüben wird geraten |
+| **Top Fünf** | Kategorie vorgeben, fünf Antworten sortieren, Reihenfolge erraten |
+| **Meme-Duell** | Du schreibst den Satz, der andere findet das Bild |
 | **Farbfunk** | Ein einziges Wort zu einer Farbe — findet der andere sie? |
 | **Federpoker** | Fünf Karten, einmal tauschen, beste Hand |
 | **Gefühls-Duett** | Beide raten, wie es dem anderen geht |
 | **Feder-Memory** | Acht Paare, identisches Blatt für beide |
+
+Die Übersicht ist zweistufig: oben steht groß, was gerade auf dich wartet,
+darunter liegen alle Spiele als Raster. Elf Duelle passen so auf gut einen
+Bildschirm statt auf drei.
+
+**Top Fünf** ist Top Ten in klein. Einer gibt eine Kategorie vor („Dinge, um
+sich von der Titanic zu retten“), der andere schreibt fünf Antworten und
+sortiert sie selbst von 1 bis 5. Zurück gehen die Antworten in gewürfelter
+Reihenfolge — die Nummern sind verdeckt. Drei Punkte für jede Antwort auf
+dem exakt richtigen Platz, einer für jedes Paar, das zueinander richtig
+herum steht; 25 sind das Maximum. Beide bekommen dieselben Punkte, es geht
+nicht ums Gewinnen.
+
+**Meme-Duell:** Du schreibst eine Vorlage, dein Mensch sucht irgendwo ein
+Bild dazu und lädt es hoch, du vergibst eine Note von 1 bis 5. **Danach ist
+das Bild auf beiden Geräten weg** — im Verlauf bleiben nur Spruch und Note.
+Das Bild wird vor dem Verschicken auf 720 Pixel Kantenlänge und rund hundert
+Kilobyte gebracht, geht als flüchtiges Ereignis raus (landet also nie im
+Brieftauben-Stapel) und fliegt als Erstes, falls der Browser-Speicher eng
+wird. Bilder brauchen den Cloud-Modus; als Brieftauben-Code wären sie eine
+Textwand, die durch keinen Messenger passt. Das Spiel sagt das offen, statt
+still nichts zu tun.
 
 **Federpoker ohne Schiedsrichter:** Feste Plätze im gemischten Stapel
 trennen die Blätter — Karten 0–4 für den einen, 5–9 für den anderen, 10–19
@@ -119,10 +143,11 @@ zum Nachziehen. Keiner kann die Karten des anderen beeinflussen, und beide
 rechnen unabhängig dasselbe Ergebnis aus. Übertragen wird nur, welche
 Karten getauscht wurden.
 
-**Hängt eine Runde?** Ei-Duell gleicht beim Öffnen automatisch ab und holt
-verpasste Züge nach; hilft das nicht, startet ein Knopf die Partie auf
-beiden Seiten neu. Beim Kritzel-Telefon ersetzt ein neues Bild eine liegen
-gebliebene Zeichnung.
+**Hängt eine Runde?** Bei Top Fünf, Meme-Duell und Farbfunk wirft ein Knopf
+im Spiel die Runde weg — auf beiden Geräten, mit sauber weitergereichtem
+Zug. Ei-Duell gleicht beim Öffnen automatisch ab und holt verpasste Züge
+nach; hilft das nicht, startet ein Knopf die Partie neu. Beim
+Kritzel-Telefon ersetzt ein neues Bild eine liegen gebliebene Zeichnung.
 
 ## Anziehen
 

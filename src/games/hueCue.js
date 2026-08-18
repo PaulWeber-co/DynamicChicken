@@ -133,11 +133,41 @@ function closeRound(state, g, dist, partnerName) {
   return pts;
 }
 
+/**
+ * Notausgang: Runde wegwerfen und weiterziehen.
+ *
+ * Zeitversetzt gespielt bleibt irgendwann eine Runde liegen — der Hinweis
+ * war unlösbar, oder es kommt einfach kein Tipp zurück. Ohne diesen Weg
+ * hinge das Spiel für immer an derselben Farbe.
+ */
+function abortRound(g) {
+  g.cur = null;
+  g.r++;
+  g.turn = g.turn === 'me' ? 'them' : 'me';
+}
+
 /* ── Netzwerk ───────────────────────────────────────────── */
 
 export function handleRemote(state, msg, { partnerName }) {
-  if (msg.kind !== 'hueClue' && msg.kind !== 'hueGuess') return undefined;
+  const kinds = ['hueClue', 'hueGuess', 'hueSkip'];
+  if (!kinds.includes(msg.kind)) return undefined;
   const g = hg(state);
+
+  if (msg.kind === 'hueSkip') {
+    if (msg.r < g.r || !g.cur) return null;
+    abortRound(g);
+    commit('hue');
+    return {
+      kind: 'gameTurn',
+      icon: 'palette',
+      avatar: 'them',
+      title: `${partnerName} hat die Runde verworfen`,
+      sub: 'Farbfunk',
+      body: `Der Hinweis war wohl unlösbar. ${g.turn === 'me' ? 'Du funkst als Nächstes.' : `${partnerName} funkt als Nächstes.`}`,
+      actions: [{ label: 'Weiter', act: 'game:hue', primary: true }, { label: 'Ok', act: 'dismiss' }],
+      tone: 'calm'
+    };
+  }
 
   if (msg.kind === 'hueClue') {
     // Der andere hat einen Hinweis gegeben — ab hier bin ich am Raten
@@ -184,7 +214,13 @@ export function summary(state) {
     return { badge: 'wait', text: `„${g.cur.clue}“ — du suchst` };
   }
   if (g.cur && g.turn === 'me') return { badge: 'off', text: 'Wartet auf den Tipp' };
-  if (g.turn === 'me') return { badge: 'wait', text: 'Du gibst den Hinweis' };
+  // „Du bist dran“ heißt: drüben wartet jemand. Ein Spiel, das noch nie
+  // gelaufen ist, wartet auf niemanden — es steht einfach bereit.
+  if (g.turn === 'me') {
+    return g.hist.length
+      ? { badge: 'wait', text: 'Du gibst den Hinweis' }
+      : { badge: null, text: 'Du fängst an' };
+  }
   return g.hist.length
     ? { badge: null, text: `${g.score.me} Punkte zusammen` }
     : { badge: null, text: 'Neu' };
@@ -205,7 +241,25 @@ export function mount(root, ctx) {
       <div class="game-scroll">${inner}</div>
     </div>`;
 
-  const bindClose = () => root.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => ctx.close(); });
+  const bindClose = () => {
+    root.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => ctx.close(); });
+    const skip = root.querySelector('[data-skip]');
+    if (skip) skip.onclick = () => {
+      const st = get();
+      const g = hg(st);
+      if (!g.cur) { route(); return; }
+      sendEvent('game', { g: 'hue', kind: 'hueSkip', r: g.r });
+      abortRound(g);
+      commit('hue');
+      toast('Runde verworfen');
+      fx('tap');
+      route();
+    };
+  };
+
+  /** Immer erreichbar, solange eine Runde offen ist. */
+  const skipLink = (label = 'Runde verwerfen') =>
+    `<button class="btn btn-ghost btn-sm btn-block" data-skip style="margin-top:2px">${label}</button>`;
 
   function cells(seed) { return grid(seed); }
 
@@ -275,6 +329,7 @@ export function mount(root, ctx) {
         <h2 class="game-h">„${esc(g.cur?.clue || '')}“ ist unterwegs</h2>
         <p class="game-p">${esc(partner)} sucht jetzt deine Farbe. Du erfährst, wie nah der Tipp war.</p>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
+        ${skipLink('Hinweis zurücknehmen')}
       </div>
       ${history()}`);
     bindClose();

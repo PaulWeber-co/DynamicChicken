@@ -113,6 +113,20 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
   margin: 26px 4px 10px;
 }
 .section-label:first-child { margin-top: 6px; }
+/* Zahl hinter einer Überschrift: „Du bist dran 3“ */
+.label-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px; height: 17px;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10.5px;
+  letter-spacing: 0;
+  vertical-align: .04em;
+}
 
 /* ── Karten ────────────────────────────────────────────── */
 .card {

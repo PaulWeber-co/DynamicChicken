@@ -416,6 +416,20 @@ const ICONS = {
   gameDoodle: () => `<path d="M5 24.6l1-4.4L19.4 6.8a2.8 2.8 0 0 1 4 0l1.2 1.2a2.8 2.8 0 0 1 0 4L11.2 25.4l-4.4 1a1.4 1.4 0 0 1-1.8-1.8z" fill="${C.yolk}"/>
     <path d="M18.4 8.4l5.2 5.2" stroke="${C.yolkD}" stroke-width="1.8" stroke-linecap="round"/>
     <path d="M6 20.2l5.2 5.2" stroke="${C.woodD}" stroke-width="1.8" stroke-linecap="round"/>`,
+  gameMeme: () => `<rect x="3.4" y="5" width="25.2" height="22" rx="3.6" fill="${C.lav}"/>
+    <rect x="5.8" y="7.4" width="20.4" height="12.8" rx="2.2" fill="${C.cream}"/>
+    <circle cx="11.6" cy="12.4" r="1.5" fill="${C.cocoa}"/>
+    <circle cx="20.4" cy="12.4" r="1.5" fill="${C.cocoa}"/>
+    <path d="M10.8 15.2c1.6 2.6 8.8 2.6 10.4 0 .6 3.2-2.1 5.2-5.2 5.2s-5.8-2-5.2-5.2z" fill="${C.cocoa}"/>
+    <path d="M12.6 16.6h6.8c-.5 1-1.7 1.6-3.4 1.6s-2.9-.6-3.4-1.6z" fill="${C.rose}"/>
+    <rect x="7.4" y="22.4" width="17.2" height="2.4" rx="1.2" fill="#fff" opacity=".85"/>`,
+  gameTop5: () => `<rect x="3.6" y="4.4" width="24.8" height="23.2" rx="3.6" fill="${C.cream}"/>
+    <circle cx="9.4" cy="9.8" r="2.6" fill="${C.yolk}"/>
+    <rect x="14" y="8.3" width="11.6" height="3" rx="1.5" fill="${C.yolkD}"/>
+    <circle cx="9.4" cy="16" r="2.6" fill="${C.leaf}"/>
+    <rect x="14" y="14.5" width="9.2" height="3" rx="1.5" fill="${C.leafD}"/>
+    <circle cx="9.4" cy="22.2" r="2.6" fill="${C.sky}"/>
+    <rect x="14" y="20.7" width="6.6" height="3" rx="1.5" fill="${C.skyD}"/>`,
 
   /* ── Hüte ────────────────────────────────────────────── */
   hatCap: () => `<path d="M6.6 18c0-5.6 4.2-9.6 9.4-9.6s9.4 4 9.4 9.6z" fill="${C.rose}"/>
