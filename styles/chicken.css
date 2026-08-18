@@ -19,6 +19,16 @@
 .ck-beak-low { transform-origin: 160px 150px; transform-box: view-box; }
 .ck-eye-a  { transform-origin: 132px 112px; }
 .ck-eye-b  { transform-origin: 188px 112px; }
+/*
+ * Die Augenvarianten brauchen denselben Drehpunkt wie ihre Gruppe.
+ *
+ * Ohne das erben sie zwar `transform-box: view-box`, aber nicht den
+ * Drehpunkt — und landen bei der Vorgabe „50% 50%“, also der Bauchmitte
+ * bei (160, 180). Das Zusammenkneifen beim Blinzeln zog das Auge dann
+ * jedes Mal quer durchs Gesicht.
+ */
+.ck-eye-a > g { transform-origin: 132px 112px; }
+.ck-eye-b > g { transform-origin: 188px 112px; }
 .ck-brow-l { transform-origin: 132px 86px; transform-box: view-box; }
 .ck-brow-r { transform-origin: 188px 86px; transform-box: view-box; }
 .ck-shadow { transform-origin: 160px 330px; transform-box: view-box; }

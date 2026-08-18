@@ -46,5 +46,7 @@ export const BOND_UNLOCKS = [
   { level: 5,  icon: 'hatCrown',      label: 'Krönchen',       grants: { hat: 'crown' } },
   { level: 7,  icon: 'accHeadphones', label: 'Kopfhörer',      grants: { acc: 'headphones' } },
   { level: 10, icon: 'accNecklace',   label: 'Herzkette',      grants: { acc: 'necklace' } },
-  { level: 14, icon: 'hatHalo',       label: 'Heiligenschein', grants: { hat: 'halo' } }
+  { level: 14, icon: 'hatHalo',       label: 'Heiligenschein', grants: { hat: 'halo' } },
+  { level: 17, icon: 'accWings',      label: 'Engelsflügel',   grants: { acc: 'wings' } },
+  { level: 20, icon: 'hatCrownDark',  label: 'Dunkle Krone',   grants: { hat: 'crownDark' } }
 ];

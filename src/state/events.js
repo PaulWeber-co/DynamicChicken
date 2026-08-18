@@ -7,7 +7,7 @@
  */
 
 import { get, commit } from './store.js';
-import { pushFeed, addBondXp, newPet, touchStreak, validPlace } from './model.js';
+import { pushFeed, addBondXp, newPet, touchStreak, validPlace, validReunion } from './model.js';
 import { moodByKey, activityByKey, nudgeByKey } from '../pet/moods.js';
 import { REWARDS } from './catalog.js';
 import { handleRemoteGameEvent } from '../games/index.js';
@@ -215,7 +215,10 @@ export function applyEvent(ev, { silent = false } = {}) {
       const p = ensurePartner(state);
       p.lastSeen = at;
       if (!state.daily || state.daily.day !== ev.d?.day) {
-        state.daily = { day: ev.d?.day, q: ev.d?.q || '', mine: null, theirs: null, revealedAt: null };
+        state.daily = {
+          day: ev.d?.day, q: ev.d?.q || '', spicy: !!ev.d?.spicy,
+          mine: null, theirs: null, revealedAt: null
+        };
       }
       state.daily.theirs = { text: ev.d?.answer || '', at };
       if (state.daily.mine && !state.daily.revealedAt) {
@@ -250,6 +253,32 @@ export function applyEvent(ev, { silent = false } = {}) {
       const p = ensurePartner(state);
       p.lastSeen = at;
       notify = handleRemoteGameEvent(state, ev.d || {}, { silent, partnerName: p.name });
+      break;
+    }
+
+    /* ── Wiedersehen ── */
+    case 'reunion': {
+      const p = ensurePartner(state);
+      p.lastSeen = at;
+      const r = validReunion(ev.d);
+      // Ein leeres Datum heißt: der andere hat den Termin gestrichen
+      state.reunion = r;
+      pushFeed(state, {
+        from: 'them', type: 'reunion', at, icon: 'sunrise',
+        text: r ? `${p.name} hat das Wiedersehen gesetzt: ${r.date}` : `${p.name} hat das Wiedersehen entfernt`
+      });
+      if (!silent && r) {
+        notify = {
+          kind: 'reunion',
+          avatar: 'them',
+          icon: 'sunrise',
+          title: 'Wiedersehen steht',
+          sub: r.label || r.date,
+          body: `${p.name} hat euer Wiedersehen auf den ${r.date} gesetzt.`,
+          actions: [{ label: 'Ansehen', act: 'open:us', primary: true }],
+          tone: 'love'
+        };
+      }
       break;
     }
 

@@ -93,3 +93,47 @@ Wer auch das Schreiben absichern will: In Firebase **Authentication →
 Anonymous** einschalten und in den Regeln `".read"`/`".write"` auf
 `"auth != null"` setzen. Für die Vertraulichkeit der Inhalte ist es nicht
 nötig, gegen Störer schon.
+
+## Spiele
+
+Neun Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
+sein. Die Runde kommt aus einem Seed, den beide Geräte allein aus dem
+Paar-Code berechnen: gleiche Karten, gleiche Farben, gleicher Zaun, ohne
+Server und ohne Schiedsrichter.
+
+| Spiel | Was |
+|---|---|
+| **Körner-Jagd** | Knuddl steuern und fangen, was vom Himmel fällt |
+| **Federflug** | Ein Finger, viele Zaunlücken |
+| **Ei-Duell** | Fünf Symbole, fünf Runden, verdeckt gelegt |
+| **Nest-Turm** | Zweig auf Zweig stapeln |
+| **Kritzel-Telefon** | Du malst ein Wort, drüben wird geraten |
+| **Farbfunk** | Ein einziges Wort zu einer Farbe — findet der andere sie? |
+| **Federpoker** | Fünf Karten, einmal tauschen, beste Hand |
+| **Gefühls-Duett** | Beide raten, wie es dem anderen geht |
+| **Feder-Memory** | Acht Paare, identisches Blatt für beide |
+
+**Federpoker ohne Schiedsrichter:** Feste Plätze im gemischten Stapel
+trennen die Blätter — Karten 0–4 für den einen, 5–9 für den anderen, 10–19
+zum Nachziehen. Keiner kann die Karten des anderen beeinflussen, und beide
+rechnen unabhängig dasselbe Ergebnis aus. Übertragen wird nur, welche
+Karten getauscht wurden.
+
+**Hängt eine Runde?** Ei-Duell gleicht beim Öffnen automatisch ab und holt
+verpasste Züge nach; hilft das nicht, startet ein Knopf die Partie auf
+beiden Seiten neu. Beim Kritzel-Telefon ersetzt ein neues Bild eine liegen
+gebliebene Zeichnung.
+
+## Anziehen
+
+14 Hüte und 15 Accessoires, dazu 15 Gefiederfarben, 9 Bauchtöne, 8
+Kammfarben in 6 Formen, 5 Augenpaare und ein Regler für die Leibesfülle.
+Vom Fischerhut über Häschenohren bis Catsuit und Engelsflügeln — manches
+kauft man, manches schaltet euer gemeinsames Bond-Level frei.
+
+## Frage des Tages
+
+Jeden Tag eine Frage, beide antworten, aufgedeckt wird gemeinsam. Unter
+*Mehr* lässt sich ein zweiter, deutlich freizügigerer Katalog einschalten.
+Er ist bewusst getrennt und wird auf der Karte auch als solcher
+gekennzeichnet, damit nichts unerwartet auftaucht.

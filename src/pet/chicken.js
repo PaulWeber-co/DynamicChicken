@@ -28,7 +28,12 @@ export const BODY_COLORS = [
   { id: 'himmel',   label: 'Himmel',   lite: '#D3EBFC', base: '#A9D6F5', dark: '#7CB8E3', deep: '#5C97C2' },
   { id: 'schnee',   label: 'Schnee',   lite: '#FFFDFA', base: '#FBF1E4', dark: '#E5D5C1', deep: '#C3B29C' },
   { id: 'kakao',    label: 'Kakao',    lite: '#E5BE9B', base: '#C99268', dark: '#A9724A', deep: '#875734' },
-  { id: 'nacht',    label: 'Nacht',    lite: '#A9A2BC', base: '#7C7590', dark: '#5D5670', deep: '#443F53' }
+  { id: 'nacht',    label: 'Nacht',    lite: '#A9A2BC', base: '#7C7590', dark: '#5D5670', deep: '#443F53' },
+  { id: 'koralle',  label: 'Koralle',  lite: '#FFD5CB', base: '#FF9E8C', dark: '#E5786A', deep: '#BF5A4E' },
+  { id: 'salbei',   label: 'Salbei',   lite: '#DCE8D4', base: '#B4CBA6', dark: '#92A985', deep: '#728767' },
+  { id: 'flieder',  label: 'Flieder',  lite: '#F2DDF5', base: '#DDB2E8', dark: '#BE8FCA', deep: '#9B6EA6' },
+  { id: 'karamell', label: 'Karamell', lite: '#FFDFAE', base: '#F0B968', dark: '#D19A47', deep: '#AE7B36' },
+  { id: 'stahl',    label: 'Stahl',    lite: '#D5DEE8', base: '#A3B4C6', dark: '#8194A8', deep: '#65758A' }
 ];
 
 export const BELLY_COLORS = [
@@ -37,7 +42,10 @@ export const BELLY_COLORS = [
   { id: 'sand',    label: 'Sand',    base: '#FBE7C6', edge: '#EDD3AA' },
   { id: 'rosa',    label: 'Rosa',    base: '#FFE4EE', edge: '#F5CCDC' },
   { id: 'mint',    label: 'Mint',    base: '#E1F7EC', edge: '#C6EBD9' },
-  { id: 'flieder', label: 'Flieder', base: '#EDE7FD', edge: '#D8CEF6' }
+  { id: 'flieder', label: 'Flieder', base: '#EDE7FD', edge: '#D8CEF6' },
+  { id: 'pfirsich', label: 'Pfirsich', base: '#FFEDE2', edge: '#F7D9C6' },
+  { id: 'honig',   label: 'Honig',   base: '#FFF0CD', edge: '#F2DFAE' },
+  { id: 'nebel',   label: 'Nebel',   base: '#ECEFF3', edge: '#D8DDE4' }
 ];
 
 export const COMB_COLORS = [
@@ -45,7 +53,10 @@ export const COMB_COLORS = [
   { id: 'koralle', label: 'Koralle', base: '#FF9E7A', dark: '#E07A5A' },
   { id: 'beere',   label: 'Beere',   base: '#D98BC9', dark: '#B96BAA' },
   { id: 'gold',    label: 'Gold',    base: '#FFCE5C', dark: '#E0AC38' },
-  { id: 'petrol',  label: 'Petrol',  base: '#7FC8D9', dark: '#5DA6B8' }
+  { id: 'petrol',  label: 'Petrol',  base: '#7FC8D9', dark: '#5DA6B8' },
+  { id: 'flamme',  label: 'Flamme',  base: '#FF8A4C', dark: '#E06A2E' },
+  { id: 'veilchen', label: 'Veilchen', base: '#A98BE0', dark: '#8A6BC4' },
+  { id: 'schnee',  label: 'Schnee',  base: '#FFF1E2', dark: '#E4D2BF' }
 ];
 
 export const COMBS = [
@@ -72,8 +83,14 @@ export const HATS = [
   { id: 'bow',    label: 'Schleife',    icon: 'hatBow',    price: 45 },
   { id: 'party',  label: 'Partyhut',    icon: 'hatParty',  price: 55 },
   { id: 'bucket', label: 'Fischerhut',  icon: 'hatBucket', price: 80 },
+  { id: 'cap',    label: 'Basecap',     icon: 'hatCap',    price: 70 },
+  { id: 'bunny',  label: 'Häschen',     icon: 'hatBunny',  price: 95 },
+  { id: 'cowboy', label: 'Cowboyhut',   icon: 'hatCowboy', price: 100 },
   { id: 'crown',  label: 'Krönchen',    icon: 'hatCrown',  price: 120 },
-  { id: 'halo',   label: 'Heiligenschein', icon: 'hatHalo', price: 200 }
+  { id: 'devil',  label: 'Teufelchen',  icon: 'hatDevil',  price: 140 },
+  { id: 'veil',   label: 'Schleier',    icon: 'hatVeil',   price: 180 },
+  { id: 'halo',   label: 'Heiligenschein', icon: 'hatHalo', price: 200 },
+  { id: 'crownDark', label: 'Dunkle Krone', icon: 'hatCrownDark', price: 240 }
 ];
 
 export const ACCESSORIES = [
@@ -83,8 +100,15 @@ export const ACCESSORIES = [
   { id: 'scarf',      label: 'Schal',        icon: 'accScarf',      price: 50 },
   { id: 'glasses',    label: 'Brille',       icon: 'accGlasses',    price: 65 },
   { id: 'sunglasses', label: 'Sonnenbrille', icon: 'accSun',        price: 90 },
+  { id: 'tie',        label: 'Krawatte',     icon: 'accTie',        price: 70 },
+  { id: 'apron',      label: 'Schürze',      icon: 'accApron',      price: 85 },
+  { id: 'monocle',    label: 'Monokel',      icon: 'accMonocle',    price: 95 },
   { id: 'headphones', label: 'Kopfhörer',    icon: 'accHeadphones', price: 110 },
-  { id: 'necklace',   label: 'Herzkette',    icon: 'accNecklace',   price: 150 }
+  { id: 'mask',       label: 'Maskenball',   icon: 'accMask',       price: 130 },
+  { id: 'necklace',   label: 'Herzkette',    icon: 'accNecklace',   price: 150 },
+  { id: 'lace',       label: 'Spitze',       icon: 'accLace',       price: 170, spicy: true },
+  { id: 'catsuit',    label: 'Catsuit',      icon: 'accCatsuit',    price: 220, spicy: true },
+  { id: 'wings',      label: 'Engelsflügel', icon: 'accWings',      price: 260 }
 ];
 
 export function defaultLook(seed = 0) {
@@ -321,9 +345,44 @@ function faceAcc(id) {
         <rect x="86" y="108" width="14" height="26" rx="7" fill="#C7BEF7"/>
         <rect x="220" y="108" width="14" height="26" rx="7" fill="#C7BEF7"/>
       </g>`;
+    case 'mask':
+      // Maskenball — deckt die Augenpartie, lässt die Augen frei
+      return `<g class="ck-face-acc">
+        <path d="M96 96q30-14 64-14t64 14q4 26-14 36-20 10-30-6h-40q-10 16-30 6-18-10-14-36z" fill="#5B4A7A"/>
+        <ellipse cx="132" cy="112" rx="19" ry="15" fill="#FFF6E4" opacity=".18"/>
+        <ellipse cx="188" cy="112" rx="19" ry="15" fill="#FFF6E4" opacity=".18"/>
+        <path d="M96 96q30-14 64-14t64 14" fill="none" stroke="#8D7FE8" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="224" cy="92" r="6" fill="#FFD34E"/>
+      </g>`;
+    case 'monocle':
+      return `<g class="ck-face-acc">
+        <circle cx="188" cy="112" r="26" fill="#FFF6E4" opacity=".22"/>
+        <circle cx="188" cy="112" r="26" fill="none" stroke="#C9A24B" stroke-width="5"/>
+        <path d="M188 138v22" stroke="#C9A24B" stroke-width="3.4" stroke-linecap="round"/>
+      </g>`;
     default:
       return '';
   }
+}
+
+/**
+ * Was hinter dem Huhn liegt.
+ *
+ * Flügel gehören hinter den Rumpf, sonst kleben sie auf dem Bauch. Sie
+ * brauchen deshalb eine eigene Ebene ganz unten im Stapel.
+ */
+function backAcc(id) {
+  if (id !== 'wings') return '';
+  return `<g class="ck-acc-back">
+    <path d="M112 250Q34 214 12 96q62 10 96 62 26 40 4 92z" fill="#FFFDF8"/>
+    <path d="M208 250Q286 214 308 96q-62 10-96 62-26 40-4 92z" fill="#FFFDF8"/>
+    <path d="M112 250Q34 214 12 96q62 10 96 62 26 40 4 92z" fill="none" stroke="#E4D4B8" stroke-width="3.4" stroke-linejoin="round"/>
+    <path d="M208 250Q286 214 308 96q-62 10-96 62-26 40-4 92z" fill="none" stroke="#E4D4B8" stroke-width="3.4" stroke-linejoin="round"/>
+    <g stroke="#EFE2CC" stroke-width="2.6" fill="none" stroke-linecap="round">
+      <path d="M96 226Q52 196 34 130"/><path d="M104 190Q70 168 52 122"/>
+      <path d="M224 226q44-30 62-96"/><path d="M216 190q34-22 52-68"/>
+    </g>
+  </g>`;
 }
 
 function neckAcc(id) {
@@ -346,6 +405,46 @@ function neckAcc(id) {
         <path d="M108 186q52 38 104 0" fill="none" stroke="#FFD86B" stroke-width="5"/>
         <path d="M160 232c-11-8-17-14-17-21 0-5 4-9 9-9 3 0 6 2 8 5 2-3 5-5 8-5 5 0 9 4 9 9 0 7-6 13-17 21z" fill="#FF7E9E"/>
       </g>`;
+
+    case 'catsuit':
+      // Ganzkörperanzug: liegt über dem Bauch, lässt Kopf und Füße frei.
+      // Der Glanzstreifen ist wichtig — ohne ihn liest sich das Schwarz
+      // als Loch im Huhn statt als Kleidungsstück.
+      return `<g class="ck-acc">
+        <path d="M80 240q0-56 80-56t80 56q0 58-80 70-80-12-80-70z" fill="#332C3A"/>
+        <path d="M160 184q80 0 80 56 0 58-80 70z" fill="#241F2B"/>
+        <path d="M108 214q22 42 14 88-20-10-28-32-8-30 14-56z" fill="#4E4560" opacity=".55"/>
+        <path d="M160 192v112" stroke="#6B5F80" stroke-width="2.6" opacity=".85"/>
+        ${[214, 236, 258, 280].map((y) => `<path d="M154 ${y}h12" stroke="#6B5F80" stroke-width="2" opacity=".6"/>`).join('')}
+        <path d="M92 194q68 30 136 0 5 16-4 25-64 24-128 0-9-9-4-25z" fill="#453C55"/>
+        <circle cx="160" cy="208" r="6.4" fill="#E9557A"/>
+        <path d="M120 300q40 12 80 0" fill="none" stroke="#4E4560" stroke-width="3" opacity=".6"/>
+      </g>`;
+
+    case 'lace':
+      return `<g class="ck-acc">
+        <path d="M104 196q56 26 112 0 4 14-3 22-53 22-106 0-7-8-3-22z" fill="#2E2833" opacity=".92"/>
+        ${[116, 138, 160, 182, 204].map((x) => `<circle cx="${x}" cy="222" r="6" fill="#2E2833" opacity=".85"/>`).join('')}
+        <path d="M104 196q56 26 112 0" fill="none" stroke="#E9557A" stroke-width="3.4"/>
+        <path d="M160 226v10" stroke="#E9557A" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="160" cy="240" r="5.4" fill="#E9557A"/>
+      </g>`;
+
+    case 'tie':
+      return `<g class="ck-acc">
+        <path d="M118 184q42 20 84 0 4 10-1 17-41 17-82 0-5-7-1-17z" fill="#FFF6E4"/>
+        <path d="M160 196l-14 12 14 18 14-18z" fill="#5B4A7A"/>
+        <path d="M160 226l-11 44 11 16 11-16z" fill="#6C5A8F"/>
+      </g>`;
+
+    case 'apron':
+      return `<g class="ck-acc">
+        <path d="M124 188q36 14 72 0l-6 18h-60z" fill="#9BE0C0"/>
+        <path d="M118 206h84q14 34 6 74-48 18-96 0-8-40 6-74z" fill="#B8ECD6"/>
+        <path d="M118 206h84q3 8 5 16H113q2-8 5-16z" fill="#9BE0C0"/>
+        <rect x="140" y="236" width="40" height="30" rx="5" fill="#8ED3B4"/>
+      </g>`;
+
     default:
       return '';
   }
@@ -400,6 +499,68 @@ function hat(id) {
         <path d="M80 68h160c0 12-36 19-80 19s-80-7-80-19z" fill="#8FCCB2"/>
         <path d="M112 46h96" stroke="#FFF1D6" stroke-width="9" stroke-linecap="round"/>
       </g>`;
+
+    case 'bunny':
+      return `<g class="ck-hat">
+        <g class="ck-ear-l"><ellipse cx="126" cy="4" rx="15" ry="46" fill="#3A3038" transform="rotate(-9 126 4)"/>
+          <ellipse cx="126" cy="8" rx="7" ry="32" fill="#FF9EC0" transform="rotate(-9 126 8)"/></g>
+        <g class="ck-ear-r"><ellipse cx="194" cy="4" rx="15" ry="46" fill="#3A3038" transform="rotate(9 194 4)"/>
+          <ellipse cx="194" cy="8" rx="7" ry="32" fill="#FF9EC0" transform="rotate(9 194 8)"/></g>
+        <path d="M112 62c0-10 22-16 48-16s48 6 48 16z" fill="#3A3038"/>
+      </g>`;
+
+    case 'devil':
+      return `<g class="ck-hat">
+        <path d="M112 66C104 42 100 22 98 2c14 14 28 36 34 60z" fill="#E9557A"/>
+        <path d="M208 66c8-24 12-44 14-64-14 14-28 36-34 60z" fill="#E9557A"/>
+        <path d="M112 66C106 46 102 28 100 10c8 12 16 32 20 52z" fill="#C63C5E"/>
+        <path d="M208 66c6-20 10-38 12-56-8 12-16 32-20 52z" fill="#C63C5E"/>
+      </g>`;
+
+    case 'cap':
+      return `<g class="ck-hat">
+        <path d="M104 66c0-32 25-52 56-52s56 20 56 52z" fill="#E9557A"/>
+        <path d="M160 14c31 0 56 20 56 52h-20c0-28-14-45-36-52z" fill="#C63C5E"/>
+        <path d="M104 60h118c26 0 40 6 40 14H104z" fill="#C63C5E"/>
+        <circle cx="160" cy="16" r="7" fill="#FFF1D6"/>
+      </g>`;
+
+    case 'cowboy':
+      return `<g class="ck-hat">
+        <path d="M114 62c0-30 18-48 46-48s46 18 46 48z" fill="#C9925F"/>
+        <path d="M160 14c28 0 46 18 46 48h-18c0-26-11-42-28-48z" fill="#AB7846"/>
+        <path d="M62 66c0-9 30-14 98-14s98 5 98 14c0 10-44 16-98 16S62 76 62 66z" fill="#D8A472"/>
+        <path d="M118 48h84" stroke="#7C5433" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="160" cy="48" r="7" fill="#FFD34E"/>
+      </g>`;
+
+    case 'veil':
+      // Stoff fällt seitlich am Kopf herunter, oben nur ein Blütenkranz —
+      // als Bogen über dem Kopf war es nur ein weißer Fleck.
+      return `<g class="ck-hat">
+        <path d="M96 52q-30 34-28 96 0 22 10 34 16-10 18-38 2-46 16-74z" fill="#FFFDF8" opacity=".9"/>
+        <path d="M224 52q30 34 28 96 0 22-10 34-16-10-18-38-2-46-16-74z" fill="#FFFDF8" opacity=".9"/>
+        <path d="M96 52q-30 34-28 96 0 22 10 34" fill="none" stroke="#E4D4B8" stroke-width="3"/>
+        <path d="M224 52q30 34 28 96 0 22-10 34" fill="none" stroke="#E4D4B8" stroke-width="3"/>
+        <path d="M96 52q64-26 128 0" fill="none" stroke="#F0E4CE" stroke-width="3"/>
+        <g transform="translate(160 40)">
+          ${[0, 60, 120, 180, 240, 300].map((a) => `<ellipse cx="0" cy="-16" rx="9" ry="12" fill="#FFF6E4" transform="rotate(${a})"/>`).join('')}
+          <circle r="7.4" fill="#FFDE7A"/>
+        </g>
+        <ellipse cx="112" cy="46" rx="9" ry="7" fill="#FFF6E4"/>
+        <ellipse cx="208" cy="46" rx="9" ry="7" fill="#FFF6E4"/>
+      </g>`;
+
+    case 'crownDark':
+      return `<g class="ck-hat">
+        <path d="M104 66 96 14l28 20 36-32 36 32 28-20-8 52z" fill="#5B4A7A"/>
+        <path d="M160 2l36 32 28-20-8 52h-22l6-38-24 14z" fill="#463A5F"/>
+        <rect x="104" y="60" width="112" height="16" rx="8" fill="#463A5F"/>
+        <circle cx="160" cy="32" r="7.4" fill="#E9557A"/>
+        <circle cx="122" cy="42" r="5.4" fill="#C7BAF7"/>
+        <circle cx="198" cy="42" r="5.4" fill="#C7BAF7"/>
+      </g>`;
+
     default:
       return '';
   }
@@ -538,6 +699,7 @@ export function renderChicken(look = defaultLook(), opts = {}) {
 
   <g class="ck-scale" transform="translate(160 330) scale(${chub} 1) translate(-160 -330)">
     <g class="ck-body">
+      ${backAcc(look.acc)}
       ${tail(p)}
       ${legs()}
       ${torso(id, p, belly)}

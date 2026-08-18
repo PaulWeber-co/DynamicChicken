@@ -7,9 +7,15 @@
  * die Runde lokal neu, ganz ohne Server.
  */
 
-/** mulberry32 — klein, schnell, gut genug. */
+/**
+ * mulberry32 — klein, schnell, gut genug.
+ *
+ * Nimmt auch eine Zeichenkette an. Ohne diese Zeile würde `'abc' >>> 0`
+ * still zu 0 werden: jede Runde bekäme dieselben Karten, ohne dass es
+ * irgendwo knallt.
+ */
 export function rng(seed) {
-  let a = seed >>> 0;
+  let a = (typeof seed === 'string' ? hashSeed(seed) : Number(seed) || 0) >>> 0;
   return function () {
     a |= 0; a = (a + 0x6D2B79F5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);

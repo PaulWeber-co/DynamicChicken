@@ -308,12 +308,6 @@ function answerGame(ev, state) {
     return;
   }
 
-  if (d.kind === 'beat') {
-    const score = Math.round(jitter(42, 97));
-    later(() => emitEv('game', { g: 'beat', kind: 'beatScore', id: d.id, score }), jitter(25_000, 90_000));
-    return;
-  }
-
   if (d.kind === 'duett') {
     // Manchmal liegt er/sie richtig, manchmal daneben — wie im echten Leben.
     const guessRight = Math.random() < 0.45;
@@ -332,7 +326,7 @@ function maybeGameMove(state) {
     emitEv('game', { g: 'egg', kind: 'pick', m: g.m, n: g.n, pick: pick(SYMBOLS).id });
     return;
   }
-  emitEv('game', { g: pick(['grain', 'memo']), kind: 'invite', r: 1 });
+  emitEv('game', { g: pick(['grain', 'memo', 'poker', 'hue']), kind: 'invite', r: 1 });
 }
 
 export function publish() { /* im Solo-Modus gibt es nichts hochzuladen */ }

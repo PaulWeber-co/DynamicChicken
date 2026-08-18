@@ -13,6 +13,7 @@ import { icon } from '../ui/icons.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
+import { toast } from '../ui/toast.js';
 
 export const meta = {
   id: 'egg',
@@ -118,14 +119,38 @@ function newMatch(state, m) {
 
 /* ── Netzwerk ───────────────────────────────────────────── */
 
+/**
+ * Kompletten Stand hinüberschicken.
+ *
+ * Ein einzelner verlorener Zug ließ beide Seiten für immer auf denselben
+ * Zug warten — jeder dachte, der andere sei dran. Statt nur den neuesten
+ * Zug zu senden, geht die ganze Liste mit: Wer etwas verpasst hat, holt es
+ * damit von allein nach.
+ */
+function sendSync(g) {
+  sendEvent('game', { g: 'egg', kind: 'sync', m: g.m, picks: g.mine.slice(0, ROUNDS) });
+}
+
 export function handleRemote(state, msg, { partnerName }) {
-  if (msg.kind !== 'pick') return undefined;
+  if (msg.kind !== 'pick' && msg.kind !== 'sync') return undefined;
   const g = match(state);
 
   if (msg.m > g.m) newMatch(state, msg.m);      // Partner hat neu angefangen
-  if (msg.m < g.m) return null;                  // veraltet
+  if (msg.m < g.m) {
+    // Der andere hängt in einer alten Partie. Unser Stand ist der neuere —
+    // einmal hinüberschicken holt ihn nach.
+    sendSync(g);
+    return null;
+  }
 
-  g.theirs[msg.n - 1] = msg.pick;
+  if (msg.kind === 'sync') {
+    const picks = Array.isArray(msg.picks) ? msg.picks : [];
+    // Nur ergänzen, nie löschen: ein leerer Platz im Abgleich heißt
+    // „hab ich nicht“, nicht „vergiss, was du hast“.
+    picks.forEach((p, i) => { if (p && !g.theirs[i]) g.theirs[i] = p; });
+  } else {
+    g.theirs[msg.n - 1] = msg.pick;
+  }
   const { finished } = advance(state, partnerName);
   commit('egg');
 
@@ -201,6 +226,10 @@ export function mount(root, ctx) {
 
           ${g.done ? doneCard(g) : myTurn ? turnCard(g) : waiting ? waitCard(g) : ''}
 
+          ${!g.done && waiting ? `<button class="btn btn-ghost btn-block" data-restart>
+            Hängt es? Neues Duell starten
+          </button>` : ''}
+
           ${justResolved.length ? justResolved.map(reveal).join('') : ''}
 
           <div class="egg-history">
@@ -235,12 +264,29 @@ export function mount(root, ctx) {
       b.onclick = () => pick(b.dataset.pick, b);
     });
     const again = root.querySelector('[data-again]');
-    if (again) again.onclick = () => {
-      newMatch(get());
-      commit('egg');
-      fx('pop');
-      render();
+    if (again) again.onclick = () => restart();
+
+    const restartBtn = root.querySelector('[data-restart]');
+    if (restartBtn) restartBtn.onclick = () => {
+      restart();
+      toast('Neues Duell — bei euch beiden', 'gameEgg');
     };
+  }
+
+  /**
+   * Neu anfangen, und zwar auf beiden Seiten.
+   *
+   * Die neue Partienummer geht sofort mit hinüber. Wer sie sieht, wirft
+   * seine alte Partie weg — sonst säße einer weiter in der Runde fest,
+   * in der es geklemmt hat.
+   */
+  function restart() {
+    const state = get();
+    const g = newMatch(state);
+    commit('egg');
+    sendSync(g);
+    fx('pop');
+    render();
   }
 
   function turnCard(g) {
@@ -309,5 +355,9 @@ export function mount(root, ctx) {
   }
 
   render();
+  // Einmal beim Öffnen abgleichen: Wer einen Zug verpasst hat, bekommt ihn
+  // hier nachgeliefert, ohne dass jemand etwas anklicken muss.
+  const g0 = match(get());
+  if (!g0.done && g0.mine.length) sendSync(g0);
   return () => {};
 }

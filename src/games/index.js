@@ -18,12 +18,13 @@ import * as grainRush from './grainRush.js';
 import * as featherFlight from './featherFlight.js';
 import * as eggDuel from './eggDuel.js';
 import * as nestTower from './nestTower.js';
-import * as heartbeat from './heartbeat.js';
 import * as doodle from './doodle.js';
 import * as moodMatch from './moodMatch.js';
 import * as memory from './memory.js';
+import * as hueCue from './hueCue.js';
+import * as poker from './poker.js';
 
-export const GAMES = [grainRush, featherFlight, eggDuel, nestTower, heartbeat, doodle, moodMatch, memory];
+export const GAMES = [grainRush, featherFlight, eggDuel, nestTower, doodle, hueCue, poker, moodMatch, memory];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
 
 /** Gemeinsamer Schlüssel beider Geräte — Reihenfolge-unabhängig. */

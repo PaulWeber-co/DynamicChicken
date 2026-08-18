@@ -25,12 +25,12 @@ import {
 } from '../../state/shared.js';
 import {
   sendNudge, setMood, setActivity,
-  setNestWeight, dropNestWish, createPoll, votePoll, createRate, submitRate
+  setNestWeight, dropNestWish, createPoll, votePoll, createRate, submitRate, setReunion
 } from '../actions.js';
 import { sendEvent, partnerOnline } from '../../sync/index.js';
 import { pairKey } from '../../games/index.js';
 import { dayKey, localTimeIn, tzOffsetHours, hourIn, relTime, daysBetween } from '../../util/time.js';
-import { forecast, describe, advice, clockOf } from '../../util/weather.js';
+import { forecast, describe, advice, clockOf, distanceKm, formatKm, distanceLine } from '../../util/weather.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
 import { openPlaceSheet } from '../placeSheet.js';
@@ -171,6 +171,7 @@ export function render(root, ctx) {
       </div>
 
       ${weatherCard(st, p)}
+      ${distanceCard(st, p)}
       ${dailyCard(st, p)}
 
       <div class="section-label">Wie geht es dir gerade?</div>
@@ -274,6 +275,69 @@ export function render(root, ctx) {
     const d = Math.round(a - b);
     if (Math.abs(d) <= 1) return 'fast gleich';
     return d > 0 ? `${d}° wärmer` : `${Math.abs(d)}° kälter`;
+  };
+
+  /* ── Entfernung und Wiedersehen ── */
+  function distanceCard(st, p) {
+    const km = distanceKm(st.me.place, p.place);
+    const r = st.reunion;
+    const tage = r ? daysUntil(r.date) : null;
+
+    // Ohne beides gäbe es nur eine leere Karte
+    if (km == null && !r) {
+      return `<div class="card dist-card">
+        <div class="dist-head">${icon('sunrise', { size: 18 })}<span>Wiedersehen</span></div>
+        <p class="muted tiny" style="margin:0 0 12px">
+          Trag ein, wann ihr euch das nächste Mal seht — dann zählt die App mit.
+        </p>
+        <button class="btn btn-soft btn-block" data-reunion>Datum setzen</button>
+      </div>`;
+    }
+
+    return `<div class="card dist-card">
+      ${km != null ? `
+        <div class="dist-row">
+          <div class="dist-num">${esc(formatKm(km))}</div>
+          <div class="grow">
+            <div class="li-title">Luftlinie zwischen euch</div>
+            <div class="li-sub">${esc(distanceLine(km))}</div>
+          </div>
+        </div>
+        <div class="dist-track" aria-hidden="true">
+          <span class="dist-end">${renderChicken(st.me.pet.look, { mood: 'happy', size: 34, shadow: false })}</span>
+          <span class="dist-line"><i></i></span>
+          <span class="dist-end">${renderChicken(p.pet.look, { mood: 'love', size: 34, shadow: false })}</span>
+        </div>` : ''}
+
+      ${r ? `
+        <button class="reunion ${tage <= 0 ? 'now' : ''}" data-reunion>
+          <span class="reunion-ico">${icon(tage <= 0 ? 'statJoy' : 'sunrise', { size: 22 })}</span>
+          <span class="grow">
+            <span class="li-title">${esc(r.label || 'Wiedersehen')}</span>
+            <span class="li-sub">${esc(dateLong(r.date))}</span>
+          </span>
+          <span class="reunion-num">${tage > 0 ? tage : tage === 0 ? 'heute' : `${Math.abs(tage)}`}
+            <small>${tage > 1 ? 'Tage' : tage === 1 ? 'Tag' : tage === 0 ? '' : 'her'}</small></span>
+        </button>
+      ` : `<button class="btn btn-soft btn-block" data-reunion style="margin-top:12px">
+          ${icon('sunrise', { size: 15 })} Wiedersehen eintragen
+        </button>`}
+    </div>`;
+  }
+
+  /** Ganze Tage bis zum Datum, in lokaler Zeit gerechnet. */
+  function daysUntil(date) {
+    const then = new Date(`${date}T00:00:00`);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((then - now) / 86_400_000);
+  }
+
+  const dateLong = (d) => {
+    try {
+      return new Date(`${d}T12:00:00`).toLocaleDateString('de-DE',
+        { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    } catch { return d; }
   };
 
   /* ══ Nest ═══════════════════════════════════════════════ */
@@ -590,8 +654,8 @@ export function render(root, ctx) {
     const d = ensureDaily(st);
     const revealed = !!d.revealedAt;
     if (revealed) {
-      return `<div class="card daily-card open">
-        <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
+      return `<div class="card daily-card open${d.spicy ? ' daily-spicy' : ''}">
+        <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
         <div class="daily-q">${esc(d.q)}</div>
         <div class="daily-answer">
           <div class="daily-who">${esc(st.me.name || 'Du')}</div>
@@ -604,14 +668,14 @@ export function render(root, ctx) {
       </div>`;
     }
     if (d.mine) {
-      return `<div class="card daily-card">
-        <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
+      return `<div class="card daily-card${d.spicy ? ' daily-spicy' : ''}">
+        <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
         <div class="daily-q">${esc(d.q)}</div>
         <div class="daily-sealed">Deine Antwort liegt bereit. Sie öffnet sich, sobald ${esc(p.name)} geantwortet hat.</div>
       </div>`;
     }
-    return `<div class="card daily-card">
-      <div class="daily-kicker">${icon('mailHeart', { size: 15 })} Frage des Tages</div>
+    return `<div class="card daily-card${d.spicy ? ' daily-spicy' : ''}">
+      <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
       <div class="daily-q">${esc(d.q)}</div>
       ${d.theirs ? `<div class="daily-sealed">${esc(p.name)} hat schon geantwortet.</div>` : ''}
       <button class="btn btn-love btn-block" data-daily>Antworten</button>
@@ -676,6 +740,10 @@ export function render(root, ctx) {
 
     const cud = host.querySelector('[data-cuddle]');
     if (cud) bindCuddle(cud);
+
+    host.querySelectorAll('[data-reunion]').forEach((b) => {
+      b.onclick = openReunionSheet;
+    });
 
     host.querySelectorAll('[data-place]').forEach((b) => {
       b.onclick = () => openPlaceSheet((place) => {
@@ -824,11 +892,52 @@ export function render(root, ctx) {
           addBondXp(st2, 4);
           pushFeed(st2, { from: 'me', type: 'daily', icon: 'mailHeart', text: 'Du hast die Frage des Tages beantwortet' });
           commit('daily');
-          sendEvent('daily', { day: dd.day, q: dd.q, answer: text });
+          sendEvent('daily', { day: dd.day, q: dd.q, spicy: !!dd.spicy, answer: text });
           fx('love');
           closeSheet();
           paint();
         };
+      }
+    });
+  }
+
+  /* Wiedersehen eintragen */
+  function openReunionSheet() {
+    const st = get();
+    const r = st.reunion;
+    const heute = new Date();
+    const minDate = new Date(heute.getFullYear() - 1, heute.getMonth(), heute.getDate())
+      .toISOString().slice(0, 10);
+
+    sheet({
+      title: 'Nächstes Wiedersehen',
+      body: `
+        <label class="field-label">Wann?</label>
+        <input class="input" type="date" data-date min="${minDate}" value="${esc(r?.date || '')}">
+        <label class="field-label" style="margin-top:14px">Was ist es? (optional)</label>
+        <input class="input" data-label maxlength="50" placeholder="z.B. Ostern bei dir"
+          value="${esc(r?.label || '')}">
+        <p class="tiny muted" style="margin:12px 4px">
+          Beide sehen denselben Countdown — wer es ändert, ändert es für euch beide.
+        </p>
+        <button class="btn btn-love btn-block" data-save>Speichern</button>
+        ${r ? `<button class="btn btn-ghost btn-block" data-clear style="margin-top:8px">Termin entfernen</button>` : ''}`,
+      onMount(body) {
+        const date = body.querySelector('[data-date]');
+        const label = body.querySelector('[data-label]');
+        body.querySelector('[data-save]').onclick = () => {
+          const d = date.value;
+          if (!d) { toast('Ein Datum fehlt noch'); return; }
+          const saved = setReunion({ date: d, label: label.value.trim() });
+          if (!saved) return;
+          closeSheet();
+          const tage = daysUntil(saved.date);
+          toast(tage > 0 ? `Noch ${tage} ${tage === 1 ? 'Tag' : 'Tage'}` : 'Heute ist es so weit', 'sunrise');
+          if (tage > 0 && tage <= 7) confetti(['statJoy', 'sparkle', 'sunrise']);
+          paint();
+        };
+        const clear = body.querySelector('[data-clear]');
+        if (clear) clear.onclick = () => { setReunion(null); closeSheet(); paint(); };
       }
     });
   }
@@ -1050,9 +1159,26 @@ function ensureDaily(state) {
     let salt = 0;
     const k = pairKey(state);
     for (let i = 0; i < k.length; i++) salt = (salt * 31 + k.charCodeAt(i)) >>> 0;
-    state.daily = { day: today, q: questionForDay(today, salt), mine: null, theirs: null, revealedAt: null };
+    state.daily = {
+      day: today,
+      q: questionForDay(today, salt, !!state.settings.spicy),
+      spicy: !!state.settings.spicy,
+      mine: null, theirs: null, revealedAt: null
+    };
   }
-  if (!state.daily.q) state.daily.q = questionForDay(today, 0);
+  if (!state.daily.q) state.daily.q = questionForDay(today, 0, !!state.settings.spicy);
+
+  // Wer den Schalter umlegt, soll nicht bis morgen warten — aber nur
+  // solange noch niemand geantwortet hat, sonst stünde die Antwort
+  // plötzlich unter einer anderen Frage.
+  const willSpicy = !!state.settings.spicy;
+  if (!state.daily.mine && !state.daily.theirs && !!state.daily.spicy !== willSpicy) {
+    let salt2 = 0;
+    const k2 = pairKey(state);
+    for (let i = 0; i < k2.length; i++) salt2 = (salt2 * 31 + k2.charCodeAt(i)) >>> 0;
+    state.daily.q = questionForDay(today, salt2, willSpicy);
+    state.daily.spicy = willSpicy;
+  }
   return state.daily;
 }
 

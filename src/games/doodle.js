@@ -270,14 +270,29 @@ export function mount(root, ctx) {
   }
 
   function screenSent(word) {
+    const g = dd(get());
+    // Nach einer Weile ist die Antwort vermutlich unterwegs verloren
+    // gegangen. Dann darf man nicht ewig festsitzen.
+    const wartetLange = Date.now() - (g.pending?.at || 0) > 20 * 60 * 1000;
     root.innerHTML = shell(`
       <div class="game-center">
         <div class="game-hero">${icon('dove', { size: 68 })}</div>
         <h2 class="game-h">Unterwegs</h2>
         <p class="game-p">Dein „${esc(word)}“ fliegt zu ${esc(partner)}. Du erfährst, ob es erkannt wurde.</p>
+        <button class="btn btn-primary btn-block" data-newdraw>Neues Bild malen</button>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
+        ${wartetLange ? `<p class="tiny muted" style="margin-top:12px">
+          Das liegt schon eine Weile. Ein neues Bild ersetzt es.
+        </p>` : ''}
       </div>
       ${history()}`);
+    root.querySelector('[data-newdraw]').onclick = () => {
+      const st = get();
+      dd(st).pending = null;
+      commit('doodle');
+      fx('pop');
+      screenDraw();
+    };
     bindClose();
   }
 
