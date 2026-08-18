@@ -101,6 +101,22 @@
 }
 .game-howto summary { font-size: 14px; font-weight: 750; cursor: pointer; }
 .game-howto[open] summary { margin-bottom: 10px; }
+/* Kurzanleitung je Spiel — die Zeile steht ohnehin in jedem Spiel-Modul */
+.howto-list { display: flex; flex-direction: column; gap: 9px; margin: 0; }
+.howto-list dt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+.howto-list dd {
+  margin: 2px 0 0 24px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
 
 /* ── HUD ───────────────────────────────────────────────── */
 
@@ -754,3 +770,187 @@
   color: var(--ink-3);
 }
 .pk-side-h b { color: var(--ink); font-weight: 850; }
+
+/* ── Meme-Duell ────────────────────────────────────────── */
+
+/* Ideen-Chips: umbrechend, nicht scrollend — ein Satz pro Chip ist lang */
+.meme-ideas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.meme-ideas .chip {
+  max-width: 100%;
+  font-size: 12.5px;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Die Ablage sieht aus wie ein leerer Bilderrahmen — man weiß sofort, wohin */
+.meme-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 18px;
+  border-radius: var(--r-lg);
+  border: 2px dashed var(--hairline);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
+}
+.meme-drop:active { transform: scale(.975); background: var(--love-soft); }
+.meme-drop b { font-size: 15.5px; font-weight: 800; }
+.meme-drop small { font-size: 12px; color: var(--ink-3); text-align: center; }
+
+/* Bildrahmen im Meme-Look: Bild oben, Spruch als Balken darunter */
+.meme-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--surface-sunk);
+  box-shadow: var(--card-shadow);
+}
+.meme-frame img {
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  object-fit: contain;
+  background: #fff;
+}
+.meme-cap {
+  display: block;
+  padding: 10px 14px;
+  background: var(--surface);
+  font-size: 14.5px;
+  font-weight: 750;
+  line-height: 1.32;
+  text-align: center;
+}
+/* Ohne Bild: das Huhn selbst wird zum Meme, Text oben und unten drauf */
+.meme-frame.drawn {
+  display: grid;
+  place-items: center;
+  padding: 12px 10px 10px;
+  background: var(--bg-tint);
+}
+.meme-top, .meme-bottom {
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+}
+.meme-bottom { color: var(--ink-3); text-transform: none; font-weight: 700; }
+
+.meme-scores {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.meme-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-2);
+  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
+}
+.meme-score:active { transform: scale(.9); background: var(--love-soft); }
+.meme-score b { font-size: 13px; font-weight: 850; }
+/* Die Beschriftung ist Beiwerk — auf schmalen Geräten darf sie weg */
+.meme-score small {
+  font-size: 9.5px;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink-3);
+}
+@media (max-width: 359px) { .meme-score small { display: none; } }
+
+/* ── Top Fünf ──────────────────────────────────────────── */
+
+.top-rows { display: flex; flex-direction: column; gap: 8px; }
+.top-row { display: flex; align-items: center; gap: 8px; }
+.top-in { flex: 1; min-width: 0; margin: 0; }
+
+/* Die Platzziffer ist der Anker der ganzen Liste — überall gleich gebaut */
+.top-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--on-accent);
+  font-size: 13px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+.top-num.blank { background: var(--surface-sunk); color: var(--ink-3); }
+
+.top-move { flex: none; display: flex; flex-direction: column; gap: 2px; }
+.top-arrow {
+  display: grid;
+  place-items: center;
+  width: 30px; height: 21px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-2);
+}
+/* Ein Chevron zeigt nach rechts — hier gedreht statt zwei Icons zu zeichnen */
+.top-arrow .ic { transform: rotate(-90deg); }
+.top-arrow.down .ic { transform: rotate(90deg); }
+.top-arrow:disabled { opacity: .3; }
+.top-arrow:not(:disabled):active { transform: scale(.88); background: var(--accent-soft); }
+
+.top-picks { display: flex; flex-direction: column; gap: 8px; }
+.top-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  font-size: 14.5px;
+  font-weight: 650;
+  text-align: left;
+  line-height: 1.3;
+  transition: transform var(--t-fast) var(--spring-pop), opacity var(--t-fast);
+}
+.top-pick:not(:disabled):active { transform: scale(.97); }
+/* Vergeben heißt: bleibt lesbar, tritt aber zurück */
+.top-pick.taken { opacity: .6; box-shadow: inset 0 0 0 1.5px var(--hairline-2); background: var(--surface-2); }
+
+.top-actions { display: flex; gap: 8px; margin-top: 14px; }
+.top-actions .btn { margin: 0; }
+
+.top-solution { display: flex; flex-direction: column; gap: 6px; }
+.top-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 14.5px;
+  line-height: 1.3;
+}
+.top-line b { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.top-line.hit { background: var(--grow-soft); }
+.top-line.hit .top-num { background: var(--grow); color: #fff; }
+.top-tip {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.top-line.hit .top-tip { color: var(--grow); }

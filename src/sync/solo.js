@@ -281,6 +281,43 @@ export function send(ev, state) {
   }
 }
 
+const SOLO_CATS = [
+  'Dinge, die ich an dir mag',
+  'Was ich nie wieder essen will',
+  'Beste Ausreden für Zuspätkommen',
+  'Was auf jeden Roadtrip gehört',
+  'Die besten Geräusche der Welt'
+];
+
+const SOLO_MEMES = [
+  'Ich, wenn dein Name auf dem Display steht',
+  'Mein Gesicht beim Wecker um sechs',
+  'Wenn ich sage „nur kurz aufs Handy schauen“',
+  'Wie ich aussehe nach drei Stunden Videocall'
+];
+
+/** Antworten für Top Fünf — passen ungefähr auf jede Kategorie. */
+const SOLO_TOP5 = [
+  'Ein sehr entschlossener Blick',
+  'Zwei Tafeln Schokolade',
+  'Das gute alte Bauchgefühl',
+  'Ein Schlauchboot aus dem Internet',
+  'Einfach laut „nein“ sagen',
+  'Meine beste Freundin anrufen',
+  'Ein Handtuch, immer ein Handtuch',
+  'So tun, als hätte ich das geplant'
+];
+
+/** Reihenfolge würfeln, ohne das Original anzufassen. */
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const DAILY_ANSWERS = [
   'Als ich heute Morgen dein Bild gesehen habe.',
   'Ehrlich? Der Moment, als endlich Feierabend war.',
@@ -308,6 +345,41 @@ function answerGame(ev, state) {
     return;
   }
 
+  /* Meme-Duell: der simulierte Mensch hat keine Bildersammlung, also
+     schickt er ein gezeichnetes Hühner-Meme — die Oberfläche kann das. */
+  if (d.kind === 'memePrompt') {
+    later(() => emitEv('game', { g: 'meme', kind: 'memeShot', r: d.r, drawn: true }), jitter(20_000, 80_000));
+    return;
+  }
+  if (d.kind === 'memeShot') {
+    // Meist wohlwollend, selten streng — sonst wäre jede Runde gleich
+    const score = Math.random() < 0.55 ? 4 + Math.round(Math.random()) : 2 + Math.round(Math.random());
+    later(() => emitEv('game', { g: 'meme', kind: 'memeScore', r: d.r, score }), jitter(18_000, 70_000));
+    return;
+  }
+
+  /* Top Fünf: auf eine Kategorie kommt eine Liste, auf eine Liste ein Tipp. */
+  if (d.kind === 'topCat') {
+    const items = shuffled(SOLO_TOP5).slice(0, 5);
+    const sol = shuffled([1, 2, 3, 4, 5]);
+    later(() => emitEv('game', { g: 'top5', kind: 'topList', r: d.r, items, sol }), jitter(25_000, 95_000));
+    return;
+  }
+  if (d.kind === 'topList') {
+    // Ein bisschen richtig, ein bisschen daneben: die echte Lösung leicht
+    // durchgeschüttelt, damit die Punktzahl nicht immer im Keller liegt.
+    const sol = Array.isArray(d.sol) && d.sol.length === 5 ? d.sol.slice() : [1, 2, 3, 4, 5];
+    const guess = sol.slice();
+    const swaps = 1 + Math.floor(Math.random() * 3);
+    for (let n = 0; n < swaps; n++) {
+      const i = Math.floor(Math.random() * 5);
+      const j = Math.floor(Math.random() * 5);
+      [guess[i], guess[j]] = [guess[j], guess[i]];
+    }
+    later(() => emitEv('game', { g: 'top5', kind: 'topGuess', r: d.r, guess }), jitter(20_000, 85_000));
+    return;
+  }
+
   if (d.kind === 'duett') {
     // Manchmal liegt er/sie richtig, manchmal daneben — wie im echten Leben.
     const guessRight = Math.random() < 0.45;
@@ -324,6 +396,17 @@ function maybeGameMove(state) {
   const g = state.games?.egg;
   if (g && !g.done && !g.theirs[g.n - 1]) {
     emitEv('game', { g: 'egg', kind: 'pick', m: g.m, n: g.n, pick: pick(SYMBOLS).id });
+    return;
+  }
+  // Top Fünf und Meme fangen von sich aus an, statt nur einzuladen —
+  // beide brauchen eine Vorgabe, bevor überhaupt etwas zu tun ist.
+  const roll = Math.random();
+  if (roll < 0.18 && !state.games?.top5?.cur) {
+    emitEv('game', { g: 'top5', kind: 'topCat', r: state.games?.top5?.r || 1, cat: pick(SOLO_CATS) });
+    return;
+  }
+  if (roll < 0.32 && !state.games?.meme?.cur) {
+    emitEv('game', { g: 'meme', kind: 'memePrompt', r: state.games?.meme?.r || 1, prompt: pick(SOLO_MEMES) });
     return;
   }
   emitEv('game', { g: pick(['grain', 'memo', 'poker', 'hue']), kind: 'invite', r: 1 });

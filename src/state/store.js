@@ -44,9 +44,11 @@ export function save() {
   } catch (err) {
     if (!isQuota(err)) { console.warn('[knuddl] Konnte nicht speichern:', err); return false; }
 
-    // Nach Größe geordnet: die liegen gebliebene Zeichnung ist der dickste
-    // Brocken, danach Verlauf und Briefkasten.
+    // Nach Größe geordnet: das Meme und die liegen gebliebene Zeichnung sind
+    // die dicksten Brocken, danach Verlauf und Briefkasten. Das Meme fliegt
+    // zuerst — es ist ohnehin dafür gedacht, wieder zu verschwinden.
     const trims = [
+      () => { if (state.games?.meme?.cur) state.games.meme.cur.img = null; },
       () => { if (state.games?.doodle) state.games.doodle.pending = null; },
       () => { state.games?.doodle?.hist?.splice(6); },
       () => { state.feed.splice(30); },

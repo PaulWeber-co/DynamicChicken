@@ -23,8 +23,13 @@ import * as moodMatch from './moodMatch.js';
 import * as memory from './memory.js';
 import * as hueCue from './hueCue.js';
 import * as poker from './poker.js';
+import * as meme from './meme.js';
+import * as topFive from './topFive.js';
 
-export const GAMES = [grainRush, featherFlight, eggDuel, nestTower, doodle, hueCue, poker, moodMatch, memory];
+export const GAMES = [
+  grainRush, featherFlight, eggDuel, nestTower, doodle,
+  topFive, meme, hueCue, poker, moodMatch, memory
+];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
 
 /** Gemeinsamer Schlüssel beider Geräte — Reihenfolge-unabhängig. */
@@ -125,8 +130,9 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
     if (own !== undefined) return own;
   }
 
-  const d = duel(state, msg.g);
-
+  // Eine Einladung braucht keinen Duell-Zustand. Würde sie ihn anlegen,
+  // bekämen Spiele mit eigenem Zustand (Farbfunk, Top Fünf, …) die fremden
+  // Felder untergeschoben, bevor sie je geöffnet wurden.
   if (msg.kind === 'invite') {
     return {
       kind: 'gameInvite',
@@ -142,6 +148,8 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
       tone: 'warm'
     };
   }
+
+  const d = duel(state, msg.g);
 
   if (msg.kind === 'tick') {
     if (msg.r === d.r) {
