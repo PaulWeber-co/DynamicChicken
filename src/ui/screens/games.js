@@ -1,10 +1,16 @@
 /**
  * Spiele — die Übersicht.
  *
- * Elf Duelle als volle Karten untereinander hießen tausend Pixel Scrollen,
- * bevor man das letzte sieht. Deshalb zweistufig: Was auf dich wartet,
- * steht oben und groß; alles andere ist ein kompaktes Raster, das komplett
- * auf einen Blick passt.
+ * Der Bildschirm scrollt nicht. Weder hoch noch zur Seite: Wer spielen
+ * will, soll alles gleichzeitig sehen und sich entscheiden, statt zu
+ * suchen. Das ist die härteste Vorgabe an diesem Screen und bestimmt
+ * seinen ganzen Aufbau.
+ *
+ * Also zweistufig und höhenbewusst: Was auf dich wartet, steht oben als
+ * Zeile (höchstens drei, sonst frisst es das Raster). Darunter alle Spiele
+ * als Kacheln in einem Raster, das sich den verbleibenden Platz nimmt und
+ * seine Zeilen gleichmäßig darauf verteilt. Der Kräftevergleich unten ist
+ * Beiwerk und verschwindet auf kurzen Bildschirmen als Erstes.
  */
 
 import { esc } from '../../util/dom.js';
@@ -18,17 +24,23 @@ import { renderHead } from '../../pet/chicken.js';
 import { petPower } from '../../state/model.js';
 import { go } from '../shell.js';
 
+const MAX_WAITING = 3;
+
 export function render(root, ctx) {
   function paint() {
     const s = get();
     const online = partnerOnline();
 
     const rated = GAMES.map((g) => ({ g, sum: gameSummary(s, g) }));
-    const waiting = rated.filter((x) => x.sum.badge === 'wait');
-    const rest = rated.filter((x) => x.sum.badge !== 'wait');
+    const allWaiting = rated.filter((x) => x.sum.badge === 'wait');
+    // Höchstens drei Zeilen oben. Alles darüber bliebe zwar dringend, würde
+    // aber das Raster aus dem Bild schieben — und dann scrollt es doch.
+    const waiting = allWaiting.slice(0, MAX_WAITING);
+    const shown = new Set(waiting.map((x) => x.g.meta.id));
+    const rest = rated.filter((x) => !shown.has(x.g.meta.id));
 
     root.innerHTML = `
-      <div class="row-between">
+      <div class="row-between games-head">
         <div>
           <div class="title-lg">Spiele</div>
           <div class="subtitle">${s.partner
@@ -39,7 +51,7 @@ export function render(root, ctx) {
       </div>
 
       ${waiting.length ? `
-        <div class="section-label">Du bist dran <span class="label-count">${waiting.length}</span></div>
+        <div class="section-label">Du bist dran <span class="label-count">${allWaiting.length}</span></div>
         <div class="game-list tight">
           ${waiting.map(({ g, sum }) => bigCard(g, sum, online)).join('')}
         </div>` : ''}
@@ -49,24 +61,7 @@ export function render(root, ctx) {
         ${rest.map(({ g, sum }) => tile(g, sum, online)).join('')}
       </div>
 
-      ${s.partner ? arena(s) : ''}
-
-      <details class="game-howto" style="margin-top:12px">
-        <summary>Wie geht welches Spiel?</summary>
-        <p class="muted tiny" style="margin:0 0 12px">
-          Jede Runde hat eine Nummer, aus der beide Geräte dieselbe Spielwelt errechnen —
-          denselben Körnerregen, dieselben Karten. Du spielst, wann du kannst; wer zuletzt
-          fertig wird, löst die Abrechnung aus. Beide Seiten kommen dabei völlig ohne
-          Schiedsrichter zum selben Ergebnis. Bleibt eine Runde trotzdem liegen, wirft
-          ein Knopf im Spiel sie auf beiden Geräten weg.
-        </p>
-        <dl class="howto-list">
-          ${GAMES.map((g) => `<div>
-            <dt>${icon(g.meta.icon, { size: 17 })}${esc(g.meta.title)}</dt>
-            <dd>${esc(g.meta.howto || g.meta.tagline)}</dd>
-          </div>`).join('')}
-        </dl>
-      </details>`;
+      ${s.partner ? arena(s) : ''}`;
 
     root.querySelectorAll('[data-game]').forEach((b) => {
       b.onclick = () => { fx('pop'); openGame(b.dataset.game); };

@@ -7,20 +7,19 @@ import { renderChicken, playAction } from '../../pet/chicken.js';
 import { petMood } from '../../pet/moods.js';
 import { tickPet, urgentNeed, xpForLevel, wellbeing } from '../../state/model.js';
 import { CARE_ACTIONS } from '../../state/catalog.js';
-import { careAction, openFeedSheet, cooldownLeft } from '../actions.js';
+import { careAction, cooldownLeft } from '../actions.js';
 import { icon } from '../icons.js';
 import { relTime, hourIn } from '../../util/time.js';
 import { partnerOnline } from '../../sync/index.js';
 import { go } from '../shell.js';
 
 const STAT_META = [
-  { key: 'full',   icon: 'statFull',   label: 'Satt',    color: 'var(--yolk)' },
   { key: 'energy', icon: 'statEnergy', label: 'Energie', color: 'var(--calm)' },
   { key: 'clean',  icon: 'statClean',  label: 'Sauber',  color: 'var(--lilac)' },
   { key: 'joy',    icon: 'statJoy',    label: 'Laune',   color: 'var(--love)' }
 ];
 
-const CARE_ORDER = ['feed', 'wash', 'sleep', 'play', 'cuddle'];
+const CARE_ORDER = ['wash', 'sleep', 'play', 'cuddle'];
 
 /** Fünf Tagesabschnitte — die Szene färbt sich mit. */
 function daypart(h) {
@@ -79,9 +78,7 @@ export function render(root, ctx) {
       <div class="card care-card">
         <div class="care-grid" data-care-grid>
           ${CARE_ORDER.map((k) => {
-            const c = k === 'feed'
-              ? { icon: 'careFeed', label: 'Füttern' }
-              : CARE_ACTIONS[k];
+            const c = CARE_ACTIONS[k];
             return `<button class="care" data-care="${k}">
               <span class="care-emoji">${icon(c.icon, { size: 30 })}</span>
               <span class="care-label" ${k === 'sleep' ? 'data-sleep-label' : ''}>${esc(c.label)}</span>
@@ -174,7 +171,7 @@ export function render(root, ctx) {
 
     root.querySelectorAll('[data-care]').forEach((b) => {
       const kind = b.dataset.care;
-      if (kind === 'feed' || kind === 'sleep') { b.disabled = false; return; }
+      if (kind === 'sleep') { b.disabled = false; return; }
       b.disabled = pet.asleep || cooldownLeft(kind) > 0;
     });
 
@@ -224,9 +221,7 @@ export function render(root, ctx) {
 
   root.querySelectorAll('[data-care]').forEach((b) => {
     b.onclick = () => {
-      const kind = b.dataset.care;
-      if (kind === 'feed') { fx('tap'); openFeedSheet(); return; }
-      careAction(kind, b);
+      careAction(b.dataset.care, b);
     };
   });
 
@@ -265,14 +260,14 @@ function pickOther(list, last) {
 
 /* ── Textbausteine ──────────────────────────────────────── */
 
-const needIcon = (k) => ({ full: 'statFull', energy: 'careSleep', clean: 'careWash', joy: 'carePlay' })[k] || 'info';
+const needIcon = (k) => ({ energy: 'careSleep', clean: 'careWash', joy: 'carePlay' })[k] || 'info';
 
 function greeting(s) {
   const h = new Date().getHours();
   const name = s.me.name ? `, ${s.me.name}` : '';
   if (h < 5) return `Noch wach${name}?`;
   if (h < 11) return `Guten Morgen${name}`;
-  if (h < 14) return `Mahlzeit${name}`;
+  if (h < 14) return `Hallo${name}`;
   if (h < 18) return `Hallo${name}`;
   if (h < 22) return `Guten Abend${name}`;
   return `Gute Nacht${name}`;

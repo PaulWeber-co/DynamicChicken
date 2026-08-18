@@ -1,3 +1,7 @@
 .DS_Store
 node_modules/
 *.log
+
+# Screenshots aus Testläufen landen im Wurzelverzeichnis, wenn ein Skript
+# einen relativen Pfad benutzt. Die echten App-Icons liegen unter icons/.
+/*.png

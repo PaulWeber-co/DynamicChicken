@@ -13,7 +13,7 @@ export const MOODS = [
   { key: 'vermisse',   icon: 'moodMissing',  label: 'Vermisse dich', pet: 'sad',     tone: 'love',   line: 'schaut aus dem Fenster' },
   { key: 'aufgeregt',  icon: 'moodExcited',  label: 'Aufgeregt',     pet: 'excited', tone: 'warm',   line: 'hüpft im Kreis' },
   { key: 'stolz',      icon: 'moodProud',    label: 'Stolz',         pet: 'proud',   tone: 'warm',   line: 'plustert sich auf' },
-  { key: 'hungrig',    icon: 'moodHungry',   label: 'Hungrig',       pet: 'hungry',  tone: 'warm',   line: 'späht nach Körnern' },
+  { key: 'hungrig',    icon: 'moodHungry',   label: 'Hungrig',       pet: 'hungry',  tone: 'warm',   line: 'hat auf irgendwas Hunger' },
   { key: 'krank',      icon: 'moodSick',     label: 'Kränklich',     pet: 'sad',     tone: 'calm',   line: 'braucht Hühnersuppe' },
   { key: 'albern',     icon: 'moodSilly',    label: 'Albern',        pet: 'excited', tone: 'warm',   line: 'macht Quatsch' }
 ];
@@ -73,19 +73,17 @@ export const nudgeByKey = (k) => NUDGES.find((n) => n.key === k) || null;
 
 /**
  * Welche Miene macht das eigene Huhn gerade?
- * Bedürfnisse schlagen die selbst gewählte Stimmung — ein hungriges Huhn
+ * Bedürfnisse schlagen die selbst gewählte Stimmung — ein müdes Huhn
  * grinst nicht.
  */
 export function petMood(pet, { asleep = false, moodKey = null } = {}) {
   if (asleep) return 'asleep';
   const s = pet.stats;
-  if (s.full < 22) return 'hungry';
   if (s.energy < 18) return 'sleepy';
   if (s.clean < 22) return 'dirty';
   if (s.joy < 22) return 'sad';
   const m = moodByKey(moodKey);
   if (m) return m.pet;
-  if (s.joy > 78 && s.full > 60) return 'happy';
   return 'happy';
 }
 

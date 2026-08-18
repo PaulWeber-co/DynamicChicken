@@ -358,6 +358,18 @@ function answerGame(ev, state) {
     return;
   }
 
+  /* Kribbeln: der simulierte Mensch kreuzt wohlwollend an — meist Ja,
+     manchmal Vielleicht, selten Nein. Sonst gäbe es nie einen Treffer. */
+  if (d.kind === 'kribDeal' || d.kind === 'kribMarks') {
+    if (d.kind === 'kribMarks' && state.games?.krib?.cur?.theirs) return;
+    const marks = Array.from({ length: 6 }, () => {
+      const r = Math.random();
+      return r < 0.55 ? 2 : r < 0.85 ? 1 : 0;
+    });
+    later(() => emitEv('game', { g: 'krib', kind: 'kribMarks', r: d.r, marks }), jitter(15_000, 70_000));
+    return;
+  }
+
   /* Top Fünf: auf eine Kategorie kommt eine Liste, auf eine Liste ein Tipp. */
   if (d.kind === 'topCat') {
     const items = shuffled(SOLO_TOP5).slice(0, 5);
@@ -407,6 +419,12 @@ function maybeGameMove(state) {
   }
   if (roll < 0.32 && !state.games?.meme?.cur) {
     emitEv('game', { g: 'meme', kind: 'memePrompt', r: state.games?.meme?.r || 1, prompt: pick(SOLO_MEMES) });
+    return;
+  }
+  if (roll < 0.44 && !state.games?.krib?.cur) {
+    // Der simulierte Mensch teilt nur aus, was ohne Zusatzschalter erlaubt ist
+    const tier = state.settings?.spicy && Math.random() < 0.4 ? 'heiss' : pick(['sanft', 'frech']);
+    emitEv('game', { g: 'krib', kind: 'kribDeal', r: state.games?.krib?.r || 1, tier });
     return;
   }
   emitEv('game', { g: pick(['grain', 'memo', 'poker', 'hue']), kind: 'invite', r: 1 });

@@ -33,7 +33,11 @@ export const BODY_COLORS = [
   { id: 'salbei',   label: 'Salbei',   lite: '#DCE8D4', base: '#B4CBA6', dark: '#92A985', deep: '#728767' },
   { id: 'flieder',  label: 'Flieder',  lite: '#F2DDF5', base: '#DDB2E8', dark: '#BE8FCA', deep: '#9B6EA6' },
   { id: 'karamell', label: 'Karamell', lite: '#FFDFAE', base: '#F0B968', dark: '#D19A47', deep: '#AE7B36' },
-  { id: 'stahl',    label: 'Stahl',    lite: '#D5DEE8', base: '#A3B4C6', dark: '#8194A8', deep: '#65758A' }
+  { id: 'stahl',    label: 'Stahl',    lite: '#D5DEE8', base: '#A3B4C6', dark: '#8194A8', deep: '#65758A' },
+  { id: 'tinte',    label: 'Tinte',    lite: '#8FA3D6', base: '#5F72AE', dark: '#45558B', deep: '#31406B' },
+  { id: 'moos',     label: 'Moos',     lite: '#BFD9A8', base: '#8FBA6E', dark: '#6E9752', deep: '#54763C' },
+  { id: 'kirsch',   label: 'Kirsche',  lite: '#FFC2C6', base: '#F2808A', dark: '#D45E6A', deep: '#AE4553' },
+  { id: 'kupfer',   label: 'Kupfer',   lite: '#F5C7A3', base: '#DE9059', dark: '#BC7040', deep: '#98552C' }
 ];
 
 export const BELLY_COLORS = [
@@ -45,7 +49,9 @@ export const BELLY_COLORS = [
   { id: 'flieder', label: 'Flieder', base: '#EDE7FD', edge: '#D8CEF6' },
   { id: 'pfirsich', label: 'Pfirsich', base: '#FFEDE2', edge: '#F7D9C6' },
   { id: 'honig',   label: 'Honig',   base: '#FFF0CD', edge: '#F2DFAE' },
-  { id: 'nebel',   label: 'Nebel',   base: '#ECEFF3', edge: '#D8DDE4' }
+  { id: 'nebel',   label: 'Nebel',   base: '#ECEFF3', edge: '#D8DDE4' },
+  { id: 'karamell', label: 'Karamell', base: '#FBE0BE', edge: '#EBC99B' },
+  { id: 'taube',   label: 'Taube',   base: '#E2DEEA', edge: '#CCC5DB' }
 ];
 
 export const COMB_COLORS = [
@@ -56,7 +62,29 @@ export const COMB_COLORS = [
   { id: 'petrol',  label: 'Petrol',  base: '#7FC8D9', dark: '#5DA6B8' },
   { id: 'flamme',  label: 'Flamme',  base: '#FF8A4C', dark: '#E06A2E' },
   { id: 'veilchen', label: 'Veilchen', base: '#A98BE0', dark: '#8A6BC4' },
-  { id: 'schnee',  label: 'Schnee',  base: '#FFF1E2', dark: '#E4D2BF' }
+  { id: 'schnee',  label: 'Schnee',  base: '#FFF1E2', dark: '#E4D2BF' },
+  { id: 'limette', label: 'Limette', base: '#9FD96B', dark: '#7CB84A' },
+  { id: 'tinte',   label: 'Tinte',   base: '#6B7CC4', dark: '#4E5DA0' }
+];
+
+/**
+ * Schnabel und Füße teilen sich eine Farbe — sie gehören anatomisch
+ * zusammen, und getrennt einstellbar sähe fast immer falsch aus.
+ */
+export const BEAK_COLORS = [
+  { id: 'mandarine', label: 'Mandarine', base: '#FFB44D', dark: '#EE9430', deep: '#C77A22' },
+  { id: 'butter',    label: 'Butter',    base: '#FFD98A', dark: '#E9BB61', deep: '#C99C45' },
+  { id: 'lachs',     label: 'Lachs',     base: '#FFA48C', dark: '#E5826B', deep: '#C06450' },
+  { id: 'schiefer',  label: 'Schiefer',  base: '#9BA6B5', dark: '#7C8797', deep: '#606A78' },
+  { id: 'kohle',     label: 'Kohle',     base: '#4E4A55', dark: '#3A3742', deep: '#2A2831' }
+];
+
+/** Federmuster liegen als Schicht über Rumpf und Kopf, beschnitten auf beides. */
+export const PATTERNS = [
+  { id: 'plain',   label: 'Schlicht',  icon: 'feather' },
+  { id: 'dots',    label: 'Getupft',   icon: 'grain' },
+  { id: 'stripes', label: 'Gestreift', icon: 'statEnergy' },
+  { id: 'patch',   label: 'Gescheckt', icon: 'palette' }
 ];
 
 export const COMBS = [
@@ -90,7 +118,13 @@ export const HATS = [
   { id: 'devil',  label: 'Teufelchen',  icon: 'hatDevil',  price: 140 },
   { id: 'veil',   label: 'Schleier',    icon: 'hatVeil',   price: 180 },
   { id: 'halo',   label: 'Heiligenschein', icon: 'hatHalo', price: 200 },
-  { id: 'crownDark', label: 'Dunkle Krone', icon: 'hatCrownDark', price: 240 }
+  { id: 'crownDark', label: 'Dunkle Krone', icon: 'hatCrownDark', price: 240 },
+  { id: 'beret',  label: 'Baskenmütze', icon: 'hatBeret',   price: 75 },
+  { id: 'santa',  label: 'Nikolaus',    icon: 'hatSanta',   price: 90 },
+  { id: 'top',    label: 'Zylinder',    icon: 'hatTop',     price: 110 },
+  { id: 'ears',   label: 'Katzenohren', icon: 'hatEars',    price: 130 },
+  { id: 'pirate', label: 'Piratenhut',  icon: 'hatPirate',  price: 150 },
+  { id: 'viking', label: 'Wikinger',    icon: 'hatViking',  price: 175 }
 ];
 
 export const ACCESSORIES = [
@@ -108,7 +142,13 @@ export const ACCESSORIES = [
   { id: 'necklace',   label: 'Herzkette',    icon: 'accNecklace',   price: 150 },
   { id: 'lace',       label: 'Spitze',       icon: 'accLace',       price: 170, spicy: true },
   { id: 'catsuit',    label: 'Catsuit',      icon: 'accCatsuit',    price: 220, spicy: true },
-  { id: 'wings',      label: 'Engelsflügel', icon: 'accWings',      price: 260 }
+  { id: 'wings',      label: 'Engelsflügel', icon: 'accWings',      price: 260 },
+  { id: 'suspenders', label: 'Hosenträger',  icon: 'accSuspenders', price: 75 },
+  { id: 'heartSpecs', label: 'Herzbrille',   icon: 'accHeartSpecs', price: 85 },
+  { id: 'medal',      label: 'Medaille',     icon: 'accMedal',      price: 105 },
+  { id: 'robe',       label: 'Bademantel',   icon: 'accRobe',       price: 125 },
+  { id: 'boa',        label: 'Federboa',     icon: 'accBoa',        price: 145 },
+  { id: 'choker',     label: 'Halsband',     icon: 'accChoker',     price: 165, spicy: true }
 ];
 
 export function defaultLook(seed = 0) {
@@ -117,6 +157,9 @@ export function defaultLook(seed = 0) {
     belly: 'creme',
     comb: 'classic',
     combColor: 'kirsche',
+    beak: 'mandarine',
+    pattern: 'plain',
+    freckles: false,
     eyes: 'dot',
     hat: 'none',
     acc: 'none',
@@ -127,10 +170,9 @@ export function defaultLook(seed = 0) {
 const byId = (list, id) => list.find((x) => x.id === id) || list[0];
 export const bodyPalette = (look) => byId(BODY_COLORS, look?.body);
 export const bellyPalette = (look) => byId(BELLY_COLORS, look?.belly);
+export const beakPalette = (look) => byId(BEAK_COLORS, look?.beak);
 
 const INK = '#3A2C21';
-const FOOT = '#F5A64B';
-const FOOT_D = '#DE8A2E';
 
 /* ═══════════════════════════════════════════════════════════
    Körperteile
@@ -145,13 +187,60 @@ function tail(p) {
   </g>`;
 }
 
-function legs() {
+function legs(bk) {
   const leg = (x, cls) => `<g class="ck-leg ${cls}">
-    <path d="M${x} 288v30" stroke="${FOOT_D}" stroke-width="9" stroke-linecap="round"/>
-    <path d="M${x} 316l-16 12M${x} 316v14M${x} 316l16 12" stroke="${FOOT}" stroke-width="8"
+    <path d="M${x} 288v30" stroke="${bk.dark}" stroke-width="9" stroke-linecap="round"/>
+    <path d="M${x} 316l-16 12M${x} 316v14M${x} 316l16 12" stroke="${bk.base}" stroke-width="8"
       stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>`;
   return `<g class="ck-legs">${leg(134, 'ck-leg-l')}${leg(186, 'ck-leg-r')}</g>`;
+}
+
+/**
+ * Federmuster.
+ *
+ * Die Formen werden großzügig gezeichnet und anschließend auf Rumpf oder
+ * Kopf beschnitten — so passt dasselbe Muster auf beide, ohne dass man es
+ * zweimal an die Silhouette anpassen müsste.
+ */
+function patternLayer(id, kind, p, where) {
+  if (!kind || kind === 'plain') return '';
+  const clip = `url(#${id}-clip-${where})`;
+  const c = p.deep;
+
+  if (kind === 'dots') {
+    const dots = where === 'head'
+      ? [[126, 84, 7], [190, 90, 6], [148, 66, 5], [206, 130, 6], [112, 122, 5], [172, 150, 5]]
+      : [[112, 190, 9], [200, 186, 8], [96, 240, 7], [226, 232, 8], [140, 300, 7], [188, 296, 6], [244, 270, 6]];
+    return `<g clip-path="${clip}" opacity=".4">
+      ${dots.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r * 1.35}" fill="${c}"/>`).join('')}
+    </g>`;
+  }
+
+  if (kind === 'stripes') {
+    const bars = where === 'head' ? [40, 74, 108, 142] : [140, 186, 232, 278, 324];
+    return `<g clip-path="${clip}" opacity=".32">
+      ${bars.map((y) => `<rect x="10" y="${y}" width="300" height="17" rx="8.5" fill="${c}"
+        transform="rotate(-12 160 ${y})"/>`).join('')}
+    </g>`;
+  }
+
+  // gescheckt: wenige große, weiche Flecken
+  const blobs = where === 'head'
+    ? 'M104 78q34-26 62-4 22 18-4 34-38 22-58-4-8-14 0-26z M196 132q26-6 32 14-24 18-40 2-4-12 8-16z'
+    : 'M96 178q52-26 84 6 24 24-14 46-56 30-84-8-12-24 14-44z '
+      + 'M206 258q34-10 44 16 8 24-24 32-38 8-46-18-6-22 26-30z';
+  return `<g clip-path="${clip}" opacity=".26">
+    <path d="${blobs}" fill="${c}"/>
+  </g>`;
+}
+
+/** Sommersprossen — drei Tupfer pro Wange, dezent. */
+function freckles(on) {
+  if (!on) return '';
+  const set = (x) => [[x - 12, 138], [x, 132], [x + 11, 141], [x - 4, 148]]
+    .map(([cx, cy]) => `<circle cx="${cx}" cy="${cy}" r="2.6" fill="#B4744A"/>`).join('');
+  return `<g class="ck-freckles" opacity=".55">${set(108)}${set(212)}</g>`;
 }
 
 /**
@@ -174,9 +263,10 @@ function wing(p, side) {
     : inner;
 }
 
-function torso(id, p, belly) {
+function torso(id, p, belly, look) {
   return `<g class="ck-torso">
     <ellipse cx="160" cy="226" rx="97" ry="85" fill="url(#${id}-body)"/>
+    ${patternLayer(id, look.pattern, p, 'torso')}
 
     <!-- Bauchflaum mit weicher Kante -->
     <ellipse cx="160" cy="252" rx="63" ry="49" fill="${belly.base}"/>
@@ -196,19 +286,21 @@ function torso(id, p, belly) {
   </g>`;
 }
 
-function head(id, p, look, combCol) {
+function head(id, p, look, combCol, bk) {
   return `<g class="ck-head">
     ${comb(look.comb, combCol)}
     <circle cx="160" cy="118" r="67" fill="url(#${id}-body)"/>
+    ${patternLayer(id, look.pattern, p, 'head')}
     <!-- Lichtkante oben links -->
     <path d="M113 71a67 67 0 0 1 62-16" stroke="${p.lite}" stroke-width="7" fill="none"
       stroke-linecap="round" opacity=".55"/>
     <!-- Schatten unterm Kinn -->
     <path d="M100 152a67 67 0 0 0 120 0 67 67 0 0 1-120 0z" fill="${p.deep}" opacity=".14"/>
     ${cheeks(look.acc === 'blush')}
+    ${freckles(look.freckles)}
     ${eyes(look.eyes)}
     ${brows()}
-    ${beak()}
+    ${beak(bk)}
     ${faceAcc(look.acc)}
     ${hat(look.hat)}
   </g>`;
@@ -312,13 +404,13 @@ function brows() {
   </g>`;
 }
 
-function beak() {
+function beak(bk) {
   return `<g class="ck-beak">
-    <path class="ck-beak-up" d="M136 142q24-9 48 0-8 14-24 14t-24-14z" fill="#FFB44D"/>
-    <path class="ck-beak-up-shade" d="M136 142q24 6 48 0-8 5-24 5t-24-5z" fill="#EE9430" opacity=".45"/>
-    <path class="ck-beak-low" d="M143 152q17 6 34 0-6 15-17 15t-17-15z" fill="#EE9430"/>
-    <circle cx="152" cy="146" r="1.9" fill="#C77A22" opacity=".7"/>
-    <circle cx="168" cy="146" r="1.9" fill="#C77A22" opacity=".7"/>
+    <path class="ck-beak-up" d="M136 142q24-9 48 0-8 14-24 14t-24-14z" fill="${bk.base}"/>
+    <path class="ck-beak-up-shade" d="M136 142q24 6 48 0-8 5-24 5t-24-5z" fill="${bk.dark}" opacity=".45"/>
+    <path class="ck-beak-low" d="M143 152q17 6 34 0-6 15-17 15t-17-15z" fill="${bk.dark}"/>
+    <circle cx="152" cy="146" r="1.9" fill="${bk.deep}" opacity=".7"/>
+    <circle cx="168" cy="146" r="1.9" fill="${bk.deep}" opacity=".7"/>
   </g>`;
 }
 
@@ -330,6 +422,18 @@ function faceAcc(id) {
         <circle cx="188" cy="112" r="24"/>
         <path d="M156 108q4-4 8 0M108 104l-16-6M212 104l16-6" stroke-linecap="round"/>
       </g>`;
+    case 'heartSpecs': {
+      // Herzform als Pfad, zweimal gesetzt — ein Bügel verbindet sie
+      const herz = (cx) => `M${cx} ${112 + 17}c-19-13-28-22-28-32 0-8 6-14 14-14 6 0 11 3 14 8 3-5 8-8 14-8 8 0 14 6 14 14 0 10-9 19-28 32z`;
+      return `<g class="ck-face-acc">
+        <path d="${herz(132)}" fill="#FF9EC0" opacity=".55"/>
+        <path d="${herz(188)}" fill="#FF9EC0" opacity=".55"/>
+        <path d="${herz(132)}" fill="none" stroke="#E0537F" stroke-width="5"/>
+        <path d="${herz(188)}" fill="none" stroke="#E0537F" stroke-width="5"/>
+        <path d="M154 108q6-4 12 0M106 100l-14-6M214 100l14-6"
+          stroke="#E0537F" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </g>`;
+    }
     case 'sunglasses':
       return `<g class="ck-face-acc">
         <path d="M100 96h120v12c0 17-13 28-28 28s-27-11-28-25h-8c-1 14-13 25-28 25s-28-11-28-28z" fill="#38324A"/>
@@ -387,6 +491,55 @@ function backAcc(id) {
 
 function neckAcc(id) {
   switch (id) {
+    case 'boa':
+      return `<g class="ck-acc">
+        ${[
+          [94, 190, 17], [118, 200, 20], [146, 205, 21], [176, 204, 21],
+          [204, 197, 19], [226, 185, 16], [110, 218, 15], [140, 226, 17],
+          [172, 226, 17], [202, 217, 15]
+        ].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#F6C9DC"/>`).join('')}
+        ${[
+          [104, 196, 10], [132, 208, 12], [162, 210, 12], [192, 203, 11], [218, 190, 9]
+        ].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#FFE1EE" opacity=".85"/>`).join('')}
+      </g>`;
+
+    case 'choker':
+      return `<g class="ck-acc">
+        <path d="M100 184q60 26 120 0 4 12 0 20-60 26-120 0-4-8 0-20z" fill="#241F2B"/>
+        <path d="M100 184q60 26 120 0 1 4 1 7-61 26-122 0 0-3 1-7z" fill="#3B3346" opacity=".85"/>
+        <circle cx="160" cy="208" r="11" fill="none" stroke="#D9C08A" stroke-width="5"/>
+        <circle cx="160" cy="197" r="4.4" fill="#D9C08A"/>
+      </g>`;
+
+    case 'medal':
+      return `<g class="ck-acc">
+        <path d="M132 176 158 224h-14l-24-44z" fill="#7FB9E4"/>
+        <path d="M188 176 162 224h14l24-44z" fill="#E9557A"/>
+        <circle cx="160" cy="238" r="21" fill="#FFCE5C"/>
+        <circle cx="160" cy="238" r="21" fill="none" stroke="#E0AC38" stroke-width="4"/>
+        <path d="M160 226l4.4 9.4 10 1.4-7.4 7.2 1.8 10.2-8.8-4.8-8.8 4.8 1.8-10.2-7.4-7.2 10-1.4z" fill="#E0AC38"/>
+      </g>`;
+
+    case 'robe':
+      return `<g class="ck-acc">
+        <path d="M92 192q26 44 68 44t68-44q22 16 24 48-4 44-92 44t-92-44q2-32 24-48z" fill="#F2EDF9"/>
+        <path d="M92 192q26 44 68 44l-16 24Q88 248 68 208z" fill="#BFB0DE"/>
+        <path d="M228 192q-26 44-68 44l16 24q56-12 76-52z" fill="#BFB0DE"/>
+        <path d="M144 236h32l-8 44h-16z" fill="#DED4F0"/>
+        <path d="M84 272q36 16 76 16t76-16" stroke="#8FB6DC" stroke-width="14" fill="none" stroke-linecap="round"/>
+        <circle cx="196" cy="280" r="9" fill="#7CA6D0"/>
+      </g>`;
+
+    case 'suspenders':
+      return `<g class="ck-acc">
+        <path d="M126 196q-12 44-6 92" stroke="#7C5A3E" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <path d="M194 196q12 44 6 92" stroke="#7C5A3E" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <path d="M126 196q-12 44-6 92" stroke="#96704F" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M194 196q12 44 6 92" stroke="#96704F" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <rect x="110" y="276" width="22" height="15" rx="4" fill="#D9C08A"/>
+        <rect x="188" y="276" width="22" height="15" rx="4" fill="#D9C08A"/>
+      </g>`;
+
     case 'scarf':
       return `<g class="ck-acc">
         <path d="M92 186q68 30 136 0 6 20-6 30-62 24-124 0-12-10-6-30z" fill="#FF9EB5"/>
@@ -561,6 +714,64 @@ function hat(id) {
         <circle cx="198" cy="42" r="5.4" fill="#C7BAF7"/>
       </g>`;
 
+    case 'beret':
+      return `<g class="ck-hat">
+        <ellipse cx="154" cy="48" rx="68" ry="27" fill="#C1444F" transform="rotate(-7 154 48)"/>
+        <path d="M88 50q66 24 132-6 6 14-6 22-56 22-114 4-14-6-12-20z" fill="#A63741"/>
+        <ellipse cx="140" cy="36" rx="30" ry="11" fill="#D45C67" opacity=".55" transform="rotate(-7 140 36)"/>
+        <circle cx="150" cy="18" r="7.6" fill="#8E2F38"/>
+      </g>`;
+
+    case 'santa':
+      return `<g class="ck-hat">
+        <path d="M96 60c0-34 28-54 60-54 34 0 60 22 62 46 2 14-10 20-22 14-16-8-26 4-42 2z" fill="#E4515F"/>
+        <path d="M156 6c34 0 60 22 62 46 1 8-3 13-9 15 2-28-20-52-53-56z" fill="#C43F4D"/>
+        <rect x="90" y="52" width="140" height="21" rx="10.5" fill="#FFF8EC"/>
+        <circle cx="224" cy="42" r="14" fill="#FFF8EC"/>
+      </g>`;
+
+    case 'top':
+      return `<g class="ck-hat">
+        <ellipse cx="160" cy="60" rx="76" ry="13" fill="#2A2833"/>
+        <path d="M122 8h76v52h-76z" fill="#38343F"/>
+        <rect x="122" y="40" width="76" height="15" fill="#7C6BAE"/>
+        <ellipse cx="160" cy="8" rx="38" ry="10" fill="#453F52"/>
+        <path d="M128 14v34" stroke="#4E4859" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+      </g>`;
+
+    case 'ears':
+      return `<g class="ck-hat">
+        <path d="M110 66 124 8l44 44z" fill="#3A3038"/>
+        <path d="M210 66 196 8l-44 44z" fill="#3A3038"/>
+        <path d="M120 58 129 26l24 24z" fill="#FFB3CB"/>
+        <path d="M200 58 191 26l-24 24z" fill="#FFB3CB"/>
+        <path d="M104 62q54-16 112 0" stroke="#2C242F" stroke-width="7" fill="none" stroke-linecap="round"/>
+      </g>`;
+
+    case 'pirate':
+      return `<g class="ck-hat">
+        <path d="M96 58q6-46 64-46t64 46q-30 14-64 14t-64-14z" fill="#2E2833"/>
+        <path d="M58 68q10-18 34-20 26 30 68 30t68-30q24 2 34 20-30 20-102 20T58 68z" fill="#1F1B24"/>
+        <path d="M58 68q10-18 34-20 6 7 14 12-26 4-48 8z" fill="#3A3446"/>
+        <path d="M262 68q-10-18-34-20-6 7-14 12 26 4 48 8z" fill="#3A3446"/>
+        <circle cx="160" cy="30" r="15" fill="#FFF6E4"/>
+        <circle cx="154" cy="27" r="3.6" fill="#2E2833"/>
+        <circle cx="166" cy="27" r="3.6" fill="#2E2833"/>
+        <path d="M153 39h14" stroke="#2E2833" stroke-width="3.6" stroke-linecap="round"/>
+      </g>`;
+
+    case 'viking':
+      return `<g class="ck-hat">
+        <path d="M106 48Q56 52 34 14 20-6 44 4q34 14 62 24z" fill="#FFF4DE" stroke="#DBC49C" stroke-width="4.6" stroke-linejoin="round"/>
+        <path d="M214 48q50 4 72-34 14-20-10-10-34 14-62 24z" fill="#FFF4DE" stroke="#DBC49C" stroke-width="4.6" stroke-linejoin="round"/>
+        <path d="M92 34q22 8 30 20" stroke="#EADFC4" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M228 34q-22 8-30 20" stroke="#EADFC4" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M104 60c0-32 25-52 56-52s56 20 56 52z" fill="#A3B4C6"/>
+        <path d="M160 8c31 0 56 20 56 52h-20c0-28-14-46-36-52z" fill="#8194A8"/>
+        <rect x="96" y="54" width="128" height="16" rx="8" fill="#8194A8"/>
+        <path d="M156 20h8v40h-8z" fill="#8DA0B4"/>
+      </g>`;
+
     default:
       return '';
   }
@@ -674,6 +885,7 @@ export function renderChicken(look = defaultLook(), opts = {}) {
   const p = bodyPalette(look);
   const belly = bellyPalette(look);
   const combCol = byId(COMB_COLORS, look.combColor);
+  const bk = beakPalette(look);
   const chub = Math.max(0.88, Math.min(1.14, look.chub ?? 1));
 
   const classes = [
@@ -693,6 +905,8 @@ export function renderChicken(look = defaultLook(), opts = {}) {
       <stop offset=".42" stop-color="${p.base}"/>
       <stop offset="1"   stop-color="${p.dark}"/>
     </linearGradient>
+    <clipPath id="${id}-clip-torso"><ellipse cx="160" cy="226" rx="97" ry="85"/></clipPath>
+    <clipPath id="${id}-clip-head"><circle cx="160" cy="118" r="67"/></clipPath>
   </defs>
 
   ${shadow ? `<ellipse class="ck-shadow" cx="160" cy="330" rx="84" ry="14" fill="#8C6B4A" opacity=".17"/>` : ''}
@@ -701,12 +915,12 @@ export function renderChicken(look = defaultLook(), opts = {}) {
     <g class="ck-body">
       ${backAcc(look.acc)}
       ${tail(p)}
-      ${legs()}
-      ${torso(id, p, belly)}
+      ${legs(bk)}
+      ${torso(id, p, belly, look)}
       ${wing(p, 'l')}
       ${wing(p, 'r')}
       ${neckAcc(look.acc)}
-      ${head(id, p, look, combCol)}
+      ${head(id, p, look, combCol, bk)}
     </g>
     <g class="ck-fx">
       ${fxFor(mood)}
@@ -723,6 +937,7 @@ export function renderHead(look = defaultLook(), size = 32, mood = 'happy') {
   const id = `hd${++uid}`;
   const p = bodyPalette(look);
   const c = byId(COMB_COLORS, look.combColor);
+  const bk = beakPalette(look);
   const shut = mood === 'asleep' || mood === 'sleepy';
   const love = mood === 'love';
 
@@ -747,8 +962,8 @@ export function renderHead(look = defaultLook(), size = 32, mood = 'happy') {
   <ellipse cx="30" cy="68" rx="8" ry="5" fill="#FF8FA8" opacity=".35"/>
   <ellipse cx="70" cy="68" rx="8" ry="5" fill="#FF8FA8" opacity=".35"/>
   ${eye(36)}${eye(64)}
-  <path d="M42 70q8-3 16 0-4 9-8 9t-8-9z" fill="#FFB44D"/>
-  <path d="M45 76q5 3 10 0-2 6-5 6t-5-6z" fill="#EE9430"/>
+  <path d="M42 70q8-3 16 0-4 9-8 9t-8-9z" fill="${bk.base}"/>
+  <path d="M45 76q5 3 10 0-2 6-5 6t-5-6z" fill="${bk.dark}"/>
 </svg>`.trim();
 }
 

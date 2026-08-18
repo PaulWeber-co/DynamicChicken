@@ -1,19 +1,20 @@
-/** Laden — Futter kaufen, Mode kaufen, Knuddl umstylen. */
+/** Laden — Mode kaufen und Knuddl umstylen. */
 
 import { esc } from '../../util/dom.js';
 import { icon } from '../icons.js';
 import { fx, burst, confetti } from '../../util/feedback.js';
 import { get, commit, subscribe } from '../../state/store.js';
-import { FOODS, BOND_UNLOCKS } from '../../state/catalog.js';
+import { BOND_UNLOCKS } from '../../state/catalog.js';
 import {
-  renderChicken, BODY_COLORS, BELLY_COLORS, COMB_COLORS, COMBS, EYE_STYLES, HATS, ACCESSORIES
+  renderChicken, BODY_COLORS, BELLY_COLORS, COMB_COLORS, BEAK_COLORS,
+  COMBS, PATTERNS, EYE_STYLES, HATS, ACCESSORIES
 } from '../../pet/chicken.js';
 import { petMood } from '../../pet/moods.js';
 import { sendEvent } from '../../sync/index.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
 
-let tab = 'futter';
+let tab = 'mode';
 
 /** Was das Bond-Level freischaltet, gehört euch dauerhaft. */
 export function applyBondUnlocks(state) {
@@ -42,43 +43,18 @@ export function render(root, ctx) {
       </div>
 
       <div class="seg" role="tablist">
-        ${[['futter', 'tabShop', 'Futter'], ['mode', 'hatCrown', 'Mode'], ['atelier', 'palette', 'Atelier']].map(([id, ic, label]) =>
+        ${[['mode', 'hatCrown', 'Mode'], ['atelier', 'palette', 'Atelier']].map(([id, ic, label]) =>
           `<button class="seg-btn" role="tab" data-tab="${id}" aria-selected="${tab === id}">
              ${icon(ic, { size: 18 })}<span>${label}</span>
            </button>`).join('')}
       </div>
 
-      <div data-panel>${tab === 'futter' ? panelFood(s) : tab === 'mode' ? panelMode(s) : panelAtelier(s)}</div>`;
+      <div data-panel>${tab === 'atelier' ? panelAtelier(s) : panelMode(s)}</div>`;
 
     root.querySelectorAll('[data-tab]').forEach((b) => {
       b.onclick = () => { tab = b.dataset.tab; fx('tap'); paint(); };
     });
     bindPanel();
-  }
-
-  /* ── Futter ── */
-  function panelFood(s) {
-    return `<div class="shop-grid">
-      ${FOODS.map((f) => {
-        const have = s.me.inv[f.id] || 0;
-        const can = s.me.coins >= f.price;
-        return `<div class="card shop-item ${can ? '' : 'poor'}">
-          <div class="shop-e">${icon(f.icon, { size: 38 })}</div>
-          <div class="shop-t">${esc(f.label)}</div>
-          <div class="shop-s">${esc(f.line)}</div>
-          <div class="shop-eff">
-            ${f.full ? `<span>${icon('statFull', { size: 13 })}+${f.full}</span>` : ''}
-            ${f.joy ? `<span>${icon('statJoy', { size: 13 })}+${f.joy}</span>` : ''}
-            ${f.energy > 4 ? `<span>${icon('statEnergy', { size: 13 })}+${f.energy}</span>` : ''}
-            ${f.clean < 0 ? `<span class="neg">${icon('statClean', { size: 13 })}${f.clean}</span>` : ''}
-          </div>
-          <div class="shop-buy">
-            <button class="btn btn-primary btn-sm" data-buy-food="${f.id}" ${can ? '' : 'disabled'}>${icon('grain', { size: 15 })} ${f.price}</button>
-            ${have ? `<span class="shop-have">×${have}</span>` : ''}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
   }
 
   /* ── Mode ── */
@@ -152,8 +128,21 @@ export function render(root, ctx) {
         ${swatches(COMB_COLORS, 'combColor')}
       </div>
 
+      <div class="section-label">Muster</div>
+      <div class="card">${options(PATTERNS, 'pattern')}</div>
+
+      <div class="section-label">Schnabel und Füße</div>
+      <div class="card">${swatches(BEAK_COLORS, 'beak')}</div>
+
       <div class="section-label">Augen</div>
       <div class="card">${options(EYE_STYLES, 'eyes')}</div>
+
+      <div class="section-label">Sommersprossen</div>
+      <div class="card">
+        <button class="chip ${look.freckles ? 'is-on' : ''}" data-toggle="freckles">
+          ${icon('sparkle', { size: 18 })}${look.freckles ? 'An' : 'Aus'}
+        </button>
+      </div>
 
       <div class="section-label">Statur</div>
       <div class="card">
@@ -168,14 +157,22 @@ export function render(root, ctx) {
 
   /* ── Interaktion ── */
   function bindPanel() {
-    root.querySelectorAll('[data-buy-food]').forEach((b) => {
-      b.onclick = () => buyFood(b.dataset.buyFood, b);
-    });
     root.querySelectorAll('[data-wear]').forEach((b) => {
       b.onclick = () => wear(b.dataset.wear, Number(b.dataset.price || 0), b);
     });
     root.querySelectorAll('[data-look]').forEach((b) => {
       b.onclick = () => setLook(b.dataset.look);
+    });
+    root.querySelectorAll('[data-toggle]').forEach((b) => {
+      b.onclick = () => {
+        const s = get();
+        const key = b.dataset.toggle;
+        s.me.pet.look[key] = !s.me.pet.look[key];
+        commit('look');
+        publishLook();
+        fx('pop');
+        paint();
+      };
     });
     const chub = root.querySelector('[data-chub]');
     if (chub) chub.oninput = () => {
@@ -187,19 +184,6 @@ export function render(root, ctx) {
     if (chub) chub.onchange = () => { commit('look'); publishLook(); fx('tap'); };
     const rn = root.querySelector('[data-rename]');
     if (rn) rn.onclick = openRename;
-  }
-
-  function buyFood(id, btn) {
-    const s = get();
-    const f = FOODS.find((x) => x.id === id);
-    if (!f) return;
-    if (s.me.coins < f.price) { toast('Zu wenig Körner', 'grain'); return; }
-    s.me.coins -= f.price;
-    s.me.inv[id] = (s.me.inv[id] || 0) + 1;
-    commit('buy');
-    fx('coin');
-    burst([f.icon], { from: btn, count: 4, rise: 80 });
-    paint();
   }
 
   function wear(spec, price, btn) {

@@ -101,23 +101,6 @@
 }
 .game-howto summary { font-size: 14px; font-weight: 750; cursor: pointer; }
 .game-howto[open] summary { margin-bottom: 10px; }
-/* Kurzanleitung je Spiel — die Zeile steht ohnehin in jedem Spiel-Modul */
-.howto-list { display: flex; flex-direction: column; gap: 9px; margin: 0; }
-.howto-list dt {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -.015em;
-}
-.howto-list dd {
-  margin: 2px 0 0 24px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--ink-3);
-}
-
 /* ── HUD ───────────────────────────────────────────────── */
 
 .game-hud {
@@ -954,3 +937,93 @@
   font-variant-numeric: tabular-nums;
 }
 .top-line.hit .top-tip { color: var(--grow); }
+
+/* ── Kribbeln ──────────────────────────────────────────── */
+
+.krib-tiers { display: flex; flex-direction: column; gap: 9px; }
+.krib-tier {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  color: var(--ink-2);
+  text-align: left;
+  transition: transform var(--t-fast) var(--spring-pop);
+}
+.krib-tier:not(:disabled):active { transform: scale(.975); }
+.krib-tier.off { opacity: .55; box-shadow: inset 0 0 0 1.5px var(--hairline-2); background: var(--surface-2); }
+.krib-tier-e {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  background: var(--love-soft);
+}
+.krib-tier.off .krib-tier-e { background: var(--surface-sunk); }
+.krib-tier-t { display: block; font-size: 15.5px; font-weight: 800; color: var(--ink); letter-spacing: -.015em; }
+.krib-tier-s { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-3); }
+
+.krib-cards { display: flex; flex-direction: column; gap: 9px; }
+.krib-card {
+  padding: 12px 14px 11px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  transition: opacity var(--t-med);
+}
+/* Beantwortet heißt: tritt zurück, damit das Offene ins Auge fällt */
+.krib-card.done { opacity: .72; }
+.krib-text { font-size: 14.5px; font-weight: 700; line-height: 1.3; margin-bottom: 9px; }
+.krib-marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.krib-mark {
+  padding: 8px 4px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-2);
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink-2);
+  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast), color var(--t-fast);
+}
+.krib-mark:active { transform: scale(.93); }
+.krib-mark.ja.on         { background: var(--love);  color: #fff; box-shadow: none; }
+.krib-mark.vielleicht.on { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.krib-mark.nein.on       { background: var(--surface-sunk); color: var(--ink); box-shadow: none; }
+
+.krib-reveal { display: flex; flex-direction: column; gap: 6px; }
+.krib-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.krib-line .grow { min-width: 0; overflow-wrap: anywhere; }
+.krib-line.beide { background: var(--love-soft); color: var(--ink); }
+.krib-line.beide .ic { color: var(--love); }
+.krib-line.fast  { background: var(--accent-soft); }
+/* Verdeckte Zeilen sagen nichts aus — auch nicht, wer gekniffen hat */
+.krib-line.geheim { color: var(--ink-3); font-style: italic; }
+.krib-tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, .6);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+:root[data-theme='dark'] .krib-tag { background: rgba(0, 0, 0, .22); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .krib-tag { background: rgba(0, 0, 0, .22); }
+}

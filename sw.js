@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v7';
+const VERSION = 'knuddl-v8';
 const SHELL = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const SHELL = [
   './src/games/grainRush.js',
   './src/games/hueCue.js',
   './src/games/index.js',
+  './src/games/kribbeln.js',
   './src/games/meme.js',
   './src/games/memory.js',
   './src/games/moodMatch.js',
