@@ -364,27 +364,12 @@ const ICONS = {
     <circle cx="10.4" cy="12" r="2" fill="${C.rose}"/><circle cx="16" cy="9.4" r="2" fill="${C.yolk}"/>
     <circle cx="21.6" cy="12" r="2" fill="${C.sky}"/><circle cx="9.6" cy="18.6" r="2" fill="${C.leaf}"/>`,
 
-  /* ── Ei-Duell-Symbole ────────────────────────────────── */
-  symKorn: () => ICONS.corn(),
-  symEi: () => ICONS.egg(),
-  symFeder: () => ICONS.feather(),
-  symWurm: () => ICONS.worm(),
+  /* Stolperstein in der Körner-Jagd */
   symStein: () => `<path d="M6 20c-1.6-4 .6-9 5-11.4 4.6-2.6 10.6-1.6 13.6 2.2 3 3.8 1.6 9.4-2.6 12-4.4 2.8-14 1.6-16-2.8z" fill="#9E9689"/>
     <path d="M9.4 12.6c2-2.6 6-4 9.4-3.2-2.6.6-5 1.8-6.6 3.8-1.6 2-2 4.4-1.4 6.6-2-2-2.6-4.8-1.4-7.2z" fill="#B8B0A2"/>`,
 
   /* ── Spiele ──────────────────────────────────────────── */
   gameGrain: () => ICONS.corn(),
-  gameEgg: () => ICONS.egg(),
-  gameBeat: () => `<path d="M16 27C9 21.6 4.4 18 4.4 12.9 4.4 9 7.4 6.2 11 6.2c2 0 3.9 1 5 2.5 1.1-1.5 3-2.5 5-2.5 3.6 0 6.6 2.8 6.6 6.7C27.6 18 23 21.6 16 27z" fill="${C.rose}"/>
-    <path d="M6.4 14.6h4l1.6-3.4 2.6 6.6 2.4-4.6 1.6 1.4h6.6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  gameDuett: () => `<path d="M4 9.4h10.4v6.2a5.2 5.2 0 0 1-10.4 0V9.4z" fill="${C.lav}"/>
-    <path d="M17.6 9.4H28v6.2a5.2 5.2 0 0 1-10.4 0V9.4z" fill="${C.rose}"/>
-    <circle cx="7.4" cy="12.4" r="1.1" fill="#fff"/><circle cx="11" cy="12.4" r="1.1" fill="#fff"/>
-    <circle cx="21" cy="12.4" r="1.1" fill="#fff"/><circle cx="24.6" cy="12.4" r="1.1" fill="#fff"/>
-    <path d="M6.4 22.4c1.6 1.6 4.6 1.6 6 0M19.4 22.4c1.6 1.6 4.6 1.6 6 0" stroke="${C.woodD}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`,
-  gameMemo: () => `<rect x="4" y="8" width="12" height="17" rx="2.6" fill="${C.sky}" transform="rotate(-8 10 16.5)"/>
-    <rect x="15" y="6.6" width="12" height="17" rx="2.6" fill="${C.yolkL}" transform="rotate(7 21 15)"/>
-    <circle cx="21.4" cy="14.4" r="3" fill="${C.yolk}"/>`,
   gameFlight: () => `<path d="M4 22c4-1.6 6.6-4.6 8-8.4" stroke="${C.skyD}" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
     <ellipse cx="19" cy="15" rx="8" ry="7" fill="${C.yolk}"/>
     <circle cx="22.4" cy="12.4" r="1.5" fill="${C.cocoa}"/>
@@ -394,10 +379,6 @@ const ICONS = {
     <rect x="9.4" y="16" width="13.6" height="4.6" rx="2.3" fill="${C.woodD}"/>
     <rect x="11.4" y="10.6" width="10" height="4.6" rx="2.3" fill="${C.wood}"/>
     <ellipse cx="16.4" cy="7" rx="3.6" ry="2.8" fill="${C.cream}"/>`,
-  gamePoker: () => `<rect x="4.6" y="8" width="14" height="19" rx="2.4" fill="#fff" stroke="${C.wood}" stroke-width="1.6" transform="rotate(-11 11.6 17.5)"/>
-    <rect x="13.4" y="6" width="14" height="19" rx="2.4" fill="#fff" stroke="${C.woodD}" stroke-width="1.6" transform="rotate(9 20.4 15.5)"/>
-    <path d="M20.6 17.4c-3-2.2-4.6-3.8-4.6-5.6 0-1.4 1.1-2.5 2.5-2.5.9 0 1.6.4 2.1 1.2.5-.8 1.2-1.2 2.1-1.2 1.4 0 2.5 1.1 2.5 2.5 0 1.8-1.6 3.4-4.6 5.6z" fill="${C.rose}"/>
-    <circle cx="10.4" cy="19" r="2.6" fill="${C.yolk}"/>`,
   gameDoodle: () => `<path d="M5 24.6l1-4.4L19.4 6.8a2.8 2.8 0 0 1 4 0l1.2 1.2a2.8 2.8 0 0 1 0 4L11.2 25.4l-4.4 1a1.4 1.4 0 0 1-1.8-1.8z" fill="${C.yolk}"/>
     <path d="M18.4 8.4l5.2 5.2" stroke="${C.yolkD}" stroke-width="1.8" stroke-linecap="round"/>
     <path d="M6 20.2l5.2 5.2" stroke="${C.woodD}" stroke-width="1.8" stroke-linecap="round"/>`,
@@ -604,6 +585,18 @@ const ICONS = {
   broom: () => `<path d="M20.6 4.6 12 13.2" stroke="${C.woodD}" stroke-width="2.6" stroke-linecap="round"/>
     <path d="M11 12.2 8 15.2l8.8 8.8 3-3z" fill="${C.beak}"/>
     <path d="M16.8 24 8 15.2c-3.4 3.4-4.4 7.6-3 11 3.4 1.4 7.6.4 11.8-2.2z" fill="${C.yolk}"/>`,
+  /**
+   * Platzhalter für Namen, die es nicht (mehr) gibt.
+   *
+   * Alte Verlaufseinträge zeigen auf Symbole entfernter Spiele. Ein leeres
+   * Ergebnis hinterließe dort ein Loch im Layout; ein blasser Punkt sieht
+   * aus wie beabsichtigt.
+   */
+  _missing: () => `<circle cx="16" cy="16" r="8" fill="currentColor" opacity=".22"/>`,
+
+  sound: () => `<path d="M6 12.6h4.6L17 7v18l-6.4-5.6H6z" fill="currentColor"/>
+    <path d="M21 12.4a5 5 0 0 1 0 7.2M24.4 9.4a9.4 9.4 0 0 1 0 13.2" stroke="currentColor"
+      stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
   warn: () => `<path d="M16 4.6 29 26.4a2 2 0 0 1-1.7 3H4.7a2 2 0 0 1-1.7-3z" fill="${C.beak}"/>
     <path d="M16 12v7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
     <circle cx="16" cy="23.6" r="1.6" fill="#fff"/>`,
@@ -790,11 +783,8 @@ const ICONS = {
  * @returns {string} SVG-Markup (leer, wenn der Name unbekannt ist)
  */
 export function icon(name, o = {}) {
-  const draw = ICONS[name];
-  if (!draw) {
-    console.warn('[knuddl] Unbekanntes Icon:', name);
-    return '';
-  }
+  const draw = ICONS[name] || ICONS._missing;
+  if (!ICONS[name]) console.warn('[knuddl] Unbekanntes Icon:', name);
   const size = o.size ?? 24;
   return `<svg class="ic ${o.cls || ''}" viewBox="0 0 32 32" width="${size}" height="${size}"
     role="${o.title ? 'img' : 'presentation'}" ${o.title ? `aria-label="${o.title}"` : 'aria-hidden="true"'}

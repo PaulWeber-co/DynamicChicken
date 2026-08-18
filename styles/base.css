@@ -203,9 +203,14 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .chip-love[aria-pressed='true'] { background: var(--love-soft); box-shadow: inset 0 0 0 1.5px rgba(255,123,166,.5); }
 
 /* ── Pflege-Buttons (große runde Aktionen) ─────────────── */
+/* Spaltenzahl folgt den Knöpfen. Eine feste Zahl hinterließe eine Lücke,
+   sobald eine Aktion wegfällt — und genau so sah man, dass mal eine da war. */
 .care-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  /* minmax(0,…), sonst wachsen die Spalten auf die Textbreite und laufen
+     auf schmalen Geräten über den Rand hinaus. */
+  grid-auto-columns: minmax(0, 1fr);
   gap: 6px;
 }
 .care {
@@ -213,7 +218,7 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 12px 2px 10px;
+  padding: 13px 4px 11px;
   border-radius: var(--r-md);
   transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
 }
@@ -226,7 +231,7 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
   transition: transform var(--t-med) var(--spring-pop);
 }
 .care:active .care-emoji { transform: translateY(-3px) scale(1.12); }
-.care-label { font-size: 11px; font-weight: 700; color: var(--ink-2); letter-spacing: -.01em; }
+.care-label { font-size: 11.5px; font-weight: 700; color: var(--ink-2); letter-spacing: -.01em; }
 .care:disabled { opacity: .35; pointer-events: none; }
 
 /* ── Stat-Balken ───────────────────────────────────────── */

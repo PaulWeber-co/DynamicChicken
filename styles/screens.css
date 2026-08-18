@@ -345,41 +345,6 @@
 .daily-who { font-size: 11.5px; font-weight: 800; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
 .daily-text { font-size: 14.5px; line-height: 1.4; margin-top: 3px; font-weight: 550; }
 
-/* ── Spiele-Liste ──────────────────────────────────────── */
-
-.game-list { display: flex; flex-direction: column; gap: 10px; }
-/* Was auf dich wartet, steht ganz oben — kompakt, damit auch bei drei
-   offenen Spielen noch das Raster darunter zu sehen ist. */
-.game-list.tight { gap: 7px; }
-.game-item {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px;
-  transition: transform var(--t-fast) var(--spring-pop);
-}
-.game-item:active { transform: scale(.985); }
-.game-item-e {
-  width: 44px; height: 44px;
-  border-radius: 15px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--surface-sunk);
-  transition: transform var(--t-med) var(--spring-pop);
-}
-.game-item:active .game-item-e { transform: scale(1.08) rotate(-4deg); }
-.game-item.tone-warm .game-item-e { background: var(--accent-soft); }
-.game-item.tone-love .game-item-e { background: var(--love-soft); }
-.game-item.tone-calm .game-item-e { background: var(--calm-soft); }
-.game-item-t { font-size: 15.5px; font-weight: 800; letter-spacing: -.015em; line-height: 1.2; }
-.game-item-s { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-.game-item-m { display: flex; align-items: center; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
-/* Live-Punkt in der Wartekarte: currentColor wäre hier Tintenbraun */
-.game-item > .dot-live { flex: none; color: var(--grow); }
-
 /* Kräftevergleich: eine Zeile, kein Podest — er soll das Raster nicht
    vom Bildschirm schieben. */
 .arena { padding: 11px 14px 13px; }
@@ -567,7 +532,7 @@
 .onb .input { text-align: center; }
 
 /* ── Gestaffeltes Erscheinen ───────────────────────────── */
-.nudge, .game-item, .feed-li {
+.nudge, .feed-li {
   animation: riseIn var(--t-slow) var(--spring) both;
   animation-delay: calc(var(--i, 0) * 38ms);
 }
@@ -585,13 +550,8 @@
 }
 
 .about-title { display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
-.duett-e { display: grid; place-items: center; }
-.egg-sealed { display: grid; place-items: center; }
-.egg-wheel-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.beat-heart { display: grid; place-items: center; }
 .game-hero { display: grid; place-items: center; }
 .mood-e { display: grid; place-items: center; height: 28px; }
-.memo-back, .memo-front { }
 
 /* ── Verschlüsselungs-Hinweis in der Einladung ─────────── */
 .code-big {
@@ -1279,21 +1239,22 @@
 .daily-card.daily-spicy { background: linear-gradient(160deg, var(--love-soft), var(--accent-soft)); }
 .daily-card.daily-spicy .daily-kicker { color: #C2456E; }
 
-/* ── Spiele als Raster ─────────────────────────────────── */
+/* ── Spiele-Übersicht ──────────────────────────────────── */
 
 /**
- * Die Spiele-Seite scrollt nicht — weder senkrecht noch waagerecht.
+ * Die Seite passt in die Fensterhöhe und scrollt nicht.
  *
- * Dafür ist der Screen selbst eine Spalte in Fensterhöhe: Kopf, Wartendes
- * und Kräftevergleich nehmen sich, was sie brauchen, das Raster bekommt den
- * Rest und teilt ihn gleichmäßig auf seine Zeilen auf. Weil unten nichts
- * mehr wegscrollt, fällt auch der großzügige Puffer unter der Tab-Leiste weg.
+ * Kopf, Wartezeile und Kräftevergleich nehmen sich, was sie brauchen; das
+ * Raster bekommt den Rest. Weil es immer alle Spiele zeigt, hat es immer
+ * gleich viele Zeilen — die Kachelhöhe schwankt also nur mit der
+ * Fensterhöhe, nicht mit dem Spielstand.
+ *
+ * flex:none ist wichtig: Als Flex-Kind mit flex:1 wüchse der Screen über
+ * seine Höhe hinaus, und das Raster bekäme nie den Druck zu stauchen.
  */
 .screen[data-screen='games'] {
   display: flex;
   flex-direction: column;
-  /* flex:none, sonst wächst der Screen als Flex-Kind über seine Höhe hinaus
-     und das Raster bekommt nie den Druck, seine Zeilen zu stauchen. */
   flex: none;
   height: 100dvh;
   min-height: 0;
@@ -1303,6 +1264,101 @@
 }
 .screen[data-screen='games'] > * { flex: none; }
 .screen[data-screen='games'] .games-head { margin-bottom: 2px; }
+.screen[data-screen='games'] .section-label { margin: 15px 4px 8px; }
+.screen[data-screen='games'] .arena { margin-top: 12px; }
+
+/* ── „Du bist dran“: genau eine Zeile ──────────────────── */
+
+.now-row { display: flex; align-items: stretch; gap: 7px; }
+.now-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  /* Nie schmaler als lesbar — lieber fallen rechts Kurzknöpfe weg. */
+  min-width: 160px;
+  padding: 12px 13px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  transition: transform var(--t-fast) var(--spring-pop);
+}
+.now-main:active { transform: scale(.985); }
+/* Leerzustand: dieselbe Zeile, nur ruhig — sie hält den Platz frei, damit
+   das Raster nicht springt, sobald eine Partie hereinkommt. */
+.now-main.now-idle {
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-2);
+  cursor: default;
+}
+.now-idle .now-t { color: var(--ink-2); }
+.now-idle .now-e { color: var(--grow); background: var(--grow-soft); }
+.now-e {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  background: var(--surface-sunk);
+  transition: transform var(--t-med) var(--spring-pop);
+}
+.now-main:active .now-e { transform: scale(1.08) rotate(-4deg); }
+.now-main.tone-warm .now-e { background: var(--accent-soft); }
+.now-main.tone-love .now-e { background: var(--love-soft); }
+.now-main.tone-calm .now-e { background: var(--calm-soft); }
+.now-t {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-s {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-main > .dot-live { flex: none; color: var(--grow); }
+
+/* Weitere offene Partien: nur das Symbol, feste Breite — damit die Zeile
+   nie umbricht, egal wie viele offen sind. */
+.now-more {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  transition: transform var(--t-fast) var(--spring-pop);
+}
+.now-more:active { transform: scale(.92); }
+.now-more.tone-warm { background: var(--accent-soft); }
+.now-more.tone-love { background: var(--love-soft); }
+.now-more.tone-calm { background: var(--calm-soft); }
+/**
+ * Wie viele Kurzknöpfe daneben passen, hängt an der Breite.
+ *
+ * Der Vorrang liegt bei der Hauptzeile: Sie muss lesbar bleiben, sonst
+ * steht da „40 zu schl…“. Deshalb ist einer der Standard und die weiteren
+ * kommen erst dazu, wenn wirklich Platz ist. Die Zahl in der Überschrift
+ * zählt ohnehin alle offenen Partien, und im Raster darunter hat jede
+ * ihren Ring.
+ */
+.now-row > .now-more:nth-child(n+3) { display: none; }
+@media (max-width: 340px) { .now-row > .now-more { display: none; } }
+@media (min-width: 390px) { .now-row > .now-more:nth-child(3) { display: grid; } }
+@media (min-width: 430px) { .now-row > .now-more:nth-child(4) { display: grid; } }
+
+/* ── Das Raster ────────────────────────────────────────── */
 
 .game-grid {
   display: grid;
@@ -1312,23 +1368,15 @@
   grid-auto-rows: 1fr;
   gap: 8px;
 }
-/* Das Raster ist das Einzige, was mitwächst und mitschrumpft. */
+/* Das Raster ist das Einzige, was mitwächst. Der Boden von 58 px ist die
+   Zusicherung aus dem Dateikopf: keine Briefmarken, egal was oben passiert. */
 .screen[data-screen='games'] .game-grid {
   flex: 1 1 auto;
   min-height: 0;
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: minmax(58px, 1fr);
 }
 .screen[data-screen='games'] .game-tile { min-height: 0; overflow: hidden; }
 
-/* Kurze Bildschirme: erst die Nebensache weg, dann die Unterzeile. */
-@media (max-height: 780px) {
-  .screen[data-screen='games'] .arena { display: none; }
-  .screen[data-screen='games'] .section-label { margin: 12px 4px 7px; }
-}
-@media (max-height: 680px) {
-  .screen[data-screen='games'] .game-tile-s { display: none; }
-  .screen[data-screen='games'] .subtitle { display: none; }
-}
 .game-tile {
   position: relative;
   display: flex;
@@ -1340,10 +1388,13 @@
   background: var(--surface);
   box-shadow: var(--card-shadow);
   text-align: left;
-  transition: transform var(--t-fast) var(--spring-pop);
+  transition: transform var(--t-fast) var(--spring-pop), box-shadow var(--t-med);
 }
 .game-tile:active { transform: scale(.96); }
 .game-tile .grow { min-width: 0; }
+/* Wer auf dich wartet, bekommt einen Rand — so sieht man im Raster alle
+   offenen Partien auf einen Blick, nicht nur die aus der Wartezeile. */
+.game-tile.is-wait { box-shadow: var(--card-shadow), inset 0 0 0 2px var(--accent); }
 .game-tile-e {
   display: grid;
   place-items: center;
@@ -1383,4 +1434,39 @@
   border-radius: 50%;
 }
 .game-dot.off { background: var(--ink-3); opacity: .45; }
+.game-dot.wait { background: var(--accent); }
 .game-dot.live { background: var(--grow); animation: breathe 1.6s ease-in-out infinite; }
+
+/* ── Weniger Platz? In dieser Reihenfolge wird gespart. ── */
+
+/* Der Kräftevergleich ist Beiwerk und geht zuerst. */
+@media (max-height: 800px) {
+  .screen[data-screen='games'] .arena { display: none; }
+}
+/**
+ * Ein Banner schiebt den Inhalt um seine volle Höhe nach unten — über
+ * hundert Pixel. Auf dieser Seite gibt dafür die Kopfzeile ihren Platz her:
+ * Solange eine Benachrichtigung steht, ist sie das Wichtigste auf dem
+ * Bildschirm, und das Wort „Spiele“ das Entbehrlichste. So bleibt das
+ * Raster stehen, statt zusammenzufallen.
+ */
+.has-banner .screen[data-screen='games'] .games-head { display: none; }
+.has-banner .screen[data-screen='games'] .arena { display: none; }
+/* Auf sehr kurzen Bildschirmen reicht das noch nicht. Dann geht auch die
+   Wartezeile: Das Banner sagt bereits, was ansteht, und hat den Knopf
+   dazu — beides gleichzeitig wäre dieselbe Ansage zweimal. Darüber bleibt
+   sie stehen, sonst spränge das Raster bei jeder Benachrichtigung. */
+@media (max-height: 640px) {
+  .has-banner .screen[data-screen='games'] .now-row,
+  .has-banner .screen[data-screen='games'] .section-label { display: none; }
+  .has-banner .screen[data-screen='games'] .game-grid { margin-top: 2px; }
+}
+
+@media (max-height: 700px) {
+  .screen[data-screen='games'] .subtitle { display: none; }
+  .screen[data-screen='games'] .section-label { margin: 11px 4px 6px; }
+}
+/* Zuletzt die Unterzeile der Kacheln — der Titel allein trägt noch. */
+@media (max-height: 620px) {
+  .screen[data-screen='games'] .game-tile-s { display: none; }
+}

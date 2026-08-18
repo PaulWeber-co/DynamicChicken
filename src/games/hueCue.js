@@ -210,10 +210,12 @@ export function handleRemote(state, msg, { partnerName }) {
 
 export function summary(state) {
   const g = hg(state);
+  // Der Hinweis selbst steht nicht hier: Er ist beliebig lang und würde in
+  // der Kachel abgeschnitten. Im Spiel steht er groß genug.
   if (g.cur && g.turn === 'them' && g.cur.guess == null) {
-    return { badge: 'wait', text: `„${g.cur.clue}“ — du suchst` };
+    return { badge: 'wait', text: 'Farbe suchen' };
   }
-  if (g.cur && g.turn === 'me') return { badge: 'off', text: 'Wartet auf den Tipp' };
+  if (g.cur && g.turn === 'me') return { badge: 'off', text: 'Wartet auf Tipp' };
   // „Du bist dran“ heißt: drüben wartet jemand. Ein Spiel, das noch nie
   // gelaufen ist, wartet auf niemanden — es steht einfach bereit.
   if (g.turn === 'me') {
@@ -222,7 +224,7 @@ export function summary(state) {
       : { badge: null, text: 'Du fängst an' };
   }
   return g.hist.length
-    ? { badge: null, text: `${g.score.me} Punkte zusammen` }
+    ? { badge: null, text: `${g.score.me} Punkte` }
     : { badge: null, text: 'Neu' };
 }
 

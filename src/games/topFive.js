@@ -251,18 +251,18 @@ export function handleRemote(state, msg, { partnerName }) {
 
 export function summary(state) {
   const g = tf(state);
-  if (g.cur?.by === 'them' && !g.cur.items) return { badge: 'wait', text: 'Fünf Antworten fehlen' };
+  if (g.cur?.by === 'them' && !g.cur.items) return { badge: 'wait', text: 'Fünf Antworten' };
   if (g.cur?.by === 'me' && g.cur.items) return { badge: 'wait', text: 'Reihenfolge raten' };
   if (g.cur) return { badge: 'off', text: 'Unterwegs' };
   // „Du bist dran“ heißt: drüben wartet jemand. Ein Spiel, das noch nie
   // gelaufen ist, wartet auf niemanden — es steht einfach bereit.
   if (g.turn === 'me') {
     return g.hist.length
-      ? { badge: 'wait', text: 'Du gibst die Kategorie' }
+      ? { badge: 'wait', text: 'Du gibst vor' }
       : { badge: null, text: 'Du fängst an' };
   }
   return g.hist.length
-    ? { badge: null, text: `${g.score.me} Punkte zusammen` }
+    ? { badge: null, text: `${g.score.me} Punkte` }
     : { badge: null, text: 'Neu' };
 }
 

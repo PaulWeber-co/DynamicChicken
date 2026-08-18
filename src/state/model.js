@@ -10,7 +10,8 @@
 import { defaultLook } from '../pet/chicken.js';
 import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
-export const SCHEMA_VERSION = 3;
+
+export const SCHEMA_VERSION = 4;
 
 /** Verfall pro Stunde, wach. */
 const DECAY = { energy: 4.6, clean: 3.2, joy: 4.0 };
@@ -112,10 +113,6 @@ export function addBondXp(state, amount) {
 /* ── Simulation ─────────────────────────────────────────── */
 
 /**
- * Holt die Statuswerte auf „jetzt“ nach.
- * @returns {{hours:number, wokeUp:boolean}} was in der Pause passiert ist
- */
-/**
  * Höchstens so viele Stunden werden nachgeholt.
  *
  * Wer zwei Wochen nicht reinschaut, soll kein totes Huhn vorfinden. Das
@@ -125,6 +122,10 @@ export function addBondXp(state, amount) {
  */
 const MAX_CATCHUP_HOURS = 10;
 
+/**
+ * Holt die Statuswerte auf „jetzt“ nach.
+ * @returns {{hours:number, wokeUp:boolean}} was in der Pause passiert ist
+ */
 export function tickPet(pet, t = Date.now()) {
   const last = pet.lastTick || t;
   const hours = Math.min(MAX_CATCHUP_HOURS, Math.max(0, (t - last) / HOUR));
@@ -256,6 +257,14 @@ const STEPS = {
     if (s.me?.pet?.stats) delete s.me.pet.stats.full;
     if (s.partner?.pet?.stats) delete s.partner.pet.stats.full;
     if (Array.isArray(s.feed)) s.feed = s.feed.filter((f) => f?.type !== 'feed');
+  },
+
+  // Vier Spiele sind raus: Ei-Duell, Feder-Memory, Gefühls-Duett und
+  // Federpoker. Ihre Spielstände blieben sonst als toter Ballast liegen und
+  // zählten in `games` weiter mit.
+  4: (s) => {
+    if (!s.games) return;
+    for (const id of ['egg', 'memo', 'duett', 'poker']) delete s.games[id];
   }
 };
 

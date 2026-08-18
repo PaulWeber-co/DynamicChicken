@@ -115,7 +115,7 @@ export function handleRemote(state, msg, { partnerName }) {
 
 export function summary(state) {
   const g = dd(state);
-  if (g.pending?.from === 'them') return { badge: 'wait', text: 'Ein Kritzel wartet' };
+  if (g.pending?.from === 'them') return { badge: 'wait', text: 'Kritzel wartet' };
   if (g.pending?.from === 'me') return { badge: 'off', text: 'Unterwegs' };
   return { badge: null, text: g.hist.length ? `${g.hits}/${g.hist.length} erraten` : 'Neu' };
 }
