@@ -7,7 +7,7 @@
  *
  * Zwei Familien:
  *   glyph  Strichzeichnungen in currentColor — Navigation und Bedienelemente
- *   art    kleine farbige Illustrationen — Futter, Stimmungen, Spiele
+ *   art    kleine farbige Illustrationen — Stimmungen, Spiele, Dinge
  *
  * Benutzung:  icon('corn', { size: 28 })
  */
@@ -112,13 +112,6 @@ const ICONS = {
     <circle cx="16" cy="16" r="4.6" fill="var(--surface, #fff)"/>`,
 
   /* ── Pflege ──────────────────────────────────────────── */
-  careFeed: () => `
-    <path d="M8 15h16a1 1 0 0 1 1 1.2l-1.4 6.2a4 4 0 0 1-3.9 3.1h-7.4a4 4 0 0 1-3.9-3.1L7 16.2A1 1 0 0 1 8 15z" fill="${C.wood}"/>
-    <path d="M7.6 15h16.8" stroke="${C.woodD}" stroke-width="2" stroke-linecap="round"/>
-    <ellipse cx="13" cy="12.4" rx="2" ry="2.9" fill="${C.yolk}" transform="rotate(-16 13 12.4)"/>
-    <ellipse cx="17.4" cy="11.4" rx="2" ry="2.9" fill="${C.yolkD}" transform="rotate(8 17.4 11.4)"/>
-    <ellipse cx="20.8" cy="12.8" rx="1.7" ry="2.5" fill="${C.yolk}" transform="rotate(22 20.8 12.8)"/>`,
-
   careWash: () => `
     <circle cx="12" cy="18" r="6" fill="${C.sky}" opacity=".55"/>
     <circle cx="21" cy="13" r="4.4" fill="${C.sky}" opacity=".7"/>
@@ -141,13 +134,12 @@ const ICONS = {
     <path d="M21.6 21.4c2.6-2.3 5-4.4 5-7.3 0-2.1-1.6-3.7-3.5-3.7-.6 0-1.2 .1-1.7 .4 1 1 1.6 2.4 1.6 4 0 2.3-1.1 4-2.6 5.6l1.2 1z" fill="${C.roseL}"/>`,
 
   /* ── Statuswerte ─────────────────────────────────────── */
-  statFull: () => ICONS.corn(),
   statEnergy: () => `<path d="M18 3 8 18h6l-2 11 12-16h-7l1-10z" fill="${C.yolk}" stroke="${C.yolkD}" stroke-width="1.2" stroke-linejoin="round"/>`,
   statClean: () => `<path d="M16 4c5 6.6 8 10.6 8 14.2A8 8 0 0 1 8 18.2C8 14.6 11 10.6 16 4z" fill="${C.sky}"/>
                     <path d="M12.4 18.6a3.6 3.6 0 0 0 2.6 3.4" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".8"/>`,
   statJoy: () => `<path d="M16 27C9 21.6 4.4 18 4.4 12.9 4.4 9 7.4 6.2 11 6.2c2 0 3.9 1 5 2.5 1.1-1.5 3-2.5 5-2.5 3.6 0 6.6 2.8 6.6 6.7C27.6 18 23 21.6 16 27z" fill="${C.rose}"/>`,
 
-  /* ── Futter ──────────────────────────────────────────── */
+  /* ── Dinge ───────────────────────────────────────────── */
   corn: () => `
     <path d="M16 3.6c4 0 6.6 4.4 6.6 10.4S19.4 27.4 16 27.4 9.4 20 9.4 14 12 3.6 16 3.6z" fill="${C.yolk}"/>
     <path d="M16 3.6c4 0 6.6 4.4 6.6 10.4S19.4 27.4 16 27.4c1.6-3.4 2.4-8 2.4-11.9 0-4-.8-8.4-2.4-11.9z" fill="${C.yolkD}" opacity=".55"/>
@@ -186,13 +178,6 @@ const ICONS = {
     <path d="M6 13c0-4 4.4-6 10-6s10 2 10 6c0 2-4.4 3-10 3S6 15 6 13z" fill="${C.wood}"/>
     <path d="M11 11.4c1-1.4 3-2 5-2M18.6 9.8c1.4.2 2.6.8 3.4 1.6" stroke="${C.woodD}" stroke-width="1.3"
       fill="none" stroke-linecap="round" opacity=".55"/>`,
-
-  smoothie: () => `
-    <path d="M9 11h14l-1.6 14.4a3 3 0 0 1-3 2.6h-4.8a3 3 0 0 1-3-2.6L9 11z" fill="${C.roseL}" opacity=".85"/>
-    <path d="M8.4 9.6h15.2a1.2 1.2 0 0 1 0 2.4H8.4a1.2 1.2 0 0 1 0-2.4z" fill="${C.rose}"/>
-    <path d="M19.4 9 22 2.6" stroke="${C.leafD}" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="14" cy="17" r="1.4" fill="#fff" opacity=".5"/>
-    <circle cx="18" cy="21" r="1" fill="#fff" opacity=".4"/>`,
 
   coffee: () => `
     <path d="M6 11h16v9a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6v-9z" fill="${C.white}"/>
@@ -423,6 +408,11 @@ const ICONS = {
     <path d="M10.8 15.2c1.6 2.6 8.8 2.6 10.4 0 .6 3.2-2.1 5.2-5.2 5.2s-5.8-2-5.2-5.2z" fill="${C.cocoa}"/>
     <path d="M12.6 16.6h6.8c-.5 1-1.7 1.6-3.4 1.6s-2.9-.6-3.4-1.6z" fill="${C.rose}"/>
     <rect x="7.4" y="22.4" width="17.2" height="2.4" rx="1.2" fill="#fff" opacity=".85"/>`,
+  gameSpark: () => `<path d="M12.4 25.6C7.4 21.4 4.4 18.8 4.4 15.2c0-2.9 2.3-5.2 5.2-5.2 1.6 0 3.2.8 4.2 2 1-1.2 2.6-2 4.2-2 2.9 0 5.2 2.3 5.2 5.2 0 3.6-3 6.2-8 10.4l-1.4 1.2z" fill="${C.rose}"/>
+    <path d="M14.6 13.6c1-1.2 2.6-2 4.2-2 2.9 0 5.2 2.3 5.2 5.2 0 2.6-1.6 4.6-4 6.8 3.4-3.4 4.6-5.4 4.6-7.6 0-1.9-1.2-3.4-2.9-3.4-.8 0-1.6.3-2.2.8z" fill="${C.roseD}" opacity=".5"/>
+    <path d="M24.6 3.4l1.1 3.1 3.1 1.1-3.1 1.1-1.1 3.1-1.1-3.1L20.4 7.6l3.1-1.1z" fill="${C.yolk}"/>
+    <path d="M7.4 4.6l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" fill="${C.lav}"/>
+    <circle cx="27.4" cy="16.6" r="1.5" fill="${C.yolkL}"/>`,
   gameTop5: () => `<rect x="3.6" y="4.4" width="24.8" height="23.2" rx="3.6" fill="${C.cream}"/>
     <circle cx="9.4" cy="9.8" r="2.6" fill="${C.yolk}"/>
     <rect x="14" y="8.3" width="11.6" height="3" rx="1.5" fill="${C.yolkD}"/>
@@ -493,6 +483,56 @@ const ICONS = {
   accWings: () => `<path d="M15 22Q6 15 4 5q9 2 13 8 3 4 2.6 9z" fill="#FFFCF4" stroke="#E0D0B6" stroke-width="1.2"/>
     <path d="M17 22Q26 15 28 5q-9 2-13 8-3 4-2.6 9z" fill="#FFFCF4" stroke="#E0D0B6" stroke-width="1.2"/>
     <path d="M13.6 18Q8 13 6.4 7M18.4 18Q24 13 25.6 7" fill="none" stroke="#E8DAC2" stroke-width="1.2"/>`,
+
+  /* ── Neue Hüte ───────────────────────────────────────── */
+  hatBeret: () => `<ellipse cx="15" cy="16.6" rx="10.6" ry="4.4" fill="#C1444F" transform="rotate(-7 15 16.6)"/>
+    <path d="M4.6 17.4q10.4 4 21 -1 .8 2.4-1 3.6-9 3.6-18.4.6-2.4-1-1.6-3.2z" fill="#A63741"/>
+    <circle cx="14.4" cy="10.4" r="1.7" fill="#8E2F38"/>`,
+  hatSanta: () => `<path d="M6.6 18.6c0-5.4 4.4-8.6 9.4-8.6 5.4 0 9.4 3.4 9.8 7.2.2 2.2-1.6 3.2-3.4 2.2-2.6-1.2-4.2.6-6.6.4z" fill="#E4515F"/>
+    <rect x="5" y="17.6" width="22" height="4" rx="2" fill="#FFF8EC"/>
+    <circle cx="26" cy="15.4" r="2.6" fill="#FFF8EC"/>`,
+  hatTop: () => `<ellipse cx="16" cy="22.4" rx="12" ry="2.6" fill="#2A2833"/>
+    <rect x="10" y="6" width="12" height="16.4" fill="#38343F"/>
+    <rect x="10" y="15.4" width="12" height="3.4" fill="#7C6BAE"/>
+    <ellipse cx="16" cy="6" rx="6" ry="2" fill="#453F52"/>`,
+  hatEars: () => `<path d="M7.6 21 10 5.4l8.4 8.6z" fill="#3A3038"/>
+    <path d="M24.4 21 22 5.4l-8.4 8.6z" fill="#3A3038"/>
+    <path d="M10.4 18.6 11.8 10l4.6 4.6z" fill="${C.roseL}"/>
+    <path d="M21.6 18.6 20.2 10l-4.6 4.6z" fill="${C.roseL}"/>
+    <path d="M6.6 19.6q9.4-3 18.8 0" stroke="#2C242F" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  hatPirate: () => `<path d="M5 20q1.6-10.6 11-10.6T27 20q-5.4 2.4-11 2.4T5 20z" fill="#2E2833"/>
+    <path d="M3.6 19q6.4 3.6 12.4 3.6T28.4 19q1.4 2.4-1.4 4-5.4 2.4-11 2.4T5 23q-2.8-1.6-1.4-4z" fill="#1F1B24"/>
+    <circle cx="16" cy="14.4" r="3.2" fill="${C.cream}"/>
+    <circle cx="14.8" cy="13.8" r=".8" fill="#2E2833"/><circle cx="17.2" cy="13.8" r=".8" fill="#2E2833"/>
+    <path d="M14.4 16.6h3.2" stroke="#2E2833" stroke-width="1" stroke-linecap="round"/>`,
+  hatViking: () => `<path d="M7.6 14Q1.6 13.4.6 7.4q4.4.8 7 3.6z" fill="${C.cream}" stroke="#E0CBA6" stroke-width="1"/>
+    <path d="M24.4 14q6-.6 7-6.6-4.4.8-7 3.6z" fill="${C.cream}" stroke="#E0CBA6" stroke-width="1"/>
+    <path d="M7.6 19.6c0-5.4 4-8.6 8.4-8.6s8.4 3.2 8.4 8.6z" fill="#A3B4C6"/>
+    <rect x="6" y="18.4" width="20" height="3.4" rx="1.7" fill="#8194A8"/>
+    <path d="M15 13h2v8.4h-2z" fill="#8DA0B4"/>`,
+
+  /* ── Neue Accessoires ────────────────────────────────── */
+  accSuspenders: () => `<path d="M11 7Q8.4 16 9.4 25" stroke="#7C5A3E" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M21 7q2.6 9 1.6 18" stroke="#7C5A3E" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="7.4" y="24" width="4.4" height="3.4" rx="1.2" fill="#D9C08A"/>
+    <rect x="20.2" y="24" width="4.4" height="3.4" rx="1.2" fill="#D9C08A"/>`,
+  accHeartSpecs: () => `<path d="M11 20c-4.4-3-6.4-5-6.4-7.4 0-1.8 1.4-3.2 3.2-3.2 1.4 0 2.6.7 3.2 1.8.6-1.1 1.8-1.8 3.2-1.8 1.8 0 3.2 1.4 3.2 3.2 0 2.4-2 4.4-6.4 7.4z" fill="#FF9EC0" opacity=".6" stroke="#E0537F" stroke-width="1.6"/>
+    <path d="M23 20c-4.4-3-6.4-5-6.4-7.4 0-1.8 1.4-3.2 3.2-3.2 1.4 0 2.6.7 3.2 1.8.6-1.1 1.8-1.8 3.2-1.8 1.8 0 3.2 1.4 3.2 3.2 0 2.4-2 4.4-6.4 7.4z" fill="#FF9EC0" opacity=".6" stroke="#E0537F" stroke-width="1.6"/>`,
+  accMedal: () => `<path d="M11 6 16 17h-2.6L9 7.4z" fill="${C.sky}"/>
+    <path d="M21 6 16 17h2.6L23 7.4z" fill="${C.rose}"/>
+    <circle cx="16" cy="22" r="6.4" fill="${C.yolk}" stroke="${C.yolkD}" stroke-width="1.6"/>
+    <path d="M16 18.2l1.3 2.8 3 .4-2.2 2.2.6 3-2.7-1.4-2.7 1.4.6-3-2.2-2.2 3-.4z" fill="${C.yolkD}"/>`,
+  accRobe: () => `<path d="M9 7q3.4 5.4 7 5.4T23 7q2.6 2 3 5.4-4 7-10 7t-10-7Q6.4 9 9 7z" fill="#EDE6F7"/>
+    <path d="M9 7q3.4 5.4 7 5.4T23 7l2 1.6q-4.4 6.4-9 6.4T7 8.6z" fill="#DCD2ED"/>
+    <path d="M5.4 18q4.6 2 10.6 2t10.6-2" stroke="#A9C7E8" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+  accBoa: () => `<circle cx="7" cy="13" r="3.4" fill="#F6C9DC"/><circle cx="12" cy="15.4" r="4" fill="#F6C9DC"/>
+    <circle cx="17.4" cy="15.8" r="4" fill="#F6C9DC"/><circle cx="23" cy="13.6" r="3.6" fill="#F6C9DC"/>
+    <circle cx="9.6" cy="19.4" r="3.2" fill="#F6C9DC"/><circle cx="15" cy="20.6" r="3.4" fill="#F6C9DC"/>
+    <circle cx="20.6" cy="19.4" r="3.2" fill="#F6C9DC"/>
+    <circle cx="11.4" cy="15.4" r="2" fill="#FFE1EE"/><circle cx="18.4" cy="16.4" r="2" fill="#FFE1EE"/>`,
+  accChoker: () => `<path d="M6.6 11.4q9.4 4.4 18.8 0 .8 2.4 0 4-9.4 4.4-18.8 0-.8-1.6 0-4z" fill="#241F2B"/>
+    <circle cx="16" cy="19.4" r="3" fill="none" stroke="#D9C08A" stroke-width="1.8"/>
+    <circle cx="16" cy="16" r="1.4" fill="#D9C08A"/>`,
   hatNone: () => `<circle cx="16" cy="16" r="10.4" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>
     <path d="M9 23 23 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35"/>`,
   hatBeanie: () => `<path d="M6.6 19c0-5.4 4.2-9.6 9.4-9.6s9.4 4.2 9.4 9.6z" fill="${C.sky}"/>

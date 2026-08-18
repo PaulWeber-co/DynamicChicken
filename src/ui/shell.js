@@ -62,6 +62,10 @@ export function go(tabId, { replace = false, fromHash = false } = {}) {
   cleanup = null;
   currentTab = tab.id;
 
+  // Der Tab steht am Element, damit das Stylesheet einzelne Screens anders
+  // behandeln kann — die Spiele-Seite etwa passt sich der Fensterhöhe an,
+  // statt zu scrollen.
+  screenEl.dataset.screen = tab.id;
   screenEl.classList.remove('screen-enter');
   void screenEl.offsetWidth;
   screenEl.classList.add('screen-enter');

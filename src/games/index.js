@@ -25,10 +25,11 @@ import * as hueCue from './hueCue.js';
 import * as poker from './poker.js';
 import * as meme from './meme.js';
 import * as topFive from './topFive.js';
+import * as kribbeln from './kribbeln.js';
 
 export const GAMES = [
   grainRush, featherFlight, eggDuel, nestTower, doodle,
-  topFive, meme, hueCue, poker, moodMatch, memory
+  topFive, meme, kribbeln, hueCue, poker, moodMatch, memory
 ];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
 

@@ -10,12 +10,10 @@
 import { defaultLook } from '../pet/chicken.js';
 import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
-import { STARTER_INVENTORY } from './catalog.js';
-
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** Verfall pro Stunde, wach. */
-const DECAY = { full: 6.5, energy: 4.6, clean: 3.2, joy: 4.0 };
+const DECAY = { energy: 4.6, clean: 3.2, joy: 4.0 };
 /** Erholung pro Stunde, schlafend. */
 const SLEEP_GAIN = { energy: 19, joy: 1.2 };
 
@@ -34,7 +32,6 @@ export function createState() {
       tz: guessTz(),
       pet: newPet('Knuddl', 0, t),
       coins: 60,
-      inv: { ...STARTER_INVENTORY },
       owned: { hat: ['none'], acc: ['none'] },
       mood: null,
       activity: null,
@@ -77,7 +74,7 @@ export function newPet(name = 'Knuddl', seed = 0, t = Date.now()) {
   return {
     name,
     look: defaultLook(seed),
-    stats: { full: 78, energy: 84, clean: 88, joy: 82 },
+    stats: { energy: 84, clean: 88, joy: 82 },
     xp: 0,
     level: 1,
     born: t,
@@ -118,9 +115,19 @@ export function addBondXp(state, amount) {
  * Holt die Statuswerte auf „jetzt“ nach.
  * @returns {{hours:number, wokeUp:boolean}} was in der Pause passiert ist
  */
+/**
+ * Höchstens so viele Stunden werden nachgeholt.
+ *
+ * Wer zwei Wochen nicht reinschaut, soll kein totes Huhn vorfinden. Das
+ * wäre Schuldgefühl statt Freude — und seit das Füttern raus ist, gäbe es
+ * nicht einmal einen schnellen Weg zurück. Nach einer langen Pause sieht
+ * Knuddl aus wie nach einer durchgemachten Nacht, mehr nicht.
+ */
+const MAX_CATCHUP_HOURS = 10;
+
 export function tickPet(pet, t = Date.now()) {
   const last = pet.lastTick || t;
-  const hours = Math.max(0, (t - last) / HOUR);
+  const hours = Math.min(MAX_CATCHUP_HOURS, Math.max(0, (t - last) / HOUR));
   pet.lastTick = t;
   if (hours <= 0) return { hours: 0, wokeUp: false };
 
@@ -130,8 +137,6 @@ export function tickPet(pet, t = Date.now()) {
   if (pet.asleep) {
     s.energy = clamp100(s.energy + SLEEP_GAIN.energy * hours);
     s.joy = clamp100(s.joy + SLEEP_GAIN.joy * hours);
-    // Hunger läuft im Schlaf langsamer weiter
-    s.full = clamp100(s.full - DECAY.full * 0.45 * hours);
     s.clean = clamp100(s.clean - DECAY.clean * 0.3 * hours);
     if (s.energy >= 100) {
       pet.asleep = false;
@@ -139,13 +144,11 @@ export function tickPet(pet, t = Date.now()) {
       wokeUp = true;
     }
   } else {
-    s.full = clamp100(s.full - DECAY.full * hours);
     s.energy = clamp100(s.energy - DECAY.energy * hours);
     s.clean = clamp100(s.clean - DECAY.clean * hours);
 
     // Vernachlässigung schlägt auf die Laune
     let joyDrain = DECAY.joy;
-    if (s.full < 25) joyDrain += 3.5;
     if (s.clean < 25) joyDrain += 2.5;
     if (s.energy < 20) joyDrain += 2.0;
     s.joy = clamp100(s.joy - joyDrain * hours);
@@ -157,7 +160,7 @@ export function tickPet(pet, t = Date.now()) {
 /** Gesamtzustand 0–100, für Level-Boni und die „Turnierform“. */
 export function wellbeing(pet) {
   const s = pet.stats;
-  return Math.round((s.full + s.energy + s.clean + s.joy) / 4);
+  return Math.round((s.energy + s.clean + s.joy) / 3);
 }
 
 /** Kampfkraft fürs Duell: gepflegte Hühner sind fitter. */
@@ -170,7 +173,6 @@ export function urgentNeed(pet) {
   if (pet.asleep) return null;
   const s = pet.stats;
   const needs = [
-    { key: 'full',   v: s.full,   icon: 'statFull',  text: 'hat Hunger' },
     { key: 'energy', v: s.energy, icon: 'careSleep', text: 'ist müde' },
     { key: 'clean',  v: s.clean,  icon: 'careWash',  text: 'braucht ein Bad' },
     { key: 'joy',    v: s.joy,    icon: 'carePlay',  text: 'langweilt sich' }
@@ -231,7 +233,30 @@ export function pushFeed(state, entry) {
 const STEPS = {
   // Herzschlag ist raus — die Vibration war auf zu vielen Geräten still.
   // Der Spielstand bliebe sonst als toter Ballast liegen.
-  2: (s) => { if (s.games) delete s.games.beat; }
+  2: (s) => { if (s.games) delete s.games.beat; },
+
+  // Füttern ist raus. Der Kühlschrank war eine Pflicht, kein Vergnügen —
+  // und ein Huhn, das verhungert, während man arbeitet, macht Druck statt
+  // Freude. Übriges Futter wird zu Körnern, damit niemand das Gefühl hat,
+  // dass ihm etwas weggenommen wurde. Der Satt-Balken verschwindet mit.
+  3: (s) => {
+    const PREISE = {
+      korn: 4, wurm: 7, beeren: 9, salat: 6, brot: 5,
+      smoothie: 14, kaffee: 12, suppe: 19, kuchen: 17, pizza: 23
+    };
+    const inv = s.me?.inv;
+    if (inv && typeof inv === 'object') {
+      let zurueck = 0;
+      for (const [id, n] of Object.entries(inv)) {
+        zurueck += (PREISE[id] || 4) * Math.max(0, Math.min(999, Number(n) || 0));
+      }
+      if (zurueck > 0 && s.me) s.me.coins = (Number(s.me.coins) || 0) + zurueck;
+    }
+    if (s.me) delete s.me.inv;
+    if (s.me?.pet?.stats) delete s.me.pet.stats.full;
+    if (s.partner?.pet?.stats) delete s.partner.pet.stats.full;
+    if (Array.isArray(s.feed)) s.feed = s.feed.filter((f) => f?.type !== 'feed');
+  }
 };
 
 /** Vor einem Umbau eine Kopie wegschreiben — einmal, nicht bei jedem Start. */
@@ -270,7 +295,6 @@ export function migrate(raw) {
     hat: Array.from(new Set(['none', ...(raw.me?.owned?.hat || [])])),
     acc: Array.from(new Set(['none', ...(raw.me?.owned?.acc || [])]))
   };
-  s.me.inv = { ...(raw.me?.inv || {}) };
   s.settings = { ...base.settings, ...(raw.settings || {}) };
   s.bond = { ...base.bond, ...(raw.bond || {}) };
   s.pair = { ...base.pair, ...(raw.pair || {}) };

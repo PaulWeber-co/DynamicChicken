@@ -96,7 +96,7 @@ nötig, gegen Störer schon.
 
 ## Spiele
 
-Elf Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
+Zwölf Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
 sein. Die Runde kommt aus einem Seed, den beide Geräte allein aus dem
 Paar-Code berechnen: gleiche Karten, gleiche Farben, gleicher Zaun, ohne
 Server und ohne Schiedsrichter.
@@ -110,14 +110,19 @@ Server und ohne Schiedsrichter.
 | **Kritzel-Telefon** | Du malst ein Wort, drüben wird geraten |
 | **Top Fünf** | Kategorie vorgeben, fünf Antworten sortieren, Reihenfolge erraten |
 | **Meme-Duell** | Du schreibst den Satz, der andere findet das Bild |
+| **Kribbeln** | Sechs Wünsche, beide kreuzen heimlich an, sichtbar wird nur der Treffer |
 | **Farbfunk** | Ein einziges Wort zu einer Farbe — findet der andere sie? |
 | **Federpoker** | Fünf Karten, einmal tauschen, beste Hand |
 | **Gefühls-Duett** | Beide raten, wie es dem anderen geht |
 | **Feder-Memory** | Acht Paare, identisches Blatt für beide |
 
-Die Übersicht ist zweistufig: oben steht groß, was gerade auf dich wartet,
-darunter liegen alle Spiele als Raster. Elf Duelle passen so auf gut einen
-Bildschirm statt auf drei.
+**Die Übersicht scrollt nicht.** Weder hoch noch zur Seite — alle zwölf
+Spiele sind gleichzeitig sichtbar. Oben stehen als Zeile die höchstens drei,
+die gerade auf dich warten (und nennen die Aufgabe vor dem Spielnamen:
+„Du gibst den Hinweis“ statt „Farbfunk“), darunter liegt ein Raster, das
+sich den restlichen Platz nimmt und seine Zeilen gleichmäßig verteilt. Auf
+kurzen Bildschirmen verschwinden zuerst der Kräftevergleich, dann die
+Unterzeilen — gescrollt wird nie.
 
 **Top Fünf** ist Top Ten in klein. Einer gibt eine Kategorie vor („Dinge, um
 sich von der Titanic zu retten“), der andere schreibt fünf Antworten und
@@ -137,13 +142,23 @@ wird. Bilder brauchen den Cloud-Modus; als Brieftauben-Code wären sie eine
 Textwand, die durch keinen Messenger passt. Das Spiel sagt das offen, statt
 still nichts zu tun.
 
+**Kribbeln** ist das freizügige Spiel und benimmt sich entsprechend
+vorsichtig. Jede Runde legt die App sechs Wünsche auf den Tisch, beide
+kreuzen für sich Ja, Vielleicht oder Nein an. Aufgedeckt wird ausschließlich,
+wo ihr euch trefft — was einer weglässt, taucht nirgends auf, auch nicht als
+„einer wollte nicht“. Man kann also etwas ankreuzen, das man sich nie
+getraut hätte auszusprechen: Sagt der andere Nein, hat man es nie gesagt.
+Treffer landen auf einer gemeinsamen Liste fürs nächste Wiedersehen. Drei
+Hitzegrade, jeder mischt die milderen mit; die oberste gibt es nur mit
+eingeschalteten freizügigen Inhalten.
+
 **Federpoker ohne Schiedsrichter:** Feste Plätze im gemischten Stapel
 trennen die Blätter — Karten 0–4 für den einen, 5–9 für den anderen, 10–19
 zum Nachziehen. Keiner kann die Karten des anderen beeinflussen, und beide
 rechnen unabhängig dasselbe Ergebnis aus. Übertragen wird nur, welche
 Karten getauscht wurden.
 
-**Hängt eine Runde?** Bei Top Fünf, Meme-Duell und Farbfunk wirft ein Knopf
+**Hängt eine Runde?** Bei Top Fünf, Meme-Duell, Kribbeln und Farbfunk wirft ein Knopf
 im Spiel die Runde weg — auf beiden Geräten, mit sauber weitergereichtem
 Zug. Ei-Duell gleicht beim Öffnen automatisch ab und holt verpasste Züge
 nach; hilft das nicht, startet ein Knopf die Partie neu. Beim
@@ -151,10 +166,27 @@ Kritzel-Telefon ersetzt ein neues Bild eine liegen gebliebene Zeichnung.
 
 ## Anziehen
 
-14 Hüte und 15 Accessoires, dazu 15 Gefiederfarben, 9 Bauchtöne, 8
-Kammfarben in 6 Formen, 5 Augenpaare und ein Regler für die Leibesfülle.
-Vom Fischerhut über Häschenohren bis Catsuit und Engelsflügeln — manches
-kauft man, manches schaltet euer gemeinsames Bond-Level frei.
+20 Hüte und 21 Accessoires, dazu 19 Gefiederfarben, 11 Bauchtöne, 10
+Kammfarben in 6 Formen, 5 Schnabel- und Fußfarben, 4 Federmuster, 5
+Augenpaare, Sommersprossen und ein Regler für die Leibesfülle. Vom
+Fischerhut über Katzenohren und Wikingerhelm bis Catsuit und Engelsflügeln
+— manches kauft man, manches schaltet euer gemeinsames Bond-Level frei.
+
+Das Federmuster liegt als beschnittene Schicht über Rumpf und Kopf, ist
+also unabhängig von der Grundfarbe: getupft, gestreift oder gescheckt geht
+mit jedem Gefieder.
+
+## Kein Füttern
+
+Ein Huhn, das verhungert, während man arbeitet, macht Druck statt Freude —
+und der Kühlschrank war eine Pflicht, kein Vergnügen. Beides ist raus,
+samt Futter im Laden und dem Satt-Balken. Übrig gebliebenes Futter aus
+alten Spielständen wird beim ersten Start in Körner umgerechnet.
+
+Geblieben sind Waschen, Schlafen, Spielen und Knuddeln. Und weil danach
+niemand mehr schnell etwas nachschieben kann, holt Knuddl höchstens zehn
+Stunden Verfall auf einmal nach: Nach zwei Wochen Pause sieht er aus wie
+nach einer durchgemachten Nacht — nicht wie tot.
 
 ## Frage des Tages
 

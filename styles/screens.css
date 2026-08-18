@@ -439,25 +439,6 @@
 
 /* ── Laden ─────────────────────────────────────────────── */
 
-.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shop-item { padding: 14px 12px; text-align: center; }
-.shop-item.poor { opacity: .62; }
-.shop-e { display: grid; place-items: center; height: 38px; }
-.shop-t { font-size: 14.5px; font-weight: 800; margin-top: 6px; }
-.shop-s { font-size: 11.5px; color: var(--ink-3); min-height: 28px; margin-top: 2px; line-height: 1.25; }
-.shop-eff { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 6px 0 10px; }
-.shop-eff span {
-  font-size: 10.5px;
-  font-weight: 750;
-  padding: 3px 7px;
-  border-radius: var(--r-full);
-  background: var(--surface-sunk);
-  color: var(--ink-2);
-}
-.shop-eff .neg { color: var(--warn); }
-.shop-buy { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.shop-have { font-size: 12px; font-weight: 750; color: var(--ink-3); }
-
 .preview-card { text-align: center; padding: 16px; }
 .preview-chick { display: flex; justify-content: center; }
 
@@ -520,23 +501,6 @@
   background: var(--surface);
   border: 2px solid var(--accent);
 }
-
-.food-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
-.food {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 14px 6px 11px;
-  border-radius: var(--r-md);
-  background: var(--surface);
-  box-shadow: var(--card-shadow);
-  transition: transform var(--t-fast) var(--spring-pop);
-}
-.food:active { transform: scale(.92); }
-.food-e { display: grid; place-items: center; height: 34px; }
-.food-l { font-size: 11.5px; font-weight: 750; }
-.food-n { font-size: 10.5px; color: var(--ink-3); font-weight: 700; }
 
 /* ── Einstellungen ─────────────────────────────────────── */
 
@@ -1317,6 +1281,29 @@
 
 /* ── Spiele als Raster ─────────────────────────────────── */
 
+/**
+ * Die Spiele-Seite scrollt nicht — weder senkrecht noch waagerecht.
+ *
+ * Dafür ist der Screen selbst eine Spalte in Fensterhöhe: Kopf, Wartendes
+ * und Kräftevergleich nehmen sich, was sie brauchen, das Raster bekommt den
+ * Rest und teilt ihn gleichmäßig auf seine Zeilen auf. Weil unten nichts
+ * mehr wegscrollt, fällt auch der großzügige Puffer unter der Tab-Leiste weg.
+ */
+.screen[data-screen='games'] {
+  display: flex;
+  flex-direction: column;
+  /* flex:none, sonst wächst der Screen als Flex-Kind über seine Höhe hinaus
+     und das Raster bekommt nie den Druck, seine Zeilen zu stauchen. */
+  flex: none;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  /* Die Tab-Leiste schwebt 10 px über dem sicheren Rand — plus 12 px Luft. */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tab-h) + 22px);
+}
+.screen[data-screen='games'] > * { flex: none; }
+.screen[data-screen='games'] .games-head { margin-bottom: 2px; }
+
 .game-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1324,6 +1311,23 @@
      („Kritzel-Telefon“) die ganze Spalte gegen ihre Nachbarin. */
   grid-auto-rows: 1fr;
   gap: 8px;
+}
+/* Das Raster ist das Einzige, was mitwächst und mitschrumpft. */
+.screen[data-screen='games'] .game-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: minmax(0, 1fr);
+}
+.screen[data-screen='games'] .game-tile { min-height: 0; overflow: hidden; }
+
+/* Kurze Bildschirme: erst die Nebensache weg, dann die Unterzeile. */
+@media (max-height: 780px) {
+  .screen[data-screen='games'] .arena { display: none; }
+  .screen[data-screen='games'] .section-label { margin: 12px 4px 7px; }
+}
+@media (max-height: 680px) {
+  .screen[data-screen='games'] .game-tile-s { display: none; }
+  .screen[data-screen='games'] .subtitle { display: none; }
 }
 .game-tile {
   position: relative;

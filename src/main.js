@@ -14,7 +14,7 @@ import { initShell, go, refresh } from './ui/shell.js';
 import { applyTheme } from './ui/screens/settings.js';
 import { setUsTab } from './ui/screens/us.js';
 import { applyBondUnlocks } from './ui/screens/shop.js';
-import { openFeedSheet, sendNudge, careAction } from './ui/actions.js';
+import { sendNudge, careAction } from './ui/actions.js';
 import { openGame } from './ui/gameHost.js';
 import { initSync, publishProfile, sendEvent, pairWith } from './sync/index.js';
 import { sheet, closeSheet } from './ui/sheet.js';
@@ -58,9 +58,8 @@ function handleBannerAction(act) {
   switch (kind) {
     case 'nudge': sendNudge(arg); break;
     case 'open':
-      if (arg === 'feed') openFeedSheet();
       // „open:us:nest“ springt direkt in den richtigen Abschnitt
-      else if (arg === 'us') { if (sub) setUsTab(sub); go('us'); }
+      if (arg === 'us') { if (sub) setUsTab(sub); go('us'); }
       else if (arg === 'games') go('games');
       else go(arg);
       break;
@@ -97,7 +96,6 @@ function checkNeeds() {
   lastNeedAt = now;
 
   const fix = {
-    full:   { label: 'Füttern',  act: 'open:feed' },
     clean:  { label: 'Waschen',  act: 'care:wash' },
     energy: { label: 'Hinlegen', act: 'care:sleep' },
     joy:    { label: 'Spielen',  act: 'care:play' }
@@ -106,7 +104,7 @@ function checkNeeds() {
   emit('notify', {
     kind: 'need',
     avatar: 'me',
-    petMood: need.key === 'full' ? 'hungry' : need.key === 'energy' ? 'sleepy' : 'sad',
+    petMood: need.key === 'energy' ? 'sleepy' : 'sad',
     title: `${s.me.pet.name} ${need.text}`,
     sub: 'Das dauert zehn Sekunden.',
     body: `${s.me.pet.name} ${need.text}.`,
@@ -269,7 +267,7 @@ function openOnboarding() {
         kind: 'hint', icon: 'handTap',
         title: `Tipp ${petName} einfach an`,
         sub: 'Streicheln geht immer',
-        body: 'Unten findest du Futter, Bad und Spiele. Alles, was dein Mensch dir schickt, fährt hier oben herein.',
+        body: 'Unten findest du Pflege, Wir und Spiele. Alles, was dein Mensch dir schickt, fährt hier oben herein.',
         actions: [{ label: 'Verstanden', act: 'dismiss', primary: true }],
         tone: 'warm'
       });
