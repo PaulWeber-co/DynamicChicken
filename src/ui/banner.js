@@ -61,10 +61,15 @@ function reserveSpace() {
   requestAnimationFrame(() => {
     const h = root?.firstElementChild?.offsetHeight || 0;
     document.documentElement.style.setProperty('--banner-h', `${h + 10}px`);
+    // Bildschirme, die exakt in die Fensterhöhe passen müssen, brauchen
+    // einen Schalter: Auf eine Custom Property kann eine Media Query nicht
+    // reagieren, auf eine Klasse am Wurzelelement schon.
+    document.documentElement.classList.add('has-banner');
   });
 }
 function releaseSpace() {
   document.documentElement.style.setProperty('--banner-h', '0px');
+  document.documentElement.classList.remove('has-banner');
 }
 
 function render(n) {

@@ -96,7 +96,7 @@ nötig, gegen Störer schon.
 
 ## Spiele
 
-Zwölf Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
+Acht Duelle, alle zeitversetzt spielbar — ihr müsst nie gleichzeitig online
 sein. Die Runde kommt aus einem Seed, den beide Geräte allein aus dem
 Paar-Code berechnen: gleiche Karten, gleiche Farben, gleicher Zaun, ohne
 Server und ohne Schiedsrichter.
@@ -105,24 +105,31 @@ Server und ohne Schiedsrichter.
 |---|---|
 | **Körner-Jagd** | Knuddl steuern und fangen, was vom Himmel fällt |
 | **Federflug** | Ein Finger, viele Zaunlücken |
-| **Ei-Duell** | Fünf Symbole, fünf Runden, verdeckt gelegt |
 | **Nest-Turm** | Zweig auf Zweig stapeln |
 | **Kritzel-Telefon** | Du malst ein Wort, drüben wird geraten |
 | **Top Fünf** | Kategorie vorgeben, fünf Antworten sortieren, Reihenfolge erraten |
 | **Meme-Duell** | Du schreibst den Satz, der andere findet das Bild |
 | **Kribbeln** | Sechs Wünsche, beide kreuzen heimlich an, sichtbar wird nur der Treffer |
 | **Farbfunk** | Ein einziges Wort zu einer Farbe — findet der andere sie? |
-| **Federpoker** | Fünf Karten, einmal tauschen, beste Hand |
-| **Gefühls-Duett** | Beide raten, wie es dem anderen geht |
-| **Feder-Memory** | Acht Paare, identisches Blatt für beide |
 
-**Die Übersicht scrollt nicht.** Weder hoch noch zur Seite — alle zwölf
-Spiele sind gleichzeitig sichtbar. Oben stehen als Zeile die höchstens drei,
-die gerade auf dich warten (und nennen die Aufgabe vor dem Spielnamen:
-„Du gibst den Hinweis“ statt „Farbfunk“), darunter liegt ein Raster, das
-sich den restlichen Platz nimmt und seine Zeilen gleichmäßig verteilt. Auf
-kurzen Bildschirmen verschwinden zuerst der Kräftevergleich, dann die
-Unterzeilen — gescrollt wird nie.
+**Die Übersicht scrollt nicht — und die Kacheln bleiben gleich groß.**
+
+Das Zweite ist das Schwierigere. Ein Raster, das sich einfach den übrigen
+Platz nimmt, schrumpft zu Briefmarken, sobald oben etwas dazukommt: eine
+Benachrichtigung, eine zweite offene Partie. Deshalb hat es eine feste
+Zeilenzahl — es zeigt *immer* alle acht Spiele. Was auf dich wartet, steht
+darüber in genau *einer* Zeile (die Aufgabe vor dem Spielnamen: „Du gibst
+den Hinweis“ statt „Farbfunk“), weitere offene Partien hängen als kleine
+Knöpfe daran, und ist gar nichts offen, hält dieselbe Zeile den Platz mit
+einem ruhigen „Nichts offen“. Im Raster trägt jede offene Partie zusätzlich
+einen Ring.
+
+Ein Banner kostet über hundert Pixel. Auf dieser Seite gibt dafür die
+Kopfzeile ihren Platz her — solange eine Benachrichtigung steht, ist sie das
+Wichtigste auf dem Bildschirm und das Wort „Spiele“ das Entbehrlichste.
+Gemessen über sechs Gerätegrößen von 320×568 bis 744×1133, mal null bis
+acht wartende Partien, mal mit und ohne Banner: Die Kachelhöhe schwankt um
+höchstens 22 Pixel, nichts scrollt, nichts wird abgeschnitten.
 
 **Top Fünf** ist Top Ten in klein. Einer gibt eine Kategorie vor („Dinge, um
 sich von der Titanic zu retten“), der andere schreibt fünf Antworten und
@@ -152,17 +159,17 @@ Treffer landen auf einer gemeinsamen Liste fürs nächste Wiedersehen. Drei
 Hitzegrade, jeder mischt die milderen mit; die oberste gibt es nur mit
 eingeschalteten freizügigen Inhalten.
 
-**Federpoker ohne Schiedsrichter:** Feste Plätze im gemischten Stapel
-trennen die Blätter — Karten 0–4 für den einen, 5–9 für den anderen, 10–19
-zum Nachziehen. Keiner kann die Karten des anderen beeinflussen, und beide
-rechnen unabhängig dasselbe Ergebnis aus. Übertragen wird nur, welche
-Karten getauscht wurden.
+**Hängt eine Runde?** Bei Top Fünf, Meme-Duell, Kribbeln und Farbfunk wirft
+ein Knopf im Spiel die Runde weg — auf beiden Geräten, mit sauber
+weitergereichtem Zug. Beim Kritzel-Telefon ersetzt ein neues Bild eine
+liegen gebliebene Zeichnung.
 
-**Hängt eine Runde?** Bei Top Fünf, Meme-Duell, Kribbeln und Farbfunk wirft ein Knopf
-im Spiel die Runde weg — auf beiden Geräten, mit sauber weitergereichtem
-Zug. Ei-Duell gleicht beim Öffnen automatisch ab und holt verpasste Züge
-nach; hilft das nicht, startet ein Knopf die Partie neu. Beim
-Kritzel-Telefon ersetzt ein neues Bild eine liegen gebliebene Zeichnung.
+**Was rausgeflogen ist:** Ei-Duell, Feder-Memory, Gefühls-Duett und
+Federpoker. Vier Spiele weniger heißen ein Raster, das auf jedem Gerät
+großzügig bleibt — und die verbliebenen acht sind die, bei denen man etwas
+voneinander erfährt oder wirklich um etwas spielt. Alte Spielstände der
+vier werden beim ersten Start entfernt, damit sie nicht als Ballast
+liegen bleiben.
 
 ## Anziehen
 

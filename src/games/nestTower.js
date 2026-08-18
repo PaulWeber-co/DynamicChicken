@@ -34,8 +34,8 @@ const TWIGS = ['#C99268', '#B8834F', '#D6A87A', '#A9724A'];
 
 export function summary(state) {
   const d = duel(state, meta.id);
-  if (d.theirs && !d.mine) return { badge: 'wait', text: `${d.theirs.score} Punkte zu schlagen` };
-  if (d.mine && !d.theirs) return { badge: 'off', text: `Dein Ergebnis: ${d.mine.score}` };
+  if (d.theirs && !d.mine) return { badge: 'wait', text: `${d.theirs.score} zu schlagen` };
+  if (d.mine && !d.theirs) return { badge: 'off', text: `Du: ${d.mine.score}` };
   const n = d.wins.me + d.wins.them + d.wins.draw;
   return n ? { badge: null, text: `${d.wins.me}–${d.wins.them}` } : { badge: null, text: 'Neu' };
 }

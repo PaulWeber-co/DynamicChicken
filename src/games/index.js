@@ -16,20 +16,21 @@ import { sendEvent } from '../sync/index.js';
 
 import * as grainRush from './grainRush.js';
 import * as featherFlight from './featherFlight.js';
-import * as eggDuel from './eggDuel.js';
 import * as nestTower from './nestTower.js';
 import * as doodle from './doodle.js';
-import * as moodMatch from './moodMatch.js';
-import * as memory from './memory.js';
 import * as hueCue from './hueCue.js';
-import * as poker from './poker.js';
 import * as meme from './meme.js';
 import * as topFive from './topFive.js';
 import * as kribbeln from './kribbeln.js';
 
+/**
+ * Die Reihenfolge ist die Reihenfolge auf dem Bildschirm: erst die vier
+ * flinken Einzelspiele, dann die vier, bei denen man etwas voneinander
+ * erfährt.
+ */
 export const GAMES = [
-  grainRush, featherFlight, eggDuel, nestTower, doodle,
-  topFive, meme, kribbeln, hueCue, poker, moodMatch, memory
+  grainRush, featherFlight, nestTower, doodle,
+  topFive, meme, kribbeln, hueCue
 ];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
 
@@ -44,7 +45,7 @@ export function seedFor(gameId, round, state = get()) {
   return roundSeed(gameId, String(round), pairKey(state));
 }
 
-/* ── Generisches Punkte-Duell (Körner-Jagd, Memory) ─────── */
+/* ── Generisches Punkte-Duell (Körner-Jagd, Federflug, Nest-Turm) ─── */
 
 export function duel(state, id) {
   if (!state.games[id]) {
@@ -125,7 +126,7 @@ export function handleRemoteGameEvent(state, msg, ctx = {}) {
   if (!g) return null;
   const partnerName = ctx.partnerName || state.partner?.name || 'Dein Mensch';
 
-  // Spiele mit eigener Logik (Ei-Duell, Herzschlag, Gefühls-Duett)
+  // Spiele mit eigenem Zustand (Top Fünf, Meme-Duell, Kribbeln, Farbfunk)
   if (typeof g.handleRemote === 'function') {
     const own = g.handleRemote(state, msg, { partnerName });
     if (own !== undefined) return own;
@@ -209,8 +210,8 @@ export function gameSummary(state, g) {
   if (d.theirs && !d.mine) return { badge: 'wait', text: 'Du bist dran' };
   if (d.mine && !d.theirs) return { badge: 'off', text: 'Wartet auf Antwort' };
   const total = d.wins.me + d.wins.them + d.wins.draw;
-  if (!total) return { badge: null, text: 'Noch nie gespielt' };
-  return { badge: null, text: `${d.wins.me}–${d.wins.them} für ${d.wins.me >= d.wins.them ? 'dich' : 'sie/ihn'}` };
+  if (!total) return { badge: null, text: 'Neu' };
+  return { badge: null, text: `${d.wins.me}–${d.wins.them}` };
 }
 
 /** Wie viele Spiele warten auf mich? Steuert den Punkt in der Tab-Bar. */

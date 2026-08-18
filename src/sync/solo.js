@@ -13,7 +13,6 @@ import { defaultLook } from '../pet/chicken.js';
 import { MOODS, ACTIVITIES, NUDGES } from '../pet/moods.js';
 import { pick } from '../util/rng.js';
 import { hourIn, dayKey } from '../util/time.js';
-import { SYMBOLS } from './../games/eggDuel.js';
 
 export const id = 'solo';
 
@@ -338,13 +337,6 @@ function answerGame(ev, state) {
     return;
   }
 
-  if (d.kind === 'pick') {
-    later(() => emitEv('game', {
-      g: 'egg', kind: 'pick', m: d.m, n: d.n, pick: pick(SYMBOLS).id
-    }), jitter(8_000, 40_000));
-    return;
-  }
-
   /* Meme-Duell: der simulierte Mensch hat keine Bildersammlung, also
      schickt er ein gezeichnetes Hühner-Meme — die Oberfläche kann das. */
   if (d.kind === 'memePrompt') {
@@ -392,26 +384,11 @@ function answerGame(ev, state) {
     return;
   }
 
-  if (d.kind === 'duett') {
-    // Manchmal liegt er/sie richtig, manchmal daneben — wie im echten Leben.
-    const guessRight = Math.random() < 0.45;
-    later(() => emitEv('game', {
-      g: 'duett', kind: 'duett',
-      day: d.day,
-      actual: pick(MOODS).key,
-      guess: guessRight ? d.actual : pick(MOODS).key
-    }), jitter(12_000, 55_000));
-  }
 }
 
 function maybeGameMove(state) {
-  const g = state.games?.egg;
-  if (g && !g.done && !g.theirs[g.n - 1]) {
-    emitEv('game', { g: 'egg', kind: 'pick', m: g.m, n: g.n, pick: pick(SYMBOLS).id });
-    return;
-  }
-  // Top Fünf und Meme fangen von sich aus an, statt nur einzuladen —
-  // beide brauchen eine Vorgabe, bevor überhaupt etwas zu tun ist.
+  // Top Fünf, Meme und Kribbeln fangen von sich aus an, statt nur
+  // einzuladen — alle drei brauchen eine Vorgabe, bevor es etwas zu tun gibt.
   const roll = Math.random();
   if (roll < 0.18 && !state.games?.top5?.cur) {
     emitEv('game', { g: 'top5', kind: 'topCat', r: state.games?.top5?.r || 1, cat: pick(SOLO_CATS) });
@@ -427,7 +404,7 @@ function maybeGameMove(state) {
     emitEv('game', { g: 'krib', kind: 'kribDeal', r: state.games?.krib?.r || 1, tier });
     return;
   }
-  emitEv('game', { g: pick(['grain', 'memo', 'poker', 'hue']), kind: 'invite', r: 1 });
+  emitEv('game', { g: pick(['grain', 'flight', 'tower', 'hue']), kind: 'invite', r: 1 });
 }
 
 export function publish() { /* im Solo-Modus gibt es nichts hochzuladen */ }

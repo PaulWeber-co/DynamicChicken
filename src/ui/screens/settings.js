@@ -132,7 +132,7 @@ export function render(root, ctx) {
           <span class="switch" role="switch" aria-checked="${!!s.settings.haptics}"></span>
         </button>
         <button class="li" data-toggle="sound">
-          <div class="li-ico">${icon('gameBeat', { size: 19 })}</div>
+          <div class="li-ico">${icon('sound', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Töne</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.sound}"></span>
         </button>

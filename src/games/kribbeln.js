@@ -333,7 +333,7 @@ export function handleRemote(state, msg, { partnerName }) {
 
 export function summary(state) {
   const g = kb(state);
-  if (g.cur && !g.cur.mine) return { badge: 'wait', text: 'Sechs Karten warten' };
+  if (g.cur && !g.cur.mine) return { badge: 'wait', text: 'Sechs Karten' };
   if (g.cur) return { badge: 'off', text: 'Wartet auf Antwort' };
   if (g.turn === 'me') {
     return g.hist.length
@@ -341,7 +341,7 @@ export function summary(state) {
       : { badge: null, text: 'Du fängst an' };
   }
   return g.list.length
-    ? { badge: null, text: `${g.list.length} auf eurer Liste` }
+    ? { badge: null, text: `${g.list.length} auf der Liste` }
     : { badge: null, text: 'Neu' };
 }
 
