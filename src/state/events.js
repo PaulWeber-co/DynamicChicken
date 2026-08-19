@@ -12,6 +12,8 @@ import { moodByKey, activityByKey, nudgeByKey } from '../pet/moods.js';
 import { REWARDS } from './catalog.js';
 import { handleRemoteGameEvent } from '../games/index.js';
 import { adoptSecret } from '../sync/index.js';
+import { dayKey } from '../util/time.js';
+import { ensureDaily, slotById, slotIdFor, slotReward } from './daily.js';
 import {
   nestApplyRemote, nestSummary, pollApplyRemote, rateApplyRemote,
   rateScore, weightLabel, KIND_ICON, rewardShared
@@ -214,34 +216,46 @@ export function applyEvent(ev, { silent = false } = {}) {
     case 'daily': {
       const p = ensurePartner(state);
       p.lastSeen = at;
-      if (!state.daily || state.daily.day !== ev.d?.day) {
-        state.daily = {
-          day: ev.d?.day, q: ev.d?.q || '', spicy: !!ev.d?.spicy,
-          mine: null, theirs: null, revealedAt: null
-        };
-      }
-      state.daily.theirs = { text: ev.d?.answer || '', at };
-      if (state.daily.mine && !state.daily.revealedAt) {
-        state.daily.revealedAt = at;
-        state.me.coins += REWARDS.dailyBoth;
+
+      // Von gestern kommt nichts mehr an — sonst würde eine verspätete
+      // Antwort den heutigen Tag überschreiben.
+      const tag = ev.d?.day || dayKey();
+      if (tag !== dayKey()) break;
+
+      const id = slotIdFor(ev.d);
+      // Wer spicy ausgeschaltet hat, bekommt auch von drüben nichts davon.
+      if (id === 'spicy' && !state.settings?.spicy) break;
+
+      const d = ensureDaily(state, tag);
+      const s = d.slots.find((x) => x.id === id);
+      if (!s) break;
+
+      const def = slotById(id);
+      s.theirs = { text: ev.d?.answer || '', at };
+      if (s.mine && !s.revealedAt) {
+        s.revealedAt = at;
+        state.me.coins += slotReward(REWARDS.dailyBoth, id);
         addBondXp(state, 8);
       }
       pushFeed(state, {
         from: 'them', type: 'daily', at,
-        icon: 'mailHeart',
-        text: `${p.name} hat die Frage des Tages beantwortet`
+        icon: def.icon,
+        text: `${p.name} hat die ${def.label} beantwortet`
       });
       if (!silent) {
-        const ready = !!state.daily.revealedAt;
+        const ready = !!s.revealedAt;
+        const offen = d.slots.filter((x) => !x.mine).length;
         notify = {
           kind: 'daily',
           avatar: 'them',
-          icon: 'mailHeart',
+          icon: def.icon,
           title: ready ? 'Beide haben geantwortet!' : `${p.name} hat geantwortet`,
-          sub: ready ? 'Jetzt darfst du lesen' : 'Du bist dran',
+          sub: ready
+            ? (offen ? 'Lesen — und die nächste Frage wartet' : 'Jetzt darfst du lesen')
+            : 'Du bist dran',
           body: ready
-            ? `Ihr habt beide geantwortet. Die Frage des Tages ist jetzt offen.`
-            : `${p.name} hat die Frage des Tages beantwortet — sichtbar wird sie, sobald du auch antwortest.`,
+            ? `Ihr habt beide geantwortet. Die ${def.label} ist jetzt offen.`
+            : `${p.name} hat die ${def.label} beantwortet — sichtbar wird sie, sobald du auch antwortest.`,
           actions: [{ label: ready ? 'Lesen' : 'Antworten', act: 'open:us', primary: true }],
           tone: 'love'
         };

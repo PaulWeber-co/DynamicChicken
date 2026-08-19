@@ -10,7 +10,7 @@
  * Danach ist der andere dran. Punkte gibt es fürs Raten und fürs Gemaltwerden.
  */
 
-import { rng } from '../util/rng.js';
+import { rng, cycled } from '../util/rng.js';
 import { esc } from '../util/dom.js';
 import { fx, burst, confetti } from '../util/feedback.js';
 import { get, commit } from '../state/store.js';
@@ -31,12 +31,41 @@ export const meta = {
   howto: 'Ein Wort, dreißig Sekunden, vier Antwortmöglichkeiten drüben.'
 };
 
-/** Wörter, die sich mit vier Strichen andeuten lassen. */
-const WORDS = [
+/**
+ * Wörter, die sich mit vier Strichen andeuten lassen.
+ *
+ * Absichtlich viele: Das Lösungswort wird nicht mehr frei gewürfelt, sondern
+ * der Reihe nach aus einer gemischten Liste gezogen (`cycled`). Damit kommt
+ * dasselbe Wort erst nach dutzenden Runden wieder — vorher tauchten manche
+ * schon in der zehnten Partie zum dritten Mal auf.
+ */
+export const WORDS = [
+  /* Rundherum */
   'Nest', 'Regenbogen', 'Kaffeetasse', 'Zugfahrt', 'Vollmond', 'Regenschirm',
   'Sonnenblume', 'Fahrrad', 'Kuscheldecke', 'Pizzastück', 'Brille', 'Herzschlag',
   'Berg', 'Leuchtturm', 'Gitarre', 'Schneemann', 'Kerze', 'Briefkasten',
-  'Wollknäuel', 'Teekanne', 'Hängematte', 'Sternenhimmel', 'Wasserfall', 'Koffer'
+  'Wollknäuel', 'Teekanne', 'Hängematte', 'Sternenhimmel', 'Wasserfall', 'Koffer',
+  /* Zuhause */
+  'Waschmaschine', 'Bügeleisen', 'Bettdecke', 'Wecker', 'Duschkopf', 'Zahnbürste',
+  'Wasserkocher', 'Sofakissen', 'Bücherregal', 'Türklinke', 'Staubsauger', 'Blumentopf',
+  'Nachttischlampe', 'Schlüsselbund', 'Kühlschrank', 'Spiegel',
+  /* Draußen */
+  'Windrad', 'Baumhaus', 'Lagerfeuer', 'Zeltplatz', 'Straßenlaterne', 'Gartenzaun',
+  'Ampel', 'Brunnen', 'Steg', 'Segelboot', 'Hängebrücke', 'Vogelhaus',
+  'Sandburg', 'Wolkenkratzer', 'Windmühle', 'Kirchturm',
+  /* Tiere */
+  'Igel', 'Pinguin', 'Eichhörnchen', 'Marienkäfer', 'Schildkröte', 'Qualle',
+  'Elefant', 'Fledermaus', 'Papagei', 'Seepferdchen', 'Waschbär', 'Schmetterling',
+  /* Essen */
+  'Croissant', 'Spaghetti', 'Eiswaffel', 'Wassermelone', 'Ananas', 'Brezel',
+  'Suppentopf', 'Käsestück', 'Popcorn', 'Erdbeere',
+  /* Bewegung */
+  'Heißluftballon', 'Rakete', 'Ruderboot', 'Skateboard', 'Traktor', 'U-Bahn',
+  'Feuerwehrauto', 'Achterbahn', 'Schlitten', 'Rollkoffer',
+  /* Kleinkram */
+  'Kompass', 'Sanduhr', 'Zauberstab', 'Schallplatte', 'Angelrute', 'Fernglas',
+  'Schneekugel', 'Glühbirne', 'Lupe', 'Drachen', 'Klavier', 'Trompete',
+  'Zahnrad', 'Anker', 'Fallschirm', 'Bumerang'
 ];
 
 const MAX_POINTS = 420;
@@ -83,9 +112,15 @@ function dd(state) {
 /** Wort und Ablenker aus dem Rundenschlüssel — beide Seiten sehen dieselben. */
 function wordSet(seedKey) {
   const r = rng(hashish(seedKey));
-  const pool = WORDS.slice();
+  // Das Lösungswort wird durchgezählt statt gewürfelt: Der Schlüssel ist
+  // „CODE-Runde“, die Runde bestimmt die Stelle in einer einmal gemischten
+  // Liste. So kommt kein Wort zweimal, bevor die anderen dran waren.
+  const teile = /^(.*)-(\d+)$/.exec(String(seedKey));
+  const answer = teile
+    ? cycled(WORDS, Number(teile[2]) - 1, teile[1])
+    : WORDS[Math.floor(r() * WORDS.length)];
+  const pool = WORDS.filter((w) => w !== answer);
   const pick = () => pool.splice(Math.floor(r() * pool.length), 1)[0];
-  const answer = pick();
   const options = [answer, pick(), pick(), pick()];
   // deterministisch mischen
   for (let i = options.length - 1; i > 0; i--) {

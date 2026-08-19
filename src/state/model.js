@@ -11,7 +11,7 @@ import { defaultLook } from '../pet/chicken.js';
 import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** Verfall pro Stunde, wach. */
 const DECAY = { energy: 4.6, clean: 3.2, joy: 4.0 };
@@ -265,6 +265,27 @@ const STEPS = {
   4: (s) => {
     if (!s.games) return;
     for (const id of ['egg', 'memo', 'duett', 'poker']) delete s.games[id];
+  },
+
+  // Aus einer Frage pro Tag werden zwei: erst die normale, dann die spicy.
+  // Der Tagesstand ist jetzt eine Liste von Plätzen. Eine schon getippte
+  // Antwort von heute soll dabei nicht verloren gehen, also wandert sie auf
+  // den Platz, zu dem sie gehört. `ensureDaily()` füllt den Rest auf.
+  5: (s) => {
+    const d = s.daily;
+    if (!d || typeof d !== 'object' || Array.isArray(d.slots)) return;
+    if (!d.q) { s.daily = null; return; }
+    s.daily = {
+      day: d.day,
+      slots: [{
+        id: d.spicy ? 'spicy' : 'normal',
+        spicy: !!d.spicy,
+        q: d.q,
+        mine: d.mine || null,
+        theirs: d.theirs || null,
+        revealedAt: d.revealedAt || null
+      }]
+    };
   }
 };
 

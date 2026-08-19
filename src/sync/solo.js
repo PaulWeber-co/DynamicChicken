@@ -186,6 +186,46 @@ const SOLO_POLLS = [
       { k: 'evening', label: 'Heute Abend', icon: 'nudgeNight' },
       { k: 'tomorrow', label: 'Morgen früh', icon: 'nudgeMorning' }
     ]
+  },
+  {
+    q: 'Was essen wir, wenn ich da bin?',
+    opts: [
+      { k: 'cook', label: 'Selbst kochen', icon: 'actCook' },
+      { k: 'out', label: 'Essen gehen', icon: 'actTravel' },
+      { k: 'order', label: 'Bestellen', icon: 'pizza' }
+    ]
+  },
+  {
+    q: 'Wie verbringen wir den ersten Abend?',
+    opts: [
+      { k: 'home', label: 'Nur zu Hause', icon: 'nest' },
+      { k: 'walk', label: 'Lange rausgehen', icon: 'actOutside' },
+      { k: 'people', label: 'Leute treffen', icon: 'roomGuests' }
+    ]
+  },
+  {
+    q: 'Was fehlt dir gerade mehr?',
+    opts: [
+      { k: 'quiet', label: 'Ruhe', icon: 'roomQuiet' },
+      { k: 'talk', label: 'Reden', icon: 'nudgeThink' },
+      { k: 'hug', label: 'Eine Umarmung', icon: 'nudgeHug' }
+    ]
+  },
+  {
+    q: 'Nächstes Wochenende: was steht an?',
+    opts: [
+      { k: 'nothing', label: 'Gar nichts', icon: 'moodCalm' },
+      { k: 'plan', label: 'Was planen', icon: 'clock' },
+      { k: 'work', label: 'Leider Arbeit', icon: 'actWork' }
+    ]
+  },
+  {
+    q: 'Welche Serie fangen wir an?',
+    opts: [
+      { k: 'crime', label: 'Was mit Mord', icon: 'guess' },
+      { k: 'funny', label: 'Was Lustiges', icon: 'moodSilly' },
+      { k: 'doku', label: 'Eine Doku', icon: 'roomBooks' }
+    ]
   }
 ];
 
@@ -193,7 +233,19 @@ const SOLO_RATES = [
   { title: 'Der Song, der mir nicht aus dem Kopf geht', note: 'Lief heute dreimal.' },
   { title: 'Kaffee mit Zimt', note: 'Klingt komisch, ist gut.' },
   { title: 'Sonntags früh aufstehen', note: 'Ehrliche Antwort bitte.' },
-  { title: 'Die Serie, die alle schauen', note: 'Ich bin bei Folge vier.' }
+  { title: 'Die Serie, die alle schauen', note: 'Ich bin bei Folge vier.' },
+  { title: 'Pizza mit Ananas', note: 'Ich weiß, was du sagen wirst.' },
+  { title: 'Urlaub ohne festen Plan', note: 'Klingt entspannt oder anstrengend?' },
+  { title: 'Vor sieben aufstehen', note: 'Freiwillig, meine ich.' },
+  { title: 'Karaoke vor Publikum', note: 'Trau dich.' },
+  { title: 'Winterurlaub statt Sommer', note: 'Ich tippe, du bist dagegen.' },
+  { title: 'Zwei Wecker stellen', note: 'Vernünftig oder verzweifelt?' },
+  { title: 'Filme mit Untertiteln', note: 'Immer, nie oder manchmal?' },
+  { title: 'Kochen ohne Rezept', note: 'Mutig oder gefährlich?' },
+  { title: 'Handy im Schlafzimmer', note: 'Ehrlich jetzt.' },
+  { title: 'Spontan verreisen', note: 'Morgen früh, Koffer packen.' },
+  { title: 'Auf Konzerte gehen', note: 'Ich glaub, ich weiß es schon.' },
+  { title: 'Möbel selbst aufbauen', note: 'Mit oder ohne Anleitung?' }
 ];
 
 const NOTES = [
@@ -202,7 +254,19 @@ const NOTES = [
   'Heute war lang',
   'Kaffee Nr. 3',
   'Sonne scheint hier gerade',
-  'Zug hat Verspätung, klar'
+  'Zug hat Verspätung, klar',
+  'Kurz durchatmen',
+  'Gleich Feierabend',
+  'Der Tag zieht sich',
+  'Hab an was Schönes gedacht',
+  'Bin unterwegs',
+  'Warte auf Rückruf',
+  'Regnet hier seit Stunden',
+  'Alles ruhig',
+  'Bin müde, aber gut',
+  'Melde mich später',
+  'Musste gerade an dich denken',
+  'Kaum was geschafft heute'
 ];
 
 /* ── Reaktionen auf das, was ich schicke ────────────────── */
@@ -224,13 +288,18 @@ export function send(ev, state) {
       }
       break;
 
-    case 'daily':
+    /* Auf jede der beiden Tagesfragen kommt eine eigene Antwort zurück. */
+    case 'daily': {
+      const slot = ev.d?.slot === 'spicy' ? 'spicy' : 'normal';
       later(() => emitEv('daily', {
         day: ev.d?.day || dayKey(),
+        slot,
+        spicy: slot === 'spicy',
         q: ev.d?.q || '',
-        answer: pick(DAILY_ANSWERS)
+        answer: pick(slot === 'spicy' ? SPICY_ANSWERS : DAILY_ANSWERS)
       }), jitter(15_000, 60_000));
       break;
+    }
 
     case 'game':
       answerGame(ev, state);
@@ -285,14 +354,33 @@ const SOLO_CATS = [
   'Was ich nie wieder essen will',
   'Beste Ausreden für Zuspätkommen',
   'Was auf jeden Roadtrip gehört',
-  'Die besten Geräusche der Welt'
+  'Die besten Geräusche der Welt',
+  'Sachen, die ich ständig suche',
+  'Was in jede Reiseapotheke gehört',
+  'Die besten Ausreden für ein Nickerchen',
+  'Was ich mitnehme, wenn es brennt',
+  'Dinge, die niemand braucht und alle haben',
+  'Die schönsten Wörter der deutschen Sprache',
+  'Was ich mit einem freien Tag anfange',
+  'Sachen, die immer besser klingen als sie sind',
+  'Die besten Orte für ein Nickerchen',
+  'Was ich als Kind für logisch hielt',
+  'Dinge, die mich sofort gute Laune machen'
 ];
 
 const SOLO_MEMES = [
   'Ich, wenn dein Name auf dem Display steht',
   'Mein Gesicht beim Wecker um sechs',
   'Wenn ich sage „nur kurz aufs Handy schauen“',
-  'Wie ich aussehe nach drei Stunden Videocall'
+  'Wie ich aussehe nach drei Stunden Videocall',
+  'Ich, wenn der Kaffee alle ist',
+  'Mein Blick beim Wort „Rückmeldung“',
+  'Wenn ich Montagmorgen die Mails öffne',
+  'Ich beim Versuch, produktiv zu wirken',
+  'Mein Gesicht, wenn du „ich hab Neuigkeiten“ schreibst',
+  'Wenn der Zug einfach stehen bleibt',
+  'Ich, wenn jemand pünktlich ist',
+  'Mein Kopf, wenn ich einschlafen will'
 ];
 
 /** Antworten für Top Fünf — passen ungefähr auf jede Kategorie. */
@@ -304,7 +392,19 @@ const SOLO_TOP5 = [
   'Einfach laut „nein“ sagen',
   'Meine beste Freundin anrufen',
   'Ein Handtuch, immer ein Handtuch',
-  'So tun, als hätte ich das geplant'
+  'So tun, als hätte ich das geplant',
+  'Eine sehr lange Liste',
+  'Der zweite Kaffee',
+  'Ein Anruf bei meiner Mutter',
+  'Warten, bis es sich von selbst löst',
+  'Ein wirklich gutes Buch',
+  'Die Sache aussitzen',
+  'Erst mal alles wegräumen',
+  'Ein Zettel am Kühlschrank',
+  'Musik viel zu laut drehen',
+  'Einmal um den Block gehen',
+  'Drei Stunden Schlaf und Hoffnung',
+  'Meine Lieblingsjacke'
 ];
 
 /** Reihenfolge würfeln, ohne das Original anzufassen. */
@@ -323,7 +423,35 @@ const DAILY_ANSWERS = [
   'Ein Hund im Park, der genau wie du geguckt hat.',
   'Dass wir bald wieder am selben Ort sind.',
   'Nichts Großes. Aber es war ein guter Tag.',
-  'Der Gedanke, dass du das hier gleich liest.'
+  'Der Gedanke, dass du das hier gleich liest.',
+  'Der erste Kaffee, im Stehen, viel zu heiß.',
+  'Ich hab zwei Minuten aus dem Fenster geschaut und an nichts gedacht.',
+  'Die Zugfahrt zurück, als es draußen dunkel wurde.',
+  'Ein Lied, das lief, als ich gerade aus der Tür bin.',
+  'Dass mich heute niemand gebraucht hat. War mal schön.',
+  'Ich hab gemerkt, wie sehr mir das hier fehlt.',
+  'Ehrlich gesagt weiß ich es nicht. Aber ich denk drüber nach.',
+  'Es war so ein Tag, an dem alles ein bisschen zu viel war.',
+  'Ich hab mich dabei erwischt, wie ich gegrinst hab.',
+  'Nichts, was man erzählen kann. Aber es war gut.',
+  'Als es endlich still war in der Wohnung.',
+  'Dass ich heute mal pünktlich war. Kleiner Sieg.'
+];
+
+/** Für die zweite Frage — vorsichtiger formuliert, aber deutlich. */
+const SPICY_ANSWERS = [
+  'Willst du das wirklich schriftlich haben?',
+  'Genau das, was du gerade denkst. Nur ausführlicher.',
+  'Daran denke ich öfter, als ich zugeben will.',
+  'Ich sag es dir, wenn wir telefonieren.',
+  'Der Moment, in dem du nichts sagst und mich nur ansiehst.',
+  'Zu viel, um das hier reinzutippen.',
+  'Frag mich das nochmal heute Abend.',
+  'Das war das Erste, was mir eingefallen ist. Und das Zweite auch.',
+  'Ich hab das gestern schon gedacht, in genau der Situation.',
+  'Weniger schüchtern, als du glaubst.',
+  'Ich hab kurz überlegt, ob ich ehrlich bin. Bin ich.',
+  'Am liebsten würde ich es dir zeigen statt schreiben.'
 ];
 
 function answerGame(ev, state) {
