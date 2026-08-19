@@ -43,24 +43,92 @@ const ROWS = 6;
 /* ── Das Raster ─────────────────────────────────────────── */
 
 /**
- * Farbverlauf über Ton und Helligkeit, mit einem aus dem Seed gedrehten
- * Startwinkel. Dadurch sieht jede Runde anders aus, bleibt aber auf beiden
- * Geräten identisch — und benachbarte Felder ähneln sich, sonst wäre ein
- * knapper Tipp nicht besser als ein weiter danebener.
+ * Fünf Bretter statt einem.
+ *
+ * Immer derselbe Regenbogen wurde nach ein paar Runden langweilig — und vor
+ * allem entwickelt man Routine: „Herbst“ liegt immer im selben Eck. Jede
+ * Runde zieht jetzt eine eigene Palette aus dem Rundenschlüssel, und die
+ * verschieben die Aufgabe spürbar: In „Nachtblau“ gibt es kein Gelb, in
+ * „Wüste“ kein Grün. Man muss anders denken statt sich zu erinnern.
+ *
+ * Jede Palette bekommt Ton-Bereich, Sättigung und Helligkeit als Funktion
+ * von Spalte und Zeile. Nachbarfelder bleiben ähnlich — sonst wäre ein
+ * knapper Tipp nicht besser als ein weit danebener.
  */
+export const PALETTES = [
+  {
+    id: 'regenbogen', label: 'Regenbogen',
+    cell: (x, y, r) => [(r.shift + x * 360 / COLS) % 360, 52 + (1 - Math.abs(y - 2.2) / 3) * 34, 78 - y * 9.2]
+  },
+  {
+    id: 'sonnenuntergang', label: 'Sonnenuntergang',
+    cell: (x, y) => [(348 + x * 68 / COLS + y * 6) % 360, 62 + y * 5, 84 - y * 11]
+  },
+  {
+    id: 'nachtblau', label: 'Nachtblau',
+    cell: (x, y) => [186 + x * 100 / COLS, 34 + y * 9, 82 - y * 12.6]
+  },
+  {
+    id: 'wueste', label: 'Wüste',
+    cell: (x, y) => [22 + x * 44 / COLS, 30 + x * 5 + y * 4, 88 - y * 12]
+  },
+  {
+    id: 'wiese', label: 'Wiese',
+    cell: (x, y) => [72 + x * 96 / COLS, 26 + y * 10, 86 - y * 11.4]
+  }
+];
+
+export const paletteFor = (seed) => PALETTES[Math.floor(rng(`${seed}-pal`)() * PALETTES.length)];
+
 export function grid(seed) {
   const r = rng(seed);
-  const shift = Math.floor(r() * 360);
+  const pal = paletteFor(seed);
+  const ctx = { shift: Math.floor(r() * 360) };
   const cells = [];
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      const hue = (shift + (x / COLS) * 360) % 360;
-      const light = 78 - (y / (ROWS - 1)) * 46;
-      const sat = 52 + (1 - Math.abs(y / (ROWS - 1) - 0.45) * 2) * 34;
-      cells.push(`hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}%)`);
+      const [h, sat, l] = pal.cell(x, y, ctx);
+      cells.push(`hsl(${((h % 360) + 360) % 360 | 0} ${Math.max(8, Math.min(96, sat)) | 0}% ${Math.max(12, Math.min(94, l)) | 0}%)`);
     }
   }
   return cells;
+}
+
+/**
+ * Vier Regeln für den Hinweis.
+ *
+ * Ein freies Wort ist auf Dauer immer dasselbe Spiel. Diese Regeln zwingen
+ * beide, anders zu denken — besonders „Gegenteil“ dreht die ganze Runde um.
+ * Die Regel kommt aus dem Rundenschlüssel, beide Geräte kennen sie also,
+ * und beide bekommen sie angezeigt.
+ */
+export const MODES = [
+  { id: 'frei', label: 'Freies Wort', hint: 'Ein einziges Wort, was du willst.',
+    give: 'Ein Wort für diese Farbe', guess: 'Welche Farbe ist gemeint?', w: 4 },
+  { id: 'gegenteil', label: 'Gegenteil', hint: 'Nenne ein Wort, das NICHT zu der Farbe passt.',
+    give: 'Ein Wort, das gar nicht passt', guess: 'Das Wort passt NICHT — welche Farbe ist gemeint?', w: 2 },
+  { id: 'kurz', label: 'Höchstens fünf Buchstaben', hint: 'Kurz halten: fünf Buchstaben, nicht mehr.',
+    give: 'Fünf Buchstaben für diese Farbe', guess: 'Kurz und knapp — welche Farbe?', w: 2 },
+  { id: 'gefuehl', label: 'Nur ein Gefühl', hint: 'Kein Ding, kein Ort — nur ein Gefühl oder eine Stimmung.',
+    give: 'Ein Gefühl für diese Farbe', guess: 'Ein Gefühl als Hinweis — welche Farbe?', w: 2 }
+];
+
+/** Gewichtet gezogen: „Freies Wort“ bleibt der Normalfall. */
+export function modeFor(seed) {
+  const total = MODES.reduce((n, m) => n + m.w, 0);
+  let roll = rng(`${seed}-mode`)() * total;
+  for (const m of MODES) { roll -= m.w; if (roll < 0) return m; }
+  return MODES[0];
+}
+
+export const modeById = (id) => MODES.find((m) => m.id === id) || MODES[0];
+
+/** Passt der Hinweis zur Regel dieser Runde? */
+export function checkClue(mode, clue) {
+  if (!clue) return 'Ein Wort brauchen wir';
+  if (/\s/.test(clue)) return 'Nur ein einziges Wort';
+  if (mode.id === 'kurz' && clue.length > 5) return 'Höchstens fünf Buchstaben';
+  return null;
 }
 
 const idxOf = (x, y) => y * COLS + x;
@@ -93,7 +161,7 @@ function hg(state) {
       r: 1,
       /** Wer gibt in dieser Runde den Hinweis: 'me' oder 'them' */
       turn: null,
-      /** Laufende Runde: { target, clue, guess } */
+      /** Laufende Runde: { target, clue, guess, mode } */
       cur: null,
       score: { me: 0, them: 0 },
       hist: [],
@@ -114,7 +182,7 @@ function closeRound(state, g, dist, partnerName) {
   g.score.me += pts;
   g.score.them += pts;
   g.hist.unshift({
-    r: g.r, clue: g.cur.clue, dist, pts,
+    r: g.r, clue: g.cur.clue, dist, pts, mode: g.cur.mode || 'frei',
     gave: g.turn === 'me' ? 'me' : 'them',
     at: Date.now()
   });
@@ -174,15 +242,18 @@ export function handleRemote(state, msg, { partnerName }) {
     if (msg.r < g.r) return null;
     g.r = msg.r;
     g.turn = 'them';
-    g.cur = { target: msg.target, clue: String(msg.clue || '').slice(0, 24), guess: null };
+    // Der Modus kommt aus dem Rundenschlüssel; mitgeschickt wird er nur,
+    // damit ein Gerät mit älterer Fassung nicht danebenliegt.
+    const mode = modeById(msg.mode || modeFor(seedFor('hue', msg.r, state)).id);
+    g.cur = { target: msg.target, clue: String(msg.clue || '').slice(0, 24), guess: null, mode: mode.id };
     commit('hue');
     return {
       kind: 'gameTurn',
       icon: 'palette',
       avatar: 'them',
       title: `${partnerName} funkt: „${g.cur.clue}“`,
-      sub: 'Welche Farbe ist gemeint?',
-      body: `${partnerName} hat eine Farbe im Kopf und nur ein Wort dazu gesagt: „${g.cur.clue}“.`,
+      sub: mode.id === 'frei' ? 'Welche Farbe ist gemeint?' : mode.label,
+      body: `${partnerName} hat eine Farbe im Kopf. ${mode.hint} Das Wort lautet „${g.cur.clue}“.`,
       actions: [{ label: 'Suchen', act: 'game:hue', primary: true }, { label: 'Später', act: 'dismiss' }],
       tone: 'warm'
     };
@@ -283,43 +354,54 @@ export function mount(root, ctx) {
   function screenClue() {
     const st = get();
     const g = hg(st);
-    const colors = cells(seedFor('hue', g.r, st));
+    const seed = seedFor('hue', g.r, st);
+    const colors = cells(seed);
+    const mode = modeFor(seed);
+    const pal = paletteFor(seed);
     // Das Zielfeld ist aus demselben Seed gezogen, aber erst nach dem
     // Hinweis für den anderen sichtbar
     const target = Math.floor(rng(seedFor('hue', `t${g.r}`, st))() * colors.length);
-    let clue = '';
 
     root.innerHTML = shell(`
       <div class="hue-lead">
-        <span class="doodle-kicker">Runde ${g.r} · du funkst</span>
-        <b>Ein Wort für diese Farbe</b>
+        <span class="doodle-kicker">Runde ${g.r} · ${esc(pal.label)}</span>
+        <b>${esc(mode.give)}</b>
       </div>
+      ${ruleChip(mode)}
       <div class="hue-target-swatch" style="background:${colors[target]}">
         ${icon('palette', { size: 26 })}
       </div>
       ${board(colors, { target, clickable: false })}
-      <input class="input" data-clue maxlength="22" placeholder="Ein einziges Wort" autocomplete="off">
+      <input class="input" data-clue maxlength="22"
+        placeholder="${mode.id === 'kurz' ? 'Fünf Buchstaben' : 'Ein einziges Wort'}" autocomplete="off">
       <p class="tiny muted" style="margin:10px 4px">
-        Kein Farbname, keine Zahlen — sonst wäre es zu leicht. „Herbst“, „Oma“, „Meer“.
+        Kein Farbname, keine Zahlen — sonst wäre es zu leicht.
       </p>
       <button class="btn btn-primary btn-block" data-send>Funken</button>`);
 
     const inp = root.querySelector('[data-clue]');
     inp.focus();
     root.querySelector('[data-send]').onclick = () => {
-      clue = inp.value.trim();
-      if (!clue) { toast('Ein Wort brauchen wir'); return; }
-      if (/\s/.test(clue)) { toast('Nur ein einziges Wort'); return; }
+      const clue = inp.value.trim();
+      const meckern = checkClue(mode, clue);
+      if (meckern) { toast(meckern); return; }
       const st2 = get();
       const g2 = hg(st2);
-      g2.cur = { target, clue, guess: null };
+      g2.cur = { target, clue, guess: null, mode: mode.id };
       g2.turn = 'me';
       commit('hue');
-      sendEvent('game', { g: 'hue', kind: 'hueClue', r: g2.r, target, clue });
+      sendEvent('game', { g: 'hue', kind: 'hueClue', r: g2.r, target, clue, mode: mode.id });
       fx('pop');
       screenWait();
     };
     bindClose();
+  }
+
+  /** Die Regel dieser Runde — beide Seiten sehen dieselbe. */
+  function ruleChip(mode) {
+    if (mode.id === 'frei') return '';
+    return `<div class="hue-rule">${icon('sparkle', { size: 15 })}
+      <span><b>${esc(mode.label)}</b> · ${esc(mode.hint)}</span></div>`;
   }
 
   /* — Warten auf den Tipp — */
@@ -342,6 +424,7 @@ export function mount(root, ctx) {
     const st = get();
     const g = hg(st);
     const colors = cells(seedFor('hue', g.r, st));
+    const mode = modeById(g.cur.mode);
     let pick = null;
 
     const draw = () => {
@@ -350,7 +433,8 @@ export function mount(root, ctx) {
           <span class="doodle-kicker">Von ${esc(partner)}</span>
           <b>„${esc(g.cur.clue)}“</b>
         </div>
-        <p class="tiny muted center" style="margin:0 0 12px">Welche Farbe ist gemeint?</p>
+        ${ruleChip(mode)}
+        <p class="tiny muted center" style="margin:0 0 12px">${esc(mode.guess)}</p>
         ${board(colors, { pick, clickable: true })}
         <button class="btn btn-love btn-block" data-send ${pick == null ? 'disabled' : ''}>
           ${pick == null ? 'Feld antippen' : 'Das ist es'}
@@ -414,8 +498,8 @@ export function mount(root, ctx) {
           <div class="li-ico">${icon(h.dist === 0 ? 'trophy' : 'palette', { size: 19 })}</div>
           <div class="grow">
             <div class="li-title">„${esc(h.clue)}“</div>
-            <div class="li-sub">${h.gave === 'me' ? 'du hast gefunkt' : `${esc(partner)} hat gefunkt`}
-              · ${h.dist === 0 ? 'Volltreffer' : `${h.dist} daneben`} · ${h.pts} Punkte · ${relTime(h.at)}</div>
+            <div class="li-sub">${h.mode && h.mode !== 'frei' ? `${esc(modeById(h.mode).label)} · ` : ''}${
+              h.dist === 0 ? 'Volltreffer' : `${h.dist} daneben`} · ${h.pts} Punkte · ${relTime(h.at)}</div>
           </div>
         </div>`).join('')}
       </div>`;

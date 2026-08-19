@@ -30,6 +30,8 @@ import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
 import { relTime } from '../util/time.js';
 import { toast } from '../ui/toast.js';
+import { rng } from '../util/rng.js';
+import { seedFor } from './index.js';
 
 export const meta = {
   id: 'top5',
@@ -62,6 +64,35 @@ export const IDEAS = [
   'Die nervigsten Geräusche der Welt'
 ];
 
+/**
+ * Zusatzregeln — eine pro Runde, aus dem Rundenschlüssel.
+ *
+ * Dieselbe Mechanik wird nach ein paar Partien vorhersehbar. Eine Auflage
+ * an die fünf Antworten zwingt zu ungewohnten Listen, und weil beide
+ * Geräte sie aus demselben Schlüssel errechnen, sehen beide dieselbe.
+ * „Ohne Regel“ bleibt der häufigste Fall, sonst wird es anstrengend.
+ */
+export const RULES = [
+  { id: 'keine',   label: '',                    hint: '', w: 6 },
+  { id: 'zuhause', label: 'Nur von zu Hause',    hint: 'Alle fünf Dinge müssen bei dir in der Wohnung sein.', w: 2 },
+  { id: 'gratis',  label: 'Nichts, was Geld kostet', hint: 'Kein Gegenstand, den man kaufen muss.', w: 2 },
+  { id: 'buchstabe', label: 'Alle mit demselben Buchstaben', hint: 'Alle fünf Antworten fangen gleich an.', w: 2 },
+  { id: 'kurz',    label: 'Höchstens zwei Wörter', hint: 'Jede Antwort passt in zwei Wörter.', w: 2 },
+  { id: 'peinlich', label: 'Je peinlicher, desto besser', hint: 'Nimm die Antworten, die du sonst nicht sagen würdest.', w: 2 }
+];
+
+export function ruleFor(seed) {
+  const total = RULES.reduce((n, r) => n + r.w, 0);
+  let roll = rng(`${seed}-rule`)() * total;
+  for (const r of RULES) { roll -= r.w; if (roll < 0) return r; }
+  return RULES[0];
+}
+
+export const ruleById = (id) => RULES.find((r) => r.id === id) || RULES[0];
+
+/** Was der Joker kostet: eine Antwort wird aufgedeckt. */
+export const JOKER_COST = 4;
+
 /* ── Punkte ─────────────────────────────────────────────── */
 
 /**
@@ -70,7 +101,7 @@ export const IDEAS = [
  *
  * @returns {{exact:number, pairs:number, pts:number}}
  */
-export function scoreGuess(sol, guess) {
+export function scoreGuess(sol, guess, joker = false) {
   let exact = 0;
   let pairs = 0;
   for (let i = 0; i < sol.length; i++) if (sol[i] === guess[i]) exact++;
@@ -79,7 +110,8 @@ export function scoreGuess(sol, guess) {
       if (Math.sign(sol[i] - sol[j]) === Math.sign(guess[i] - guess[j])) pairs++;
     }
   }
-  return { exact, pairs, pts: exact * 3 + pairs };
+  const roh = exact * 3 + pairs;
+  return { exact, pairs, joker, pts: Math.max(0, roh - (joker ? JOKER_COST : 0)) };
 }
 
 export function verdictFor(pts) {
@@ -122,12 +154,13 @@ function cleanRanks(raw) {
   return nums;
 }
 
-function closeRound(state, g, { exact, pairs, pts }) {
+function closeRound(state, g, { exact, pairs, pts, joker }) {
   // Beide bekommen dieselben Punkte — gute Liste, guter Tipp
   g.score.me += pts;
   g.score.them += pts;
   g.hist.unshift({
-    r: g.r, cat: g.cur.cat, exact, pairs, pts,
+    r: g.r, cat: g.cur.cat, exact, pairs, pts, joker: !!joker,
+    rule: g.cur.rule || 'keine',
     asked: g.cur.by === 'me' ? 'me' : 'them',
     at: Date.now()
   });
@@ -191,17 +224,18 @@ export function handleRemote(state, msg, { partnerName }) {
 
     const cat = String(msg.cat || '').trim().slice(0, 90);
     if (!cat) return null;
+    const rule = ruleById(msg.rule || ruleFor(seedFor('top5', msg.r, state)).id);
     g.r = msg.r;
     g.turn = 'them';
-    g.cur = { cat, by: 'them', items: null, sol: null, guess: null };
+    g.cur = { cat, by: 'them', rule: rule.id, items: null, sol: null, guess: null };
     commit('top5');
     return {
       kind: 'gameTurn',
       icon: 'gameTop5',
       avatar: 'them',
       title: `${partnerName} will deine Top Fünf`,
-      sub: cat,
-      body: `„${cat}“ — schreib fünf Antworten und sortiere sie. Die Nummern bleiben verdeckt.`,
+      sub: rule.id === 'keine' ? cat : `${cat} · ${rule.label}`,
+      body: `„${cat}“ — schreib fünf Antworten und sortiere sie.${rule.id === 'keine' ? '' : ` Regel: ${rule.hint}`}`,
       actions: [{ label: 'Liste schreiben', act: 'game:top5', primary: true }, { label: 'Später', act: 'dismiss' }],
       tone: 'warm'
     };
@@ -232,7 +266,7 @@ export function handleRemote(state, msg, { partnerName }) {
   const guess = cleanRanks(msg.guess);
   if (!guess) return null;
   g.cur.guess = guess;
-  const res = scoreGuess(g.cur.sol, guess);
+  const res = scoreGuess(g.cur.sol, guess, !!msg.joker);
   const cat = g.cur.cat;
   closeRound(state, g, res);
   commit('top5');
@@ -242,7 +276,7 @@ export function handleRemote(state, msg, { partnerName }) {
     icon: res.pts >= 18 ? 'trophy' : 'gameTop5',
     avatar: 'them',
     title: `${res.exact}/${N} auf dem richtigen Platz`,
-    sub: `„${cat}“ · ${res.pts} Punkte`,
+    sub: `„${cat}“ · ${res.pts} Punkte${res.joker ? ' (Joker)' : ''}`,
     body: `${partnerName} hat deine Liste geraten. ${verdictFor(res.pts)}`,
     actions: [{ label: 'Weiter', act: 'game:top5', primary: true }, { label: 'Ok', act: 'dismiss' }],
     tone: res.pts >= 18 ? 'warm' : 'calm'
@@ -301,14 +335,24 @@ export function mount(root, ctx) {
   const skipLink = (label = 'Runde verwerfen') =>
     `<button class="btn btn-ghost btn-sm btn-block" data-skip style="margin-top:2px">${label}</button>`;
 
+  /** Die Zusatzregel dieser Runde — beide Seiten sehen dieselbe. */
+  function ruleChip(rule) {
+    if (!rule || rule.id === 'keine') return '';
+    return `<div class="hue-rule">${icon('sparkle', { size: 15 })}
+      <span><b>${esc(rule.label)}</b> · ${esc(rule.hint)}</span></div>`;
+  }
+
   /* — Kategorie vorgeben — */
   function screenCategory() {
-    const g = tf(get());
+    const st0 = get();
+    const g = tf(st0);
+    const rule = ruleFor(seedFor('top5', g.r, st0));
     root.innerHTML = shell(`
       <div class="hue-lead">
         <span class="doodle-kicker">Runde ${g.r} · du gibst vor</span>
         <b>Wovon die Top Fünf?</b>
       </div>
+      ${ruleChip(rule)}
       <p class="tiny muted center" style="margin:0 0 14px">
         ${esc(partner)} schreibt dann fünf Antworten und sortiert sie heimlich.
       </p>
@@ -331,10 +375,10 @@ export function mount(root, ctx) {
       if (cat.length < 4) { toast('Ein bisschen mehr Kategorie'); return; }
       const st = get();
       const g2 = tf(st);
-      g2.cur = { cat, by: 'me', items: null, sol: null, guess: null };
+      g2.cur = { cat, by: 'me', rule: rule.id, items: null, sol: null, guess: null };
       g2.turn = 'me';
       commit('top5');
-      sendEvent('game', { g: 'top5', kind: 'topCat', r: g2.r, cat });
+      sendEvent('game', { g: 'top5', kind: 'topCat', r: g2.r, cat, rule: rule.id });
       fx('pop');
       screenWaitList();
     };
@@ -375,6 +419,7 @@ export function mount(root, ctx) {
           <span class="doodle-kicker">Von ${esc(partner)}</span>
           <b>„${esc(g.cur.cat)}“</b>
         </div>
+        ${ruleChip(ruleById(g.cur.rule))}
         <p class="tiny muted center" style="margin:0 0 14px">
           Fünf Antworten, oben die beste. Die Nummern sieht ${esc(partner)} nicht —
           nur die Antworten, kreuz und quer.
@@ -478,6 +523,16 @@ export function mount(root, ctx) {
     /** picks[displayIndex] = vergebene Nummer, oder 0 */
     let picks = new Array(items.length).fill(0);
     let next = 1;
+    /**
+     * Der Joker deckt eine Antwort auf und kostet vier Punkte.
+     *
+     * Er macht aus dem Raten eine Entscheidung: Reicht das Bauchgefühl, oder
+     * ist der eine Platz, bei dem man gar keine Ahnung hat, den Abzug wert?
+     * Aufgedeckt wird die Antwort, bei der man am unsichersten ist — die
+     * darf man selbst wählen.
+     */
+    let joker = -1;
+    let jokerModus = false;
 
     const draw = () => {
       const done = next > N;
@@ -486,59 +541,94 @@ export function mount(root, ctx) {
           <span class="doodle-kicker">Von ${esc(partner)}</span>
           <b>„${esc(g.cur.cat)}“</b>
         </div>
+        ${ruleChip(ruleById(g.cur.rule))}
         <p class="tiny muted center" style="margin:0 0 14px">
-          ${done
-            ? 'Passt das so? Sonst noch mal von vorn.'
-            : `Was hat ${esc(partner)} auf <b>Platz ${next}</b> gesetzt?`}
+          ${jokerModus
+            ? 'Welche Antwort soll aufgedeckt werden?'
+            : done
+              ? 'Passt das so? Sonst noch mal von vorn.'
+              : `Was hat ${esc(partner)} auf <b>Platz ${next}</b> gesetzt?`}
         </p>
         <div class="top-picks">
-          ${items.map((t, i) => `<button class="top-pick ${picks[i] ? 'taken' : ''}" data-i="${i}"
-            ${picks[i] ? 'disabled' : ''}>
-            <span class="top-num ${picks[i] ? '' : 'blank'}">${picks[i] || '?'}</span>
-            <span class="grow">${esc(t)}</span>
-          </button>`).join('')}
+          ${items.map((t, i) => {
+            const auf = joker === i;
+            const wahl = jokerModus ? joker !== i : !picks[i] && next <= N;
+            return `<button class="top-pick ${picks[i] ? 'taken' : ''} ${auf ? 'joker' : ''}" data-i="${i}"
+              ${wahl ? '' : 'disabled'}>
+              <span class="top-num ${picks[i] ? '' : 'blank'}">${picks[i] || '?'}</span>
+              <span class="grow">${esc(t)}</span>
+              ${auf ? `<span class="top-tip">${icon('lock', { size: 12, cls: 'ic-inline' })} ${g.cur.sol[i]}</span>` : ''}
+            </button>`;
+          }).join('')}
         </div>
         <div class="top-actions">
-          <button class="btn btn-soft" data-undo ${next === 1 ? 'disabled' : ''}>Zurück</button>
-          <button class="btn btn-primary grow" data-send ${done ? '' : 'disabled'}>
+          <button class="btn btn-soft" data-undo ${next === 1 || jokerModus ? 'disabled' : ''}>Zurück</button>
+          <button class="btn btn-primary grow" data-send ${done && !jokerModus ? '' : 'disabled'}>
             ${done ? 'Auflösen' : `Noch ${N - next + 1}`}
           </button>
         </div>
+        ${joker < 0 && !jokerModus ? `<button class="btn btn-line btn-sm btn-block" data-joker style="margin-top:8px">
+          ${icon('sparkle', { size: 15 })} Joker: eine Antwort aufdecken (−${JOKER_COST} Punkte)
+        </button>` : ''}
         <p class="tiny muted center" style="margin:12px 4px 0">
-          Drei Punkte je richtiger Nummer, einer für jedes Paar in der richtigen Reihenfolge.
+          Drei Punkte je richtiger Nummer, einer für jedes Paar in der richtigen Reihenfolge.${
+            joker >= 0 ? ` Joker gezogen: −${JOKER_COST}.` : ''}
         </p>`);
 
       root.querySelectorAll('[data-i]').forEach((b) => {
         b.onclick = () => {
           const i = Number(b.dataset.i);
+          if (jokerModus) {
+            joker = i;
+            jokerModus = false;
+            // Die aufgedeckte Antwort sitzt sofort auf ihrem Platz
+            const nr = g.cur.sol[i];
+            const alt = picks.indexOf(nr);
+            if (alt >= 0) picks[alt] = 0;
+            picks[i] = nr;
+            next = 1;
+            while (picks.includes(next)) next++;
+            fx('pop');
+            draw();
+            return;
+          }
           if (picks[i] || next > N) return;
-          picks[i] = next++;
+          picks[i] = next;
+          while (picks.includes(next)) next++;
           fx('tap');
           draw();
         };
       });
       root.querySelector('[data-undo]').onclick = () => {
-        if (next === 1) return;
-        next--;
-        const i = picks.indexOf(next);
+        if (next === 1 || jokerModus) return;
+        // Zurück nimmt die zuletzt vergebene Nummer weg, überspringt aber
+        // die vom Joker gesetzte — die ist gekauft.
+        let n = next - 1;
+        while (n >= 1 && picks.indexOf(n) === joker) n--;
+        if (n < 1) return;
+        const i = picks.indexOf(n);
         if (i >= 0) picks[i] = 0;
+        next = 1;
+        while (picks.includes(next)) next++;
         fx('tap');
         draw();
       };
-      root.querySelector('[data-send]').onclick = () => { if (next > N) submit(picks.slice()); };
+      const jb = root.querySelector('[data-joker]');
+      if (jb) jb.onclick = () => { jokerModus = true; fx('tap'); draw(); };
+      root.querySelector('[data-send]').onclick = () => { if (next > N) submit(picks.slice(), joker >= 0); };
       bindClose();
     };
     draw();
   }
 
-  function submit(guess) {
+  function submit(guess, joker) {
     const st = get();
     const g = tf(st);
     if (!g.cur?.sol) { route(); return; }
-    const res = scoreGuess(g.cur.sol, guess);
+    const res = scoreGuess(g.cur.sol, guess, joker);
     const view = { cat: g.cur.cat, items: g.cur.items.slice(), sol: g.cur.sol.slice(), guess, ...res };
     g.cur.guess = guess;
-    sendEvent('game', { g: 'top5', kind: 'topGuess', r: g.r, guess });
+    sendEvent('game', { g: 'top5', kind: 'topGuess', r: g.r, guess, joker: !!joker });
     closeRound(st, g, res);
     commit('top5');
 
@@ -558,7 +648,8 @@ export function mount(root, ctx) {
         <div class="game-hero">${icon(v.pts >= 18 ? 'trophy' : 'gameTop5', { size: 60 })}</div>
         <h2 class="game-h">${v.exact}/${N} auf dem Punkt</h2>
         <p class="game-p">„${esc(v.cat)}“ · ${v.pts} von ${MAX_POINTS} Punkten<br>
-          <span class="tiny muted">${v.exact} Treffer · ${v.pairs} Paare richtig herum</span></p>
+          <span class="tiny muted">${v.exact} Treffer · ${v.pairs} Paare richtig herum${
+            v.joker ? ` · Joker −${JOKER_COST}` : ''}</span></p>
       </div>
       <div class="top-solution">
         ${rows.map((r) => `<div class="top-line ${r.sol === r.guess ? 'hit' : ''}">
@@ -600,8 +691,8 @@ export function mount(root, ctx) {
           <div class="li-ico">${icon(h.pts >= 18 ? 'trophy' : 'gameTop5', { size: 19 })}</div>
           <div class="grow">
             <div class="li-title">„${esc(h.cat)}“</div>
-            <div class="li-sub">${h.asked === 'me' ? 'deine Kategorie' : `von ${esc(partner)}`}
-              · ${h.exact}/${N} richtig · ${h.pts} Punkte · ${relTime(h.at)}</div>
+            <div class="li-sub">${h.rule && h.rule !== 'keine' ? `${esc(ruleById(h.rule).label)} · ` : ''}${
+              h.exact}/${N} richtig · ${h.pts} Punkte${h.joker ? ' (Joker)' : ''} · ${relTime(h.at)}</div>
           </div>
         </div>`).join('')}
       </div>`;

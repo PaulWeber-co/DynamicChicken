@@ -765,3 +765,53 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .krib-tag { background: rgba(0, 0, 0, .22); }
 }
+
+/* Regel der laufenden Farbfunk-Runde — beide Seiten sehen dieselbe Zeile */
+.hue-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--on-accent);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.hue-rule .ic { flex: none; margin-top: 1px; }
+
+/* Handicap-Hinweis beim Kritzel-Telefon nutzt dieselbe Zeile wie Farbfunk */
+.doodle-rule { margin: 0 20px 8px; }
+/* Blind malen: die Leinwand bleibt leer, der Hinweis steht mittig darauf */
+.doodle-pad.blind canvas { opacity: 1; }
+.doodle-blind {
+  position: absolute;
+  inset: auto 12% 14%;
+  padding: 7px 12px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunk);
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Die vom Joker aufgedeckte Antwort steht fest — sie sieht auch so aus */
+.top-pick.joker {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  opacity: 1;
+}
+.top-pick.joker .top-num { background: var(--accent); color: var(--on-accent); }
+
+/* Erledigte Wünsche auf der Kribbeln-Liste treten zurück, bleiben aber da */
+.krib-line.erledigt { opacity: .55; }
+.krib-line.erledigt .grow { text-decoration: line-through; }
+button.krib-line {
+  width: 100%;
+  text-align: left;
+  transition: transform var(--t-fast) var(--spring-pop), opacity var(--t-med);
+}
+button.krib-line:active { transform: scale(.98); }

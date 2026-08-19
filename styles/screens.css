@@ -1256,9 +1256,23 @@
   display: flex;
   flex-direction: column;
   flex: none;
+  /**
+   * `svh` statt `dvh` — das ist der Unterschied zwischen ruhig und zuckend.
+   *
+   * `dvh` ist die *aktuelle* Fensterhöhe. Auf dem Handy wächst und schrumpft
+   * die, wenn die Adressleiste ein- und ausfährt: Man kommt von einer
+   * langen Seite (Leiste eingeklappt), landet hier auf einer Seite, die
+   * nicht scrollt, der Browser klappt die Leiste wieder aus — und die ganze
+   * Seite samt Tab-Leiste springt. `svh` ist die Höhe *mit* ausgefahrenen
+   * Leisten und ändert sich nie; dadurch gibt es gar keinen Anlass mehr
+   * umzuschalten. Die drei Zeilen sind ein Rückfallpfad für ältere Browser.
+   */
+  height: 100vh;
   height: 100dvh;
+  height: 100svh;
   min-height: 0;
   overflow: hidden;
+  overscroll-behavior: none;
   /* Die Tab-Leiste schwebt 10 px über dem sicheren Rand — plus 12 px Luft. */
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tab-h) + 22px);
 }

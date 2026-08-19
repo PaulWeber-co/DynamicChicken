@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v9';
+const VERSION = 'knuddl-v10';
 const SHELL = [
   './',
   './index.html',

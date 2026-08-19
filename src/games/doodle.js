@@ -19,6 +19,7 @@ import { REWARDS } from '../state/catalog.js';
 import { icon } from '../ui/icons.js';
 import { sendEvent } from '../sync/index.js';
 import { relTime } from '../util/time.js';
+import { toast } from '../ui/toast.js';
 
 export const meta = {
   id: 'doodle',
@@ -40,6 +41,37 @@ const WORDS = [
 
 const MAX_POINTS = 420;
 const DRAW_MS = 30_000;
+
+/**
+ * Handicaps — jede Runde eines, aus dem Rundenschlüssel gezogen.
+ *
+ * Malen und raten wird nach einer Weile Routine. Ein Handicap macht aus
+ * derselben Aufgabe jedes Mal eine andere: Wer blind malt, muss vorher
+ * denken; wer nur einen Strich hat, muss vereinfachen; wer zwölf Sekunden
+ * hat, darf nicht zögern. Und es ist zum Lachen, was dabei ankommt.
+ *
+ *   ms     Zeit ab dem ersten Strich
+ *   blind  Die Leinwand bleibt leer, bis abgeschickt wird
+ *   one    Nach dem ersten Absetzen ist Schluss
+ *   width  Strichstärke als Faktor — reist mit, damit drüben dasselbe ankommt
+ */
+export const HANDICAPS = [
+  { id: 'frei',  label: 'Freie Hand', hint: 'Mal einfach drauflos.',                       ms: DRAW_MS, width: 1,   w: 5 },
+  { id: 'blind', label: 'Blind',      hint: 'Du siehst deine Striche erst beim Abschicken.', ms: DRAW_MS, width: 1, blind: true, w: 3 },
+  { id: 'one',   label: 'Ein Strich', hint: 'Absetzen beendet die Zeichnung.',              ms: DRAW_MS, width: 1, one: true, w: 3 },
+  { id: 'dick',  label: 'Dicker Pinsel', hint: 'Der Strich ist viel zu breit. Viel Glück.', ms: DRAW_MS, width: 3.2, w: 2 },
+  { id: 'hetze', label: 'Zwölf Sekunden', hint: 'Statt dreißig hast du zwölf.',             ms: 12_000, width: 1,   w: 2 }
+];
+
+export function handicapFor(seedKey) {
+  const r = rng(hashish(`${seedKey}-hc`));
+  const total = HANDICAPS.reduce((n, h) => n + h.w, 0);
+  let roll = r() * total;
+  for (const h of HANDICAPS) { roll -= h.w; if (roll < 0) return h; }
+  return HANDICAPS[0];
+}
+
+export const handicapById = (id) => HANDICAPS.find((h) => h.id === id) || HANDICAPS[0];
 
 function dd(state) {
   if (!state.games.doodle) {
@@ -75,7 +107,10 @@ export function handleRemote(state, msg, { partnerName }) {
   const g = dd(state);
 
   if (msg.kind === 'doodle') {
-    g.pending = { from: 'them', strokes: msg.strokes || [], key: msg.key, id: msg.id, at: Date.now() };
+    g.pending = {
+      from: 'them', strokes: msg.strokes || [], key: msg.key, id: msg.id,
+      hc: handicapById(msg.hc).id, at: Date.now()
+    };
     commit('doodle');
     pushFeed(state, { from: 'them', type: 'game', icon: 'gameDoodle', text: `${partnerName} hat etwas gemalt` });
     return {
@@ -83,8 +118,10 @@ export function handleRemote(state, msg, { partnerName }) {
       icon: 'gameDoodle',
       avatar: 'them',
       title: `${partnerName} hat gekritzelt`,
-      sub: 'Rate, was es sein soll',
-      body: `${partnerName} hat etwas für dich gemalt. Vier Möglichkeiten stehen zur Wahl.`,
+      sub: handicapById(msg.hc).id === 'frei' ? 'Rate, was es sein soll' : handicapById(msg.hc).label,
+      body: handicapById(msg.hc).id === 'frei'
+        ? `${partnerName} hat etwas für dich gemalt. Vier Möglichkeiten stehen zur Wahl.`
+        : `${partnerName} musste „${handicapById(msg.hc).label}“ malen. Sei nachsichtig.`,
       actions: [{ label: 'Ansehen', act: 'game:doodle', primary: true }, { label: 'Später', act: 'dismiss' }],
       tone: 'love'
     };
@@ -143,24 +180,29 @@ export function mount(root, ctx) {
     const g = dd(st);
     const key = `${st.me.code}-${g.round}`;
     const { answer } = wordSet(key);
+    const hc = handicapFor(key);
     const strokes = [];
-    let cur = null, points = 0, started = 0;
+    let cur = null, points = 0, started = 0, fertig = false;
 
     root.innerHTML = shell(`
       <div class="doodle-word">
         <span class="doodle-kicker">Dein Wort</span>
         <b>${esc(answer)}</b>
       </div>
-      <div class="doodle-pad" data-pad>
+      ${hc.id === 'frei' ? '' : `<div class="hue-rule doodle-rule">${icon('sparkle', { size: 15 })}
+        <span><b>${esc(hc.label)}</b> · ${esc(hc.hint)}</span></div>`}
+      <div class="doodle-pad ${hc.blind ? 'blind' : ''}" data-pad>
         <canvas data-canvas></canvas>
         <div class="doodle-timer" data-timer hidden></div>
+        ${hc.blind ? '<div class="doodle-blind" data-blindhint>Blind — du siehst es beim Abschicken</div>' : ''}
       </div>
       <div class="doodle-tools">
         <button class="btn btn-line btn-sm" data-undo>Zurück</button>
         <button class="btn btn-line btn-sm" data-clear>Leeren</button>
         <button class="btn btn-love grow" data-send disabled>Schicken</button>
       </div>
-      <p class="tiny muted center" style="padding:0 20px">Dreißig Sekunden ab dem ersten Strich. ${esc(partner)} bekommt vier Möglichkeiten.</p>
+      <p class="tiny muted center" style="padding:0 20px">${
+        Math.round(hc.ms / 1000)} Sekunden ab dem ersten Strich. ${esc(partner)} bekommt vier Möglichkeiten.</p>
     `);
     bindClose();
 
@@ -186,8 +228,10 @@ export function mount(root, ctx) {
 
     function redraw() {
       cx.clearRect(0, 0, size, size);
+      // Blind heißt wirklich blind: gezeichnet wird, gezeigt wird nichts.
+      if (hc.blind && !fertig) return;
       cx.lineCap = cx.lineJoin = 'round';
-      cx.lineWidth = Math.max(3, size * 0.022);
+      cx.lineWidth = Math.max(3, size * 0.022) * hc.width;
       cx.strokeStyle = '#3A2C21';
       for (const st2 of strokes) drawStroke(cx, st2, size);
     }
@@ -201,7 +245,7 @@ export function mount(root, ctx) {
     };
 
     const down = (e) => {
-      if (points >= MAX_POINTS) return;
+      if (points >= MAX_POINTS || fertig) return;
       e.preventDefault();
       if (!started) { started = Date.now(); startTimer(); }
       cur = [toLocal(e)];
@@ -219,7 +263,18 @@ export function mount(root, ctx) {
       redraw();
       bSend.disabled = points < 6;
     };
-    const up = () => { cur = null; bSend.disabled = points < 6; };
+    const up = () => {
+      cur = null;
+      bSend.disabled = points < 6;
+      // Ein Strich: Absetzen beendet die Zeichnung — danach nur noch senden
+      if (hc.one && points >= 6) {
+        fertig = true;
+        redraw();
+        const hint = root.querySelector('[data-blindhint]');
+        if (hint) hint.remove();
+        bSend.textContent = 'Fertig — schicken';
+      }
+    };
     canvas.addEventListener('pointerdown', down);
     canvas.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -228,7 +283,7 @@ export function mount(root, ctx) {
     function startTimer() {
       elTimer.hidden = false;
       const tick = () => {
-        const left = Math.max(0, DRAW_MS - (Date.now() - started));
+        const left = Math.max(0, hc.ms - (Date.now() - started));
         elTimer.textContent = `${Math.ceil(left / 1000)}s`;
         elTimer.classList.toggle('urgent', left < 8000);
         if (left <= 0) { send(); return; }
@@ -252,16 +307,34 @@ export function mount(root, ctx) {
     function send() {
       cancelAnimationFrame(raf);
       if (points < 6) { screenDraw(); return; }
+
+      /*
+       * Blind gemalt? Dann ist der Blick auf das Ergebnis die halbe Pointe.
+       * Erst aufdecken, kurz stehen lassen, dann weiter — sonst hat man nie
+       * gesehen, was man da eigentlich verbrochen hat.
+       */
+      if (hc.blind && !fertig) {
+        fertig = true;
+        redraw();
+        root.querySelector('[data-blindhint]')?.remove();
+        bSend.disabled = true;
+        toast('Das hast du gemalt');
+        fx('pop');
+        timer = setTimeout(send, 1600);
+        cleanups.push(() => clearTimeout(timer));
+        return;
+      }
+
       const st2 = get();
       const g2 = dd(st2);
       const id = Date.now().toString(36);
-      g2.pending = { from: 'me', key, word: answer, id, at: Date.now() };
+      g2.pending = { from: 'me', key, word: answer, id, hc: hc.id, at: Date.now() };
       g2.sent++;
       g2.round++;
       addBondXp(st2, 4);
       pushFeed(st2, { from: 'me', type: 'game', icon: 'gameDoodle', text: `„${answer}“ für ${partner} gemalt` });
       commit('doodle');
-      sendEvent('game', { g: 'doodle', kind: 'doodle', id, key, strokes });
+      sendEvent('game', { g: 'doodle', kind: 'doodle', id, key, strokes, hc: hc.id });
       fx('love');
       screenSent(answer);
     }
@@ -301,9 +374,12 @@ export function mount(root, ctx) {
     const st = get();
     const g = dd(st);
     const { answer, options } = wordSet(g.pending.key);
+    const hc = handicapById(g.pending.hc);
 
     root.innerHTML = shell(`
       <div class="doodle-word"><span class="doodle-kicker">Von ${esc(partner)}</span><b>Was ist das?</b></div>
+      ${hc.id === 'frei' ? '' : `<div class="hue-rule doodle-rule">${icon('sparkle', { size: 15 })}
+        <span>Gemalt mit Handicap: <b>${esc(hc.label)}</b></span></div>`}
       <div class="doodle-pad show" data-pad><canvas data-canvas></canvas></div>
       <div class="doodle-options" data-options>
         ${options.map((o) => `<button class="btn btn-line" data-guess="${esc(o)}">${esc(o)}</button>`).join('')}
@@ -340,7 +416,7 @@ export function mount(root, ctx) {
         shown = Math.min(total, shown + perFrame);
         cx.clearRect(0, 0, size, size);
         cx.lineCap = cx.lineJoin = 'round';
-        cx.lineWidth = Math.max(3, size * 0.022);
+        cx.lineWidth = Math.max(3, size * 0.022) * hc.width;
         cx.strokeStyle = '#3A2C21';
         let left = shown;
         for (const st2 of strokes) {
