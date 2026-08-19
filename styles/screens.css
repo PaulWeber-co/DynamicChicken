@@ -1239,6 +1239,33 @@
 .daily-card.daily-spicy { background: linear-gradient(160deg, var(--love-soft), var(--accent-soft)); }
 .daily-card.daily-spicy .daily-kicker { color: #C2456E; }
 
+/**
+ * Zwei Fragen pro Tag, der Reihe nach.
+ *
+ * Die zweite Karte liegt schon da, zeigt ihre Frage aber noch nicht: Sonst
+ * hätte man sie beim Beantworten der ersten längst im Kopf. Sie sieht
+ * dadurch aus wie ein zugeklapptes Kuvert — sichtbar, aber verschlossen.
+ */
+.daily-count { display: flex; align-items: center; justify-content: space-between; }
+.daily-progress {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--love);
+  letter-spacing: 0;
+}
+.daily-card + .daily-card { margin-top: 10px; }
+.daily-card.daily-locked { opacity: .78; }
+.daily-card.daily-locked .daily-q {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 0;
+}
+.daily-card.daily-locked .daily-sealed { margin-top: 10px; }
+
 /* ── Spiele-Übersicht ──────────────────────────────────── */
 
 /**
@@ -1453,8 +1480,15 @@
 
 /* ── Weniger Platz? In dieser Reihenfolge wird gespart. ── */
 
-/* Der Kräftevergleich ist Beiwerk und geht zuerst. */
-@media (max-height: 800px) {
+/**
+ * Der Kräftevergleich bleibt.
+ *
+ * Er hing lange an einer Höhen-Abfrage und war damit auf jedem Handy weg —
+ * genau dort, wo man ihn sehen will. Mit acht Spielen (vier Rasterzeilen)
+ * passt er auf jedes übliche Gerät; er verschwindet nur noch, wenn ein
+ * Banner den Platz frisst oder der Bildschirm wirklich winzig ist.
+ */
+@media (max-height: 600px) {
   .screen[data-screen='games'] .arena { display: none; }
 }
 /**

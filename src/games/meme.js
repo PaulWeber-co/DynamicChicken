@@ -26,6 +26,8 @@ import { relTime } from '../util/time.js';
 import { toast } from '../ui/toast.js';
 import { shrink, prettyBytes } from '../util/image.js';
 import { renderChicken } from '../pet/chicken.js';
+import { cycledMany } from '../util/rng.js';
+import { pairKey } from './index.js';
 
 export const meta = {
   id: 'meme',
@@ -37,19 +39,80 @@ export const meta = {
   howto: 'Einer schreibt die Vorlage, der andere lädt ein passendes Bild hoch. Danach wird bewertet und das Bild gelöscht.'
 };
 
-/** Startpunkte für die, denen gerade nichts einfällt. */
+/**
+ * Startpunkte für die, denen gerade nichts einfällt.
+ *
+ * Unter dem Eingabefeld stehen immer nur acht davon; „Andere“ blättert
+ * weiter. Sonst wäre der halbe Bildschirm eine Knopfwand, und mit zehn
+ * Vorlagen kannte man nach einer Woche alle.
+ */
 export const PROMPTS = [
-  'Ich, wenn du „wir müssen reden“ schreibst',
+  /* Alltag */
   'Mein Gesicht um 6 Uhr morgens',
   'Wenn der Zug schon wieder Verspätung hat',
-  'Wie ich aussehe, wenn du anrufst',
   'Der Moment, wenn der Akku bei 1% ist',
   'Ich, nachdem ich gesagt habe „nur noch eine Folge“',
   'Wenn jemand meine Pommes anfasst',
   'Mein innerer Zustand vor dem ersten Kaffee',
+  'Ich beim Versuch, erwachsen zu wirken',
+  'Wenn der Wecker klingelt und ich schon wach bin',
+  'Ich am Sonntagabend, wenn mir der Montag einfällt',
+  'Wenn ich im Supermarkt die Preise sehe',
+  'Mein Blick, wenn jemand „kurze Frage“ sagt',
+  'Ich, wenn der Kühlschrank leer ist und ich Hunger habe',
+  'Wenn ich zwei Stunden zu spät ins Bett gehe',
+  'Ich beim Versuch, gesund zu leben — Tag drei',
+  'Wenn die Wäsche seit drei Tagen im Trockner liegt',
+  'Mein Gesicht bei einem Videocall ohne Kamera-Vorschau',
+  'Wenn ich sage „ich mach das gleich“',
+  'Ich, wenn jemand meinen Namen falsch ausspricht',
+
+  /* Wir */
+  'Ich, wenn du „wir müssen reden“ schreibst',
+  'Wie ich aussehe, wenn du anrufst',
   'Wenn du sagst, du bist „in fünf Minuten“ fertig',
-  'Ich beim Versuch, erwachsen zu wirken'
+  'Ich, wenn dein Name auf dem Display steht',
+  'Mein Gesicht, wenn du sagst „ich hab was für dich“',
+  'Ich, kurz bevor der Zug zu dir losfährt',
+  'Wenn du sagst „mach dir keine Sorgen“',
+  'Ich am Bahnsteig, wenn du zurückfährst',
+  'Mein Blick, wenn du das letzte Stück Kuchen nimmst',
+  'Wie ich schaue, wenn du ein Foto von dir schickst',
+  'Ich, wenn wir uns nach Wochen wiedersehen',
+  'Wenn du sagst „schlaf gut“ und ich noch drei Stunden wach bin',
+  'Mein Gesicht bei deiner dritten Sprachnachricht am Stück',
+  'Ich, wenn du recht hattest und ich es zugeben muss',
+  'Wenn wir beide gleichzeitig „du zuerst“ sagen',
+  'Ich, wenn du meine Serie ohne mich weiterschaust',
+
+  /* Arbeit und Uni */
+  'Ich in einer Besprechung, die eine Mail hätte sein können',
+  'Mein Gesicht, wenn jemand „schnell noch“ sagt',
+  'Ich am letzten Tag vor der Abgabe',
+  'Wenn der Chef fragt, wie weit ich bin',
+  'Ich, nachdem ich „das mach ich morgen“ gesagt habe — im Juni',
+  'Mein Blick beim Wort „Teambuilding“',
+  'Wenn die Datei nicht gespeichert war',
+  'Ich beim Versuch, motiviert zu klingen',
+
+  /* Innerlich */
+  'Mein Gehirn um drei Uhr nachts',
+  'Ich, wenn ich an etwas Peinliches von vor zehn Jahren denke',
+  'Mein innerer Monolog beim Smalltalk',
+  'Ich, wenn ich merke, dass ich der Erwachsene im Raum bin',
+  'Wenn ich zum vierten Mal denselben Song höre',
+  'Mein Gesicht, wenn ich eine gute Idee habe und sie sofort vergesse',
+  'Ich beim Versuch, früher aufzustehen',
+  'Wenn mich jemand fragt, wie es mir geht',
+  'Mein Blick, wenn der Plan aufgeht',
+  'Ich, wenn ich das Haus verlasse und alles dabei habe'
 ];
+
+/** Wie viele Vorschläge unter dem Eingabefeld stehen. */
+export const PROMPT_CHIPS = 8;
+
+/** Acht Vorlagen, passend zur Runde. */
+export const promptChips = (runde, paar = '') => cycledMany(PROMPTS, PROMPT_CHIPS, Math.max(0, runde - 1), `meme|${paar}`);
 
 export const SCORES = [
   { v: 1, label: 'Nicht mein Humor', icon: 'moodSad' },
@@ -264,6 +327,11 @@ export function mount(root, ctx) {
   const skipLink = (label = 'Runde verwerfen') =>
     `<button class="btn btn-ghost btn-sm btn-block" data-skip style="margin-top:2px">${label}</button>`;
 
+  /* Wie oft schon „Andere“ gedrückt wurde — nur für diese Sitzung. */
+  let ideaOffset = 0;
+  const chipHtml = (runde) => promptChips(runde + ideaOffset, pairKey(get()))
+    .map((p) => `<button class="chip" data-idea="${esc(p)}">${esc(p)}</button>`).join('');
+
   /* — Vorlage schreiben — */
   function screenPrompt() {
     const g = mm(get());
@@ -277,18 +345,26 @@ export function mount(root, ctx) {
       </p>
       <textarea class="input" data-prompt rows="2" maxlength="110"
         placeholder="Ich, wenn du „wir müssen reden“ schreibst"></textarea>
-      <div class="section-label" style="margin:14px 4px 8px">Oder nimm eine davon</div>
-      <div class="meme-ideas">
-        ${PROMPTS.map((p) => `<button class="chip" data-idea="${esc(p)}">${esc(p)}</button>`).join('')}
+      <div class="section-label idea-head" style="margin:14px 4px 8px">
+        <span>Oder nimm eine davon</span>
+        <button class="link-btn" data-more>${icon('shuffle', { size: 14 })} Andere</button>
       </div>
+      <div class="meme-ideas" data-chips>${chipHtml(g.r)}</div>
       <button class="btn btn-love btn-block" data-send style="margin-top:14px">Abschicken</button>
       ${history()}`);
 
     const ta = root.querySelector('[data-prompt]');
     ta.focus();
-    root.querySelectorAll('[data-idea]').forEach((b) => {
+    const bindIdeas = () => root.querySelectorAll('[data-idea]').forEach((b) => {
       b.onclick = () => { ta.value = b.dataset.idea; fx('tap'); ta.focus(); };
     });
+    bindIdeas();
+    root.querySelector('[data-more]').onclick = () => {
+      ideaOffset++;
+      root.querySelector('[data-chips]').innerHTML = chipHtml(g.r);
+      bindIdeas();
+      fx('tap');
+    };
     root.querySelector('[data-send]').onclick = () => {
       const prompt = ta.value.trim().slice(0, 110);
       if (prompt.length < 4) { toast('Ein bisschen mehr Vorlage'); return; }

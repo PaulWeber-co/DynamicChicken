@@ -5,6 +5,7 @@ import { icon } from './icons.js';
 import { fx } from '../util/feedback.js';
 import { get, subscribe, on as onBus } from '../state/store.js';
 import { pendingCount } from '../games/index.js';
+import { dailyPending } from '../state/daily.js';
 
 import * as home from './screens/home.js';
 import * as us from './screens/us.js';
@@ -126,7 +127,5 @@ function renderTabs() {
 }
 
 function unreadCount(s) {
-  let n = s.feed.filter((f) => f.from === 'them' && !f.seen).length;
-  if (s.daily && s.daily.theirs && !s.daily.mine) n++;
-  return n;
+  return s.feed.filter((f) => f.from === 'them' && !f.seen).length + dailyPending(s);
 }

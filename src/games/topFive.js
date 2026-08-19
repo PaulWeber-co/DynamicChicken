@@ -30,8 +30,8 @@ import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
 import { relTime } from '../util/time.js';
 import { toast } from '../ui/toast.js';
-import { rng } from '../util/rng.js';
-import { seedFor } from './index.js';
+import { rng, cycledMany } from '../util/rng.js';
+import { seedFor, pairKey } from './index.js';
 
 export const meta = {
   id: 'top5',
@@ -46,23 +46,97 @@ export const meta = {
 export const N = 5;
 export const MAX_POINTS = N * 3 + (N * (N - 1)) / 2;   // 15 Treffer + 10 Paare
 
-/** Kategorien für alle, die gerade nichts einfällt. */
+/**
+ * Kategorien für alle, die gerade nichts einfällt.
+ *
+ * Angezeigt wird immer nur eine Handvoll davon (`ideaChips`), sonst wäre die
+ * Liste eine Wand aus Knöpfen. Welche das sind, hängt an der Runde: jede
+ * Partie schlägt andere vor, und dieselbe Runde zeigt auf beiden Geräten
+ * dasselbe.
+ */
 export const IDEAS = [
-  'Dinge, um sich von der Titanic zu retten',
+  /* Alltag */
   'Ausreden, warum ich zu spät bin',
-  'Sachen, die ich auf eine einsame Insel mitnehme',
-  'Was ich als Erstes mache, wenn wir wieder zusammen sind',
   'Die schlimmsten Dinge im Supermarkt',
+  'Gründe, das Bett heute nicht zu verlassen',
+  'Die nervigsten Geräusche der Welt',
+  'Dinge, die man nie laut sagen sollte',
+  'Sachen, die in jeder Wohnung fehlen',
+  'Die überflüssigsten Erfindungen',
+  'Dinge, die ich ständig verlege',
+  'Sätze, die nichts Gutes bedeuten',
+  'Die schlimmsten Momente am Montagmorgen',
+  'Dinge, die immer im letzten Moment kaputtgehen',
+  'Was in einer WG sofort verboten gehört',
+  'Die besten Ausreden, um nach Hause zu gehen',
+  'Kleinigkeiten, die einen Tag retten',
+  'Dinge, für die ich zu alt bin',
+  'Was man niemals im Großraumbüro tun sollte',
+
+  /* Essen */
   'Beste Snacks um drei Uhr nachts',
   'Was ich niemals essen würde',
-  'Superkräfte, die im Alltag echt nützlich wären',
-  'Dinge, die man nie laut sagen sollte',
-  'Gründe, das Bett heute nicht zu verlassen',
-  'Was ich mit einer Million machen würde',
-  'Tiere, die ich als Haustier hätte',
+  'Die besten Sachen aufs Brot',
+  'Gerichte, die immer funktionieren',
+  'Überschätzte Restaurants',
+  'Was in jede Tiefkühltruhe gehört',
+  'Die besten Kombinationen, die komisch klingen',
+  'Dinge, die man kalt essen darf',
+  'Was ich mir nach einem schlechten Tag bestelle',
+  'Die besten Süßigkeiten aus der Kindheit',
+
+  /* Wir */
+  'Was ich als Erstes mache, wenn wir wieder zusammen sind',
   'Orte, an die wir unbedingt mal müssen',
-  'Die nervigsten Geräusche der Welt'
+  'Unsere besten gemeinsamen Momente',
+  'Die Dinge, die uns immer zum Lachen bringen',
+  'Was ich an dir zuerst gemerkt habe',
+  'Sachen, die wir zusammen lernen sollten',
+  'Was in unsere erste Wohnung muss',
+  'Filme, die wir zusammen sehen müssen',
+  'Dinge, die wir viel zu selten machen',
+  'Kleine Rituale, die wir behalten sollten',
+  'Was ich mitbringe, wenn ich dich besuche',
+  'Die besten Geschenke, die du mir gemacht hast',
+  'Städte, in denen wir mal wohnen könnten',
+  'Was uns in zwanzig Jahren noch verbindet',
+
+  /* Ich */
+  'Sachen, die ich auf eine einsame Insel mitnehme',
+  'Was ich mit einer Million machen würde',
+  'Superkräfte, die im Alltag echt nützlich wären',
+  'Tiere, die ich als Haustier hätte',
+  'Dinge, auf die ich stolz bin',
+  'Was ich an mir nie ändern werde',
+  'Meine unnötigsten Talente',
+  'Sachen, die ich viel zu ernst nehme',
+  'Was ich als Kind werden wollte',
+  'Lieder, die immer funktionieren',
+  'Bücher oder Serien, die mich verändert haben',
+  'Meine unpopulärsten Meinungen',
+  'Was ich in fünf Jahren geschafft haben will',
+  'Dinge, die mich sofort beruhigen',
+
+  /* Albern */
+  'Dinge, um sich von der Titanic zu retten',
+  'Die besten Verstecke in einer Wohnung',
+  'Was ich tun würde, wenn ich unsichtbar wäre',
+  'Berufe, in denen ich sofort scheitern würde',
+  'Die schlechtesten Namen für ein Haustier',
+  'Was ich in einer Zombie-Apokalypse zuerst hole',
+  'Die besten Ausreden gegenüber der Polizei',
+  'Dinge, die man einem Außerirdischen erklären müsste',
+  'Was ich mit einer Zeitmaschine als Erstes mache',
+  'Die albernsten Gründe für einen Streit',
+  'Was in einem Museum über mich hängen würde',
+  'Regeln für ein Land, in dem ich bestimme'
 ];
+
+/** Wie viele Vorschläge unter dem Eingabefeld stehen. */
+export const IDEA_CHIPS = 8;
+
+/** Acht Vorschläge, die zur Runde passen — auf beiden Geräten dieselben. */
+export const ideaChips = (runde, paar = '') => cycledMany(IDEAS, IDEA_CHIPS, Math.max(0, runde - 1), `top5|${paar}`);
 
 /**
  * Zusatzregeln — eine pro Runde, aus dem Rundenschlüssel.
@@ -343,6 +417,11 @@ export function mount(root, ctx) {
   }
 
   /* — Kategorie vorgeben — */
+  /* Wie oft schon „Andere“ gedrückt wurde — nur für diese Sitzung. */
+  let ideaOffset = 0;
+  const chipHtml = (runde, st) => ideaChips(runde + ideaOffset, pairKey(st))
+    .map((t) => `<button class="chip" data-idea="${esc(t)}">${esc(t)}</button>`).join('');
+
   function screenCategory() {
     const st0 = get();
     const g = tf(st0);
@@ -358,18 +437,29 @@ export function mount(root, ctx) {
       </p>
       <input class="input" data-cat maxlength="88" autocomplete="off"
         placeholder="Dinge, um sich von der Titanic zu retten">
-      <div class="section-label" style="margin:14px 4px 8px">Oder nimm eine davon</div>
-      <div class="meme-ideas">
-        ${IDEAS.map((t) => `<button class="chip" data-idea="${esc(t)}">${esc(t)}</button>`).join('')}
+      <div class="section-label idea-head" style="margin:14px 4px 8px">
+        <span>Oder nimm eine davon</span>
+        <button class="link-btn" data-more>${icon('shuffle', { size: 14 })} Andere</button>
+      </div>
+      <div class="meme-ideas" data-chips>
+        ${chipHtml(g.r, st0)}
       </div>
       <button class="btn btn-primary btn-block" data-send style="margin-top:14px">Abschicken</button>
       ${history()}`);
 
     const inp = root.querySelector('[data-cat]');
     inp.focus();
-    root.querySelectorAll('[data-idea]').forEach((b) => {
+    const bindIdeas = () => root.querySelectorAll('[data-idea]').forEach((b) => {
       b.onclick = () => { inp.value = b.dataset.idea; fx('tap'); inp.focus(); };
     });
+    bindIdeas();
+    // Der Vorrat ist größer als der Platz — auf Wunsch die nächsten acht.
+    root.querySelector('[data-more]').onclick = () => {
+      ideaOffset++;
+      root.querySelector('[data-chips]').innerHTML = chipHtml(g.r, get());
+      bindIdeas();
+      fx('tap');
+    };
     root.querySelector('[data-send]').onclick = () => {
       const cat = inp.value.trim().slice(0, 88);
       if (cat.length < 4) { toast('Ein bisschen mehr Kategorie'); return; }

@@ -58,7 +58,32 @@ export const NEST_CATALOG = [
   { key: 'sport',    icon: 'roomSport',    cat: 'Alltag',   text: 'Ecke für Sport' },
   { key: 'coffee',   icon: 'coffee',       cat: 'Alltag',   text: 'Ordentliche Kaffeemaschine' },
   { key: 'wash',     icon: 'roomWash',     cat: 'Alltag',   text: 'Eigene Waschmaschine' },
-  { key: 'pet',      icon: 'roomPet',      cat: 'Alltag',   text: 'Ein Tier darf einziehen' }
+  { key: 'pet',      icon: 'roomPet',      cat: 'Alltag',   text: 'Ein Tier darf einziehen' },
+
+  { key: 'window',   icon: 'roomLight',    cat: 'Räume',    text: 'Fenster, an dem man sitzen kann' },
+  { key: 'hall',     icon: 'roomStorage',  cat: 'Räume',    text: 'Flur, der nicht nur Flur ist' },
+  { key: 'twobath',  icon: 'roomBath',     cat: 'Räume',    text: 'Zweites Bad oder Gäste-WC' },
+  { key: 'attic',    icon: 'roomQuiet',    cat: 'Räume',    text: 'Rückzugsort für jeden allein' },
+  { key: 'shower',   icon: 'roomBath',     cat: 'Räume',    text: 'Dusche, in der zwei Platz haben' },
+  { key: 'roof',     icon: 'roomBalcony',  cat: 'Draußen',  text: 'Dach oder Terrasse für Sommerabende' },
+  { key: 'grill',    icon: 'roomNature',   cat: 'Draußen',  text: 'Platz zum Grillen' },
+  { key: 'bikes',    icon: 'roomStorage',  cat: 'Draußen',  text: 'Trockener Platz für Räder' },
+  { key: 'park',     icon: 'roomNature',   cat: 'Lage',     text: 'Park um die Ecke' },
+  { key: 'bakery',   icon: 'bread',        cat: 'Lage',     text: 'Bäcker in Laufweite' },
+  { key: 'train',    icon: 'actTravel',    cat: 'Lage',     text: 'Bahnhof gut erreichbar' },
+  { key: 'friends2', icon: 'roomGuests',   cat: 'Lage',     text: 'Leute, die wir mögen, in der Nähe' },
+  { key: 'market',   icon: 'actCook',      cat: 'Lage',     text: 'Markt oder guter Laden nebenan' },
+  { key: 'warm',     icon: 'roomLight',    cat: 'Gefühl',   text: 'Warmes Licht am Abend' },
+  { key: 'colors',   icon: 'palette',      cat: 'Gefühl',   text: 'Farbe an den Wänden' },
+  { key: 'old',      icon: 'roomBooks',    cat: 'Gefühl',   text: 'Altbau mit Ecken und Kanten' },
+  { key: 'silent',   icon: 'roomQuiet',    cat: 'Gefühl',   text: 'Wände, durch die man nichts hört' },
+  { key: 'open',     icon: 'roomSofa',     cat: 'Gefühl',   text: 'Räume, die ineinander übergehen' },
+  { key: 'art',      icon: 'palette',      cat: 'Alltag',   text: 'Wand für Bilder und Erinnerungen' },
+  { key: 'workshop', icon: 'roomDesk',     cat: 'Alltag',   text: 'Platz zum Basteln und Werkeln' },
+  { key: 'freezer',  icon: 'roomKitchen',  cat: 'Alltag',   text: 'Vorratskammer' },
+  { key: 'dish',     icon: 'roomWash',     cat: 'Alltag',   text: 'Spülmaschine, nicht verhandelbar' },
+  { key: 'plants2',  icon: 'roomPlant',    cat: 'Alltag',   text: 'Kräuter auf der Fensterbank' },
+  { key: 'record',   icon: 'disc',         cat: 'Alltag',   text: 'Plattenspieler und ein Regal dazu' }
 ];
 
 export const NEST_CATS = ['Räume', 'Draußen', 'Lage', 'Gefühl', 'Alltag', 'Eigenes'];
@@ -108,6 +133,76 @@ export const POLL_TEMPLATES = [
       { k: 'evening', label: 'Heute Abend', icon: 'nudgeNight' },
       { k: 'tomorrow', label: 'Morgen früh', icon: 'nudgeMorning' },
       { k: 'later', label: 'Später diese Woche', icon: 'sunrise' }
+    ]
+  },
+  {
+    key: 'watch',
+    q: 'Was schauen wir zusammen?',
+    opts: [
+      { k: 'series', label: 'Serie weiter', icon: 'actShow' },
+      { k: 'movie', label: 'Neuer Film', icon: 'disc' },
+      { k: 'doku', label: 'Doku', icon: 'roomBooks' },
+      { k: 'trash', label: 'Was Schlechtes', icon: 'moodSilly' }
+    ]
+  },
+  {
+    key: 'trip',
+    q: 'Wohin fahren wir als Nächstes?',
+    opts: [
+      { k: 'sea', label: 'Ans Wasser', icon: 'roomWater' },
+      { k: 'mountains', label: 'In die Berge', icon: 'roomNature' },
+      { k: 'city', label: 'Städtetrip', icon: 'roomCity' },
+      { k: 'home', label: 'Einfach zueinander', icon: 'nest' }
+    ]
+  },
+  {
+    key: 'visit',
+    q: 'Wer besucht wen?',
+    opts: [
+      { k: 'me', label: 'Ich komme zu dir', icon: 'actTravel' },
+      { k: 'you', label: 'Du kommst zu mir', icon: 'nest' },
+      { k: 'middle', label: 'Auf halber Strecke', icon: 'pin' },
+      { k: 'new', label: 'Irgendwo Neues', icon: 'globe' }
+    ]
+  },
+  {
+    key: 'mood',
+    q: 'Was brauchen wir heute?',
+    opts: [
+      { k: 'quiet', label: 'Ruhe', icon: 'roomQuiet' },
+      { k: 'talk', label: 'Ein langes Gespräch', icon: 'nudgeThink' },
+      { k: 'fun', label: 'Was Albernes', icon: 'moodSilly' },
+      { k: 'plan', label: 'Etwas planen', icon: 'clock' }
+    ]
+  },
+  {
+    key: 'weekendmorning',
+    q: 'Wie fängt der freie Tag an?',
+    opts: [
+      { k: 'sleep', label: 'Ausschlafen', icon: 'careSleep' },
+      { k: 'walk', label: 'Rausgehen', icon: 'actOutside' },
+      { k: 'brunch', label: 'Langes Frühstück', icon: 'coffee' },
+      { k: 'sport', label: 'Sport zuerst', icon: 'actSport' }
+    ]
+  },
+  {
+    key: 'gift',
+    q: 'Was schenken wir uns?',
+    opts: [
+      { k: 'time', label: 'Gemeinsame Zeit', icon: 'clock' },
+      { k: 'thing', label: 'Was Handfestes', icon: 'roomStorage' },
+      { k: 'trip', label: 'Eine Reise', icon: 'actTravel' },
+      { k: 'nothing', label: 'Gar nichts', icon: 'moodCalm' }
+    ]
+  },
+  {
+    key: 'evening2',
+    q: 'Und wie endet der Abend?',
+    opts: [
+      { k: 'call', label: 'Am Telefon', icon: 'person' },
+      { k: 'text', label: 'Schreibend', icon: 'mailHeart' },
+      { k: 'game', label: 'Eine Runde spielen', icon: 'tabPlay' },
+      { k: 'sleep', label: 'Beide früh weg', icon: 'careSleep' }
     ]
   }
 ];

@@ -564,6 +564,9 @@ const ICONS = {
   close: () => S('M9 9l14 14M23 9L9 23', 'fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"'),
   check: () => S('M7 17l6 6L25 9', 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'),
   plus: () => S('M16 8v16M8 16h16', 'fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"'),
+  /* Zwei gekreuzte Wege mit Pfeilspitzen — „zeig mir andere“ */
+  shuffle: () => `<path d="M4.6 9.4h4.8L22 22.6h5M4.6 22.6h4.8L22 9.4h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M24 6.4l3 3-3 3M24 19.6l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`,
   copy: () => `<rect x="11" y="4.6" width="16.4" height="16.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="2.2"/>
     <path d="M21 25.4a3.4 3.4 0 0 1-3.4 3.4H8a3.4 3.4 0 0 1-3.4-3.4V13a3.4 3.4 0 0 1 3.4-3.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>`,
   share: () => `<path d="M16 21V4.6M16 4.6l-5 5M16 4.6l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>

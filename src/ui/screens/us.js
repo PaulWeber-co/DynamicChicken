@@ -16,9 +16,11 @@ import { fx, burst, confetti, haptic } from '../../util/feedback.js';
 import { get, commit, subscribe } from '../../state/store.js';
 import { renderChicken } from '../../pet/chicken.js';
 import { icon } from '../icons.js';
-import { MOODS, ACTIVITIES, NUDGES, moodByKey, activityByKey, petMood, questionForDay } from '../../pet/moods.js';
+import { MOODS, ACTIVITIES, NUDGES, moodByKey, activityByKey, petMood, dayIndex } from '../../pet/moods.js';
+import { cycledMany } from '../../util/rng.js';
 import { tickPet, pushFeed, addBondXp, bondXpForLevel } from '../../state/model.js';
 import { REWARDS } from '../../state/catalog.js';
+import { ensureDaily, slotById, slotLocked, slotReward } from '../../state/daily.js';
 import {
   ensureShared, NEST_CATALOG, NEST_CATS, weightLabel, nestSummary,
   POLL_TEMPLATES, rateScore, rateStats, KIND_ICON, KIND_LABEL, kindOf, safeUrl
@@ -28,7 +30,6 @@ import {
   setNestWeight, dropNestWish, createPoll, votePoll, createRate, submitRate, setReunion
 } from '../actions.js';
 import { sendEvent, partnerOnline } from '../../sync/index.js';
-import { pairKey } from '../../games/index.js';
 import { dayKey, localTimeIn, tzOffsetHours, hourIn, relTime, daysBetween } from '../../util/time.js';
 import { forecast, describe, advice, clockOf, distanceKm, formatKm, distanceLine } from '../../util/weather.js';
 import { toast } from '../toast.js';
@@ -453,7 +454,7 @@ export function render(root, ctx) {
 
       <div class="section-label">Schnell gefragt</div>
       <div class="wrap" style="margin-bottom:4px">
-        ${POLL_TEMPLATES.map((t) => `<button class="chip" data-tpl="${t.key}">${icon('ballot', { size: 18 })}${esc(t.q)}</button>`).join('')}
+        ${tagesVorlagen().map((t) => `<button class="chip" data-tpl="${t.key}">${icon('ballot', { size: 18 })}${esc(t.q)}</button>`).join('')}
       </div>
 
       ${open.length ? `
@@ -649,36 +650,64 @@ export function render(root, ctx) {
       </div>`;
   }
 
-  /* ── Frage des Tages ── */
+  /* ── Fragen des Tages ── */
+
+  /**
+   * Zwei Karten untereinander: erst die normale, dann die spicy. Die zweite
+   * bleibt zu, bis die erste beantwortet ist — beide gehören zum Tag, aber
+   * der Reihe nach.
+   */
   function dailyCard(st, p) {
     const d = ensureDaily(st);
-    const revealed = !!d.revealedAt;
-    if (revealed) {
-      return `<div class="card daily-card open${d.spicy ? ' daily-spicy' : ''}">
-        <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
-        <div class="daily-q">${esc(d.q)}</div>
+    const offen = d.slots.filter((s) => s.mine).length;
+    const zaehler = d.slots.length > 1
+      ? `<div class="section-label daily-count">
+           Fragen des Tages <span class="daily-progress">${offen}/${d.slots.length}</span>
+         </div>`
+      : '';
+    return zaehler + d.slots.map((s, i) => slotCard(st, p, s, slotLocked(d.slots, i))).join('');
+  }
+
+  function slotCard(st, p, s, gesperrt) {
+    const def = slotById(s.id);
+    const kopf = `<div class="daily-kicker">${icon(def.icon, { size: 15 })} ${def.label}</div>`;
+    const klasse = `card daily-card${s.spicy ? ' daily-spicy' : ''}`;
+
+    if (s.revealedAt) {
+      return `<div class="${klasse} open">
+        ${kopf}
+        <div class="daily-q">${esc(s.q)}</div>
         <div class="daily-answer">
           <div class="daily-who">${esc(st.me.name || 'Du')}</div>
-          <div class="daily-text">${esc(d.mine.text)}</div>
+          <div class="daily-text">${esc(s.mine.text)}</div>
         </div>
         <div class="daily-answer them">
           <div class="daily-who">${esc(p.name)}</div>
-          <div class="daily-text">${esc(d.theirs.text)}</div>
+          <div class="daily-text">${esc(s.theirs.text)}</div>
         </div>
       </div>`;
     }
-    if (d.mine) {
-      return `<div class="card daily-card${d.spicy ? ' daily-spicy' : ''}">
-        <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
-        <div class="daily-q">${esc(d.q)}</div>
+    if (s.mine) {
+      return `<div class="${klasse}">
+        ${kopf}
+        <div class="daily-q">${esc(s.q)}</div>
         <div class="daily-sealed">Deine Antwort liegt bereit. Sie öffnet sich, sobald ${esc(p.name)} geantwortet hat.</div>
       </div>`;
     }
-    return `<div class="card daily-card${d.spicy ? ' daily-spicy' : ''}">
-      <div class="daily-kicker">${icon(d.spicy ? 'flame' : 'mailHeart', { size: 15 })} ${d.spicy ? 'Spicy Frage' : 'Frage des Tages'}</div>
-      <div class="daily-q">${esc(d.q)}</div>
-      ${d.theirs ? `<div class="daily-sealed">${esc(p.name)} hat schon geantwortet.</div>` : ''}
-      <button class="btn btn-love btn-block" data-daily>Antworten</button>
+    if (gesperrt) {
+      // Die Frage selbst bleibt verdeckt: Sie soll nicht schon im Kopf
+      // herumgehen, während man die erste beantwortet.
+      return `<div class="${klasse} daily-locked">
+        ${kopf}
+        <div class="daily-q daily-hidden">${icon('lock', { size: 16 })} Erst die Frage des Tages</div>
+        ${s.theirs ? `<div class="daily-sealed">${esc(p.name)} hat hier schon geantwortet.</div>` : ''}
+      </div>`;
+    }
+    return `<div class="${klasse}">
+      ${kopf}
+      <div class="daily-q">${esc(s.q)}</div>
+      ${s.theirs ? `<div class="daily-sealed">${esc(p.name)} hat schon geantwortet.</div>` : ''}
+      <button class="btn btn-love btn-block" data-daily="${esc(s.id)}">Antworten</button>
     </div>`;
   }
 
@@ -732,8 +761,9 @@ export function render(root, ctx) {
     const note = host.querySelector('[data-note]');
     if (note) note.onclick = openNoteSheet;
 
-    const daily = host.querySelector('[data-daily]');
-    if (daily) daily.onclick = openDailySheet;
+    host.querySelectorAll('[data-daily]').forEach((b) => {
+      b.onclick = () => openDailySheet(b.dataset.daily);
+    });
 
     const more = host.querySelector('[data-goto-more]');
     if (more) more.onclick = () => go('more');
@@ -865,14 +895,23 @@ export function render(root, ctx) {
     });
   }
 
-  function openDailySheet() {
+  function openDailySheet(slotId = 'normal') {
     const st = get();
     const d = ensureDaily(st);
+    const i = d.slots.findIndex((s) => s.id === slotId);
+    if (i < 0 || slotLocked(d.slots, i)) { toast('Erst die Frage des Tages'); return; }
+    const s = d.slots[i];
+    const def = slotById(s.id);
+    // Steht die zweite noch aus, soll man das schon beim Antworten wissen.
+    const rest = d.slots.length - 1 - i;
+
     sheet({
-      title: 'Frage des Tages',
-      body: `<p style="font-size:17px;font-weight:700;line-height:1.35;margin:0 0 14px">${esc(d.q)}</p>
+      title: def.label,
+      body: `<p style="font-size:17px;font-weight:700;line-height:1.35;margin:0 0 14px">${esc(s.q)}</p>
              <textarea class="input" data-txt rows="4" maxlength="400" placeholder="Ehrlich, nicht perfekt."></textarea>
-             <p class="tiny muted" style="margin:10px 4px">Sichtbar wird beides erst, wenn ihr beide geantwortet habt.</p>
+             <p class="tiny muted" style="margin:10px 4px">
+               Sichtbar wird beides erst, wenn ihr beide geantwortet habt.${rest > 0 ? ' Danach wartet noch die Spicy Frage.' : ''}
+             </p>
              <button class="btn btn-love btn-block" data-save>Antwort ablegen</button>`,
       onMount(body) {
         const t = body.querySelector('[data-txt]');
@@ -882,20 +921,26 @@ export function render(root, ctx) {
           if (!text) { toast('Ein Wort mindestens'); return; }
           const st2 = get();
           const dd = ensureDaily(st2);
-          dd.mine = { text, at: Date.now() };
-          if (dd.theirs && !dd.revealedAt) {
-            dd.revealedAt = Date.now();
-            st2.me.coins += REWARDS.dailyBoth;
+          const ss = dd.slots.find((x) => x.id === slotId);
+          if (!ss || ss.mine) { closeSheet(); return; }
+          ss.mine = { text, at: Date.now() };
+          if (ss.theirs && !ss.revealedAt) {
+            ss.revealedAt = Date.now();
+            st2.me.coins += slotReward(REWARDS.dailyBoth, ss.id);
             addBondXp(st2, 8);
-            confetti(['mailHeart', 'statJoy', 'sparkle']);
+            confetti([def.icon, 'statJoy', 'sparkle']);
           }
           addBondXp(st2, 4);
-          pushFeed(st2, { from: 'me', type: 'daily', icon: 'mailHeart', text: 'Du hast die Frage des Tages beantwortet' });
+          pushFeed(st2, {
+            from: 'me', type: 'daily', icon: def.icon,
+            text: `Du hast die ${def.label} beantwortet`
+          });
           commit('daily');
-          sendEvent('daily', { day: dd.day, q: dd.q, spicy: !!dd.spicy, answer: text });
+          sendEvent('daily', { day: dd.day, slot: ss.id, q: ss.q, spicy: !!ss.spicy, answer: text });
           fx('love');
           closeSheet();
           paint();
+          if (rest > 0) toast('Noch eine Frage wartet');
         };
       }
     });
@@ -978,6 +1023,13 @@ export function render(root, ctx) {
   }
 
   /* Neue Abstimmung */
+  /**
+   * Fünf Vorlagen statt aller zwölf — sonst wird aus „Schnell gefragt“ eine
+   * Wand. Welche fünf, wechselt täglich, damit man auch die hinteren zu
+   * sehen bekommt.
+   */
+  const tagesVorlagen = () => cycledMany(POLL_TEMPLATES, 5, dayIndex(dayKey()), 'polls');
+
   function openPollSheet(tpl = null) {
     const rows = tpl ? tpl.opts.map((o) => o.label) : ['', ''];
     sheet({
@@ -1152,35 +1204,6 @@ export function render(root, ctx) {
 }
 
 /* ── Hilfen ─────────────────────────────────────────────── */
-
-function ensureDaily(state) {
-  const today = dayKey();
-  if (!state.daily || state.daily.day !== today) {
-    let salt = 0;
-    const k = pairKey(state);
-    for (let i = 0; i < k.length; i++) salt = (salt * 31 + k.charCodeAt(i)) >>> 0;
-    state.daily = {
-      day: today,
-      q: questionForDay(today, salt, !!state.settings.spicy),
-      spicy: !!state.settings.spicy,
-      mine: null, theirs: null, revealedAt: null
-    };
-  }
-  if (!state.daily.q) state.daily.q = questionForDay(today, 0, !!state.settings.spicy);
-
-  // Wer den Schalter umlegt, soll nicht bis morgen warten — aber nur
-  // solange noch niemand geantwortet hat, sonst stünde die Antwort
-  // plötzlich unter einer anderen Frage.
-  const willSpicy = !!state.settings.spicy;
-  if (!state.daily.mine && !state.daily.theirs && !!state.daily.spicy !== willSpicy) {
-    let salt2 = 0;
-    const k2 = pairKey(state);
-    for (let i = 0; i < k2.length; i++) salt2 = (salt2 * 31 + k2.charCodeAt(i)) >>> 0;
-    state.daily.q = questionForDay(today, salt2, willSpicy);
-    state.daily.spicy = willSpicy;
-  }
-  return state.daily;
-}
 
 function markSeen(state) {
   let changed = false;

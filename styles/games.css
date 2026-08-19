@@ -508,6 +508,38 @@
   line-height: 1.3;
 }
 
+/**
+ * Der Vorrat an Vorlagen ist größer als der Platz dafür.
+ *
+ * Alle anzuzeigen hieße: eine Wand aus sechzig Knöpfen über dem
+ * Abschicken-Button. Es sind also immer acht, und „Andere“ holt die
+ * nächsten acht — der Rest bleibt vorhanden, nur eben nicht gleichzeitig.
+ */
+.idea-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  padding: 4px 2px;
+  min-height: 30px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.link-btn:active { opacity: .6; }
+
 /* Die Ablage sieht aus wie ein leerer Bilderrahmen — man weiß sofort, wohin */
 .meme-drop {
   display: flex;
