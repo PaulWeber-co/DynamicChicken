@@ -1269,44 +1269,22 @@
 /* ── Spiele-Übersicht ──────────────────────────────────── */
 
 /**
- * Die Seite passt in die Fensterhöhe und scrollt nicht.
+ * Diese Seite scrollt wie jede andere.
  *
- * Kopf, Wartezeile und Kräftevergleich nehmen sich, was sie brauchen; das
- * Raster bekommt den Rest. Weil es immer alle Spiele zeigt, hat es immer
- * gleich viele Zeilen — die Kachelhöhe schwankt also nur mit der
- * Fensterhöhe, nicht mit dem Spielstand.
+ * Sie tat es eine Weile nicht: Sie war auf `100svh` festgenagelt, damit
+ * alles ohne Scrollen sichtbar bleibt. Der Preis war die Tab-Leiste.
+ * Sie hängt an `position: fixed`, und mobile Browser fahren ihre eigene
+ * Adressleiste nur ein, wenn die Seite scrollbar ist. Auf einer Seite, die
+ * nicht scrollt, bleibt die Browser-Leiste also ausgefahren und schiebt die
+ * Tab-Leiste sichtbar nach oben — auf allen anderen Reitern stand sie
+ * tiefer. Genau dieser Versatz war das Problem.
  *
- * flex:none ist wichtig: Als Flex-Kind mit flex:1 wüchse der Screen über
- * seine Höhe hinaus, und das Raster bekäme nie den Druck zu stauchen.
+ * Deshalb: keine feste Höhe, kein `overflow: hidden`, keine Regeln, die bei
+ * knappem Platz Teile ausblenden. Die Seite verhält sich wie „Wir“ oder der
+ * Laden, und die Tab-Leiste steht überall gleich.
  */
-.screen[data-screen='games'] {
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  /**
-   * `svh` statt `dvh` — das ist der Unterschied zwischen ruhig und zuckend.
-   *
-   * `dvh` ist die *aktuelle* Fensterhöhe. Auf dem Handy wächst und schrumpft
-   * die, wenn die Adressleiste ein- und ausfährt: Man kommt von einer
-   * langen Seite (Leiste eingeklappt), landet hier auf einer Seite, die
-   * nicht scrollt, der Browser klappt die Leiste wieder aus — und die ganze
-   * Seite samt Tab-Leiste springt. `svh` ist die Höhe *mit* ausgefahrenen
-   * Leisten und ändert sich nie; dadurch gibt es gar keinen Anlass mehr
-   * umzuschalten. Die drei Zeilen sind ein Rückfallpfad für ältere Browser.
-   */
-  height: 100vh;
-  height: 100dvh;
-  height: 100svh;
-  min-height: 0;
-  overflow: hidden;
-  overscroll-behavior: none;
-  /* Die Tab-Leiste schwebt 10 px über dem sicheren Rand — plus 12 px Luft. */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tab-h) + 22px);
-}
-.screen[data-screen='games'] > * { flex: none; }
-.screen[data-screen='games'] .games-head { margin-bottom: 2px; }
-.screen[data-screen='games'] .section-label { margin: 15px 4px 8px; }
-.screen[data-screen='games'] .arena { margin-top: 12px; }
+.screen[data-screen='games'] .games-head { margin-bottom: 10px; }
+.screen[data-screen='games'] .arena { margin-top: 16px; }
 
 /* ── „Du bist dran“: genau eine Zeile ──────────────────── */
 
@@ -1403,20 +1381,25 @@
 
 .game-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /**
+   * `minmax(0, 1fr)`, nicht `1fr`.
+   *
+   * `1fr` ist in Wahrheit `minmax(auto, 1fr)`, und `auto` heißt: mindestens
+   * so breit wie der Inhalt unbedingt braucht. „Kritzel-Telefon“ mit
+   * Unterzeile braucht rund 160 px — auf einem 320-px-Gerät sind zwei
+   * solche Spalten breiter als der Bildschirm, und die Seite lässt sich
+   * seitlich schieben. Mit einer Null als Untergrenze darf die Spalte so
+   * schmal werden wie nötig; der Text kürzt sich dann mit „…“.
+   */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   /* Gleiche Höhe für alle Zeilen — sonst versetzen zweizeilige Titel
      („Kritzel-Telefon“) die ganze Spalte gegen ihre Nachbarin. */
   grid-auto-rows: 1fr;
   gap: 8px;
 }
-/* Das Raster ist das Einzige, was mitwächst. Der Boden von 58 px ist die
-   Zusicherung aus dem Dateikopf: keine Briefmarken, egal was oben passiert. */
-.screen[data-screen='games'] .game-grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  grid-auto-rows: minmax(58px, 1fr);
-}
-.screen[data-screen='games'] .game-tile { min-height: 0; overflow: hidden; }
+/* Feste, bequeme Kachelhöhe. Sie hängt nicht mehr an der Fensterhöhe —
+   was nicht mehr hinpasst, wird gescrollt statt gestaucht. */
+.screen[data-screen='games'] .game-grid { grid-auto-rows: 78px; }
 
 .game-tile {
   position: relative;
@@ -1424,6 +1407,9 @@
   align-items: center;
   gap: 9px;
   min-height: 64px;
+  /* Damit die Kachel selbst nie breiter wird als ihre Spalte. */
+  min-width: 0;
+  overflow: hidden;
   padding: 10px 11px;
   border-radius: var(--r-md);
   background: var(--surface);
@@ -1478,43 +1464,14 @@
 .game-dot.wait { background: var(--accent); }
 .game-dot.live { background: var(--grow); animation: breathe 1.6s ease-in-out infinite; }
 
-/* ── Weniger Platz? In dieser Reihenfolge wird gespart. ── */
-
 /**
- * Der Kräftevergleich bleibt.
+ * Hier standen einmal ein halbes Dutzend Regeln, die bei knapper
+ * Fensterhöhe der Reihe nach Teile der Seite ausgeblendet haben: erst den
+ * Kräftevergleich, dann die Kopfzeile, dann die Wartezeile. Das war nötig,
+ * solange die Seite nicht scrollen durfte.
  *
- * Er hing lange an einer Höhen-Abfrage und war damit auf jedem Handy weg —
- * genau dort, wo man ihn sehen will. Mit acht Spielen (vier Rasterzeilen)
- * passt er auf jedes übliche Gerät; er verschwindet nur noch, wenn ein
- * Banner den Platz frisst oder der Bildschirm wirklich winzig ist.
+ * Sie scrollt wieder, also sind sie weg. Ein Banner darf den Inhalt jetzt
+ * nach unten schieben, ein kurzer Bildschirm darf zu wenig Platz haben —
+ * in beiden Fällen scrollt man eben. Nichts verschwindet mehr, und nichts
+ * springt, wenn eine Benachrichtigung kommt oder geht.
  */
-@media (max-height: 600px) {
-  .screen[data-screen='games'] .arena { display: none; }
-}
-/**
- * Ein Banner schiebt den Inhalt um seine volle Höhe nach unten — über
- * hundert Pixel. Auf dieser Seite gibt dafür die Kopfzeile ihren Platz her:
- * Solange eine Benachrichtigung steht, ist sie das Wichtigste auf dem
- * Bildschirm, und das Wort „Spiele“ das Entbehrlichste. So bleibt das
- * Raster stehen, statt zusammenzufallen.
- */
-.has-banner .screen[data-screen='games'] .games-head { display: none; }
-.has-banner .screen[data-screen='games'] .arena { display: none; }
-/* Auf sehr kurzen Bildschirmen reicht das noch nicht. Dann geht auch die
-   Wartezeile: Das Banner sagt bereits, was ansteht, und hat den Knopf
-   dazu — beides gleichzeitig wäre dieselbe Ansage zweimal. Darüber bleibt
-   sie stehen, sonst spränge das Raster bei jeder Benachrichtigung. */
-@media (max-height: 640px) {
-  .has-banner .screen[data-screen='games'] .now-row,
-  .has-banner .screen[data-screen='games'] .section-label { display: none; }
-  .has-banner .screen[data-screen='games'] .game-grid { margin-top: 2px; }
-}
-
-@media (max-height: 700px) {
-  .screen[data-screen='games'] .subtitle { display: none; }
-  .screen[data-screen='games'] .section-label { margin: 11px 4px 6px; }
-}
-/* Zuletzt die Unterzeile der Kacheln — der Titel allein trägt noch. */
-@media (max-height: 620px) {
-  .screen[data-screen='games'] .game-tile-s { display: none; }
-}
