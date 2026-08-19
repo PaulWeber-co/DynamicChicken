@@ -83,6 +83,24 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
     var(--pad)
     calc(env(safe-area-inset-bottom, 0px) + var(--tab-h) + 44px);
   outline: none;
+  /**
+   * Jede Seite ist ein Stück höher als das größte Fenster — und zwar jede.
+   *
+   * Das klingt nach Kosmetik, hält aber die Tab-Leiste ruhig. Sie hängt an
+   * `position: fixed`, und mobile Browser fahren ihre eigene Adressleiste
+   * nur ein, solange die Seite scrollbar ist. Kommt man von einer langen
+   * Seite (Leiste eingefahren) auf eine kurze, die genau hineinpasst,
+   * klappt der Browser seine Leiste wieder aus — und die Tab-Leiste rutscht
+   * sichtbar nach oben. Auf der Spiele-Seite war das jedes Mal zu sehen.
+   *
+   * `lvh` ist die Fensterhöhe *ohne* Browserleisten, also die größte, die
+   * vorkommen kann. Wer darüber liegt, bleibt in jedem Zustand scrollbar,
+   * und damit steht die Leiste auf allen fünf Reitern gleich. Die 24 px
+   * sind Reserve gegen Rundungen. `vh` davor ist der Rückfall für ältere
+   * Browser — unter iOS meint es ohnehin dasselbe.
+   */
+  min-height: calc(100vh + 24px);
+  min-height: calc(100lvh + 24px);
 }
 
 .screen-enter { animation: screenIn var(--t-med) var(--spring) both; }
