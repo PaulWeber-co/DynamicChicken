@@ -29,7 +29,6 @@ import { icon } from '../ui/icons.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
-import { relTime } from '../util/time.js';
 import { toast } from '../ui/toast.js';
 import { seedFor } from './index.js';
 
@@ -62,7 +61,31 @@ export const CARDS = {
     'Einen ganzen Film lang Händchen halten',
     'Ein Nickerchen zu zweit',
     'Barfuß spazieren und über nichts reden',
-    'Nebeneinander liegen und an die Decke starren'
+    'Nebeneinander liegen und an die Decke starren',
+    'Sich gegenseitig eincremen',
+    'Zusammen aufwachen und liegen bleiben',
+    'Kopf im Schoß, während der andere liest',
+    'Die Hand nicht loslassen, den ganzen Weg',
+    'Sich gegenseitig die Füße wärmen',
+    'Eine Stunde lang nichts sagen müssen',
+    'Zusammen kochen und dabei ständig im Weg stehen',
+    'Auf dem Balkon sitzen, bis es kalt wird',
+    'Einander drei ehrliche Komplimente machen',
+    'Fotos von früher durchgehen',
+    'Zusammen ein Bad einlassen und Kerzen anmachen',
+    'Sich umarmen, bis einer loslässt — und das dauert',
+    'Im Dunkeln zusammen Musik hören',
+    'Zusammen einen Sternenhimmel suchen',
+    'Sich gegenseitig die Hände massieren',
+    'Eine Nacht durchreden',
+    'Zusammen etwas Neues ausprobieren, das keiner kann',
+    'Nebeneinander duschen und einfach quatschen',
+    'Einen Tag lang das Handy weglegen',
+    'Sich gegenseitig frisieren, egal wie es aussieht',
+    'Zusammen den Sonnenaufgang verpennen und lachen',
+    'Kuscheln, obwohl es viel zu warm dafür ist',
+    'Sich gegenseitig etwas vorsingen, schief',
+    'Einfach nebeneinander sitzen und arbeiten'
   ],
   frech: [
     'Knutschen, bis die Lippen kribbeln',
@@ -80,7 +103,31 @@ export const CARDS = {
     'Kuss in den Nacken, ohne Vorwarnung',
     'Auf dem Sofa übereinander herfallen',
     'Beim Umziehen zusehen dürfen',
-    'Ein Kompliment, das rot macht'
+    'Ein Kompliment, das rot macht',
+    'Einen ganzen Abend lang flirten wie beim ersten Mal',
+    'Unterm Tisch Hand auf dem Knie, während andere reden',
+    'Sich gegenseitig anziehen — und dabei scheitern',
+    'Ein Kleidungsstück aussuchen, das der andere trägt',
+    'Zu zweit in eine Umkleidekabine',
+    'Küssen, bis jemand „genug“ sagt — und keiner sagt es',
+    'Einen Abend lang nur Blickkontakt, kein Wort',
+    'Sich beim Duschen von draußen zusehen lassen',
+    'Massageöl kaufen und sofort ausprobieren',
+    'Eine Runde tanzen, viel zu nah',
+    'Sich zehn Minuten lang nur küssen — Wecker stellen',
+    'Erzählen, was einem heute durch den Kopf ging',
+    'Wetten, wer länger stillhalten kann',
+    'Im Bett frühstücken und dabei nichts anhaben',
+    'Sich gegenseitig ins Ohr flüstern, was man vorhat',
+    'Eine Liste schreiben: was wir noch nie gemacht haben',
+    'Sich einen Abend lang siezen und dabei ernst bleiben',
+    'Küssen, wo es keiner sieht — aber fast',
+    'Die Hand wandern lassen, während ein Film läuft',
+    'Sich gegenseitig ein Outfit für den Abend aussuchen',
+    'Nachts heimlich in den Garten oder aufs Dach',
+    'Der eine liest vor, der andere lenkt ab',
+    'Ein Kleidungsstück verstecken und suchen lassen',
+    'Sich vom anderen die Fingernägel lackieren lassen'
   ],
   heiss: [
     'Ein Abend, an dem nur einer bestimmt',
@@ -98,7 +145,31 @@ export const CARDS = {
     'Eine Fantasie erzählen, die noch nie jemand gehört hat',
     'Ganz laut sein dürfen',
     'Eiswürfel, Federn, was auch immer da ist',
-    'Erst aufhören, wenn beide nicht mehr können'
+    'Erst aufhören, wenn beide nicht mehr können',
+    'Eine Stunde lang nur Vorspiel, nichts weiter',
+    'Der eine darf sich nicht bewegen',
+    'Der eine darf keinen Ton machen',
+    'Ein Wort ausmachen, das alles sofort beendet',
+    'Vor dem Spiegel',
+    'Auf dem Boden, weil es bis ins Bett nicht reicht',
+    'Nur mit den Händen, sonst nichts',
+    'Nur mit dem Mund, sonst nichts',
+    'Sich gegenseitig zeigen, wie man es allein macht',
+    'Den ganzen Tag Andeutungen, abends die Auflösung',
+    'Duschen, dann sofort weiter',
+    'Zwei Runden hintereinander',
+    'Einer bleibt angezogen, der andere nicht',
+    'Kleidung, die absichtlich im Weg ist',
+    'Ein Nein, das man vorher vereinbart und dann testet',
+    'Sich fesseln lassen — nur die Hände',
+    'Einer zählt bis zwanzig, der andere hat bis dahin Zeit',
+    'Etwas vorlesen, während der andere ablenkt',
+    'Auf dem Küchentisch, weil er gerade da ist',
+    'Zwei Stunden ohne Handy, Tür zu',
+    'Ein Wochenende, an dem wir kaum rauskommen',
+    'Nachricht am Vormittag, die den ganzen Tag versaut',
+    'Aussuchen lassen, was der andere trägt — oder nicht',
+    'Beim nächsten Wiedersehen als Allererstes'
   ]
 };
 
@@ -118,19 +189,38 @@ const MIX = {
 export const CARDS_PER_ROUND = 6;
 
 /**
- * Die sechs Karten einer Runde — aus dem Rundenschlüssel, also auf beiden
- * Geräten identisch.
+ * Die sechs Karten einer Runde.
+ *
+ * `seen` sind die Karten, die ihr schon hattet — sie fallen raus. Genau
+ * daran hing der Frust: Ohne Gedächtnis zieht der Zufall nach zehn Runden
+ * zwangsläufig Bekanntes, und das Spiel fühlt sich abgenutzt an. Ist ein
+ * Stapel wirklich durch, fängt er von vorn an, statt leer auszugehen.
+ *
+ * Die fertigen Karten reisen mit dem Zug zum anderen Gerät. Früher wurden
+ * sie dort aus demselben Schlüssel nachgerechnet — das ging nur gut,
+ * solange beide Seiten exakt dieselben Runden gesehen hatten. Mit dem
+ * Gedächtnis stimmt das nicht mehr zwangsläufig, also wird nicht mehr
+ * geraten, sondern geschickt.
  */
-export function deal(seed, tier) {
+export function deal(seed, tier, seen = []) {
   const r = rng(seed);
+  const gesehen = new Set(seen);
   const out = [];
   for (const [pool, n] of (MIX[tier] || MIX.sanft)) {
-    const rest = CARDS[pool].slice();
+    let rest = CARDS[pool].filter((c) => !gesehen.has(c));
+    if (rest.length < n) rest = CARDS[pool].slice();
     for (let i = 0; i < n && rest.length; i++) {
       out.push(rest.splice(Math.floor(r() * rest.length), 1)[0]);
     }
   }
   return out;
+}
+
+/** Sechs brauchbare Kartentexte aus dem, was hereinkommt. */
+function cleanCards(raw) {
+  if (!Array.isArray(raw) || raw.length !== CARDS_PER_ROUND) return null;
+  const c = raw.map((t) => String(t ?? '').trim().slice(0, 90));
+  return c.every(Boolean) ? c : null;
 }
 
 /* ── Auswertung ─────────────────────────────────────────── */
@@ -178,14 +268,25 @@ function verdictFor({ beide, fast }) {
 
 function kb(state) {
   if (!state.games.krib) {
-    state.games.krib = { r: 1, turn: null, cur: null, score: { me: 0, them: 0 }, hist: [], list: [] };
+    state.games.krib = {
+      r: 1, turn: null, cur: null, score: { me: 0, them: 0 },
+      hist: [], list: [], seen: []
+    };
   }
   const g = state.games.krib;
   g.score ||= { me: 0, them: 0 };
   g.hist ||= [];
   g.list ||= [];
+  g.seen ||= [];
   if (!g.turn) g.turn = iAmFirst(state) ? 'me' : 'them';
   return g;
+}
+
+/** Karten als gesehen vormerken, damit sie so bald nicht wiederkommen. */
+function merken(g, cards) {
+  for (const c of cards || []) if (!g.seen.includes(c)) g.seen.unshift(c);
+  // Zwei volle Stapel Vorlauf reichen; älteres darf wiederkommen.
+  if (g.seen.length > 90) g.seen.length = 90;
 }
 
 const iAmFirst = (state) => (state.me.code || '') < (state.partner?.code || '~');
@@ -237,6 +338,7 @@ function settle(state, g) {
     text: `Kribbeln: ${res.beide} Volltreffer, ${res.fast} Vielleicht`
   });
 
+  merken(g, g.cur.cards);
   const view = { r: g.r, cards: g.cur.cards.slice(), mine: g.cur.mine.slice(), theirs: g.cur.theirs.slice(), treffer, ...res };
   /**
    * Die Auflösung überlebt die Runde.
@@ -253,6 +355,8 @@ function settle(state, g) {
 }
 
 function abortRound(g) {
+  // Auch eine verworfene Runde hat man gesehen — sonst käme sie sofort wieder
+  if (g.cur) merken(g, g.cur.cards);
   g.cur = null;
   g.last = null;
   g.r++;
@@ -261,11 +365,28 @@ function abortRound(g) {
 
 /* ── Netzwerk ───────────────────────────────────────────── */
 
-const KINDS = ['kribDeal', 'kribMarks', 'kribSkip'];
+const KINDS = ['kribDeal', 'kribMarks', 'kribSkip', 'kribTick'];
 
 export function handleRemote(state, msg, { partnerName }) {
   if (!KINDS.includes(msg.kind)) return undefined;
   const g = kb(state);
+
+  if (msg.kind === 'kribTick') {
+    const eintrag = g.list.find((e) => e.text === msg.text);
+    if (!eintrag) return null;
+    eintrag.done = !!msg.on;
+    eintrag.doneAt = msg.on ? Date.now() : 0;
+    commit('krib');
+    if (!msg.on) return null;
+    return {
+      kind: 'gameResult', icon: 'check', avatar: 'them',
+      title: 'Abgehakt',
+      sub: String(msg.text || '').slice(0, 60),
+      body: `${partnerName} hat es von eurer Liste gestrichen. Also habt ihr es gemacht.`,
+      actions: [{ label: 'Liste ansehen', act: 'game:krib', primary: true }, { label: 'Schön', act: 'dismiss' }],
+      tone: 'love'
+    };
+  }
 
   if (msg.kind === 'kribSkip') {
     if (msg.r < g.r || !g.cur) return null;
@@ -287,9 +408,13 @@ export function handleRemote(state, msg, { partnerName }) {
     if (g.cur && msg.r === g.r && iAmFirst(state)) return null;
 
     const tier = validTier(msg.tier);
+    // Bevorzugt die mitgeschickten Karten; die Nachrechnung ist nur der
+    // Rückfall für ein Gerät mit älterer Fassung.
+    const cards = cleanCards(msg.cards)
+      || deal(seedFor('krib', `${msg.r}-${tier}`, state), tier, g.seen);
     g.r = msg.r;
     g.turn = 'them';
-    g.cur = { tier, cards: deal(seedFor('krib', `${msg.r}-${tier}`, state), tier), mine: null, theirs: null };
+    g.cur = { tier, cards, mine: null, theirs: null };
     commit('krib');
     return {
       kind: 'gameTurn', icon: 'gameSpark', avatar: 'them',
@@ -417,18 +542,55 @@ export function mount(root, ctx) {
       ${listTeaser()}`);
 
     root.querySelectorAll('[data-tier]').forEach((b) => {
-      b.onclick = () => {
-        const tier = b.dataset.tier;
-        const st2 = get();
-        const g2 = kb(st2);
-        g2.cur = { tier, cards: deal(seedFor('krib', `${g2.r}-${tier}`, st2), tier), mine: null, theirs: null };
-        g2.turn = 'me';
-        commit('krib');
-        sendEvent('game', { g: 'krib', kind: 'kribDeal', r: g2.r, tier });
-        fx('pop');
-        screenMark();
-      };
+      b.onclick = () => { fx('pop'); screenOwn(b.dataset.tier); };
     });
+    bindClose();
+  }
+
+  /**
+   * Eine eigene Karte dazulegen — freiwillig.
+   *
+   * Das ist der schärfste Teil des Spiels: Was man selbst schreibt, steht
+   * nachher zwischen fünf gezogenen Karten, und drüben sieht niemand, welche
+   * davon von dir kam. Man kann also etwas hineinlegen, das man nie
+   * ausgesprochen hätte — und erfährt trotzdem, ob es auf Gegenliebe stößt.
+   */
+  function screenOwn(tier) {
+    screen = 'own';
+    const t = TIERS.find((x) => x.id === tier);
+    root.innerHTML = shell(`
+      <div class="hue-lead">
+        <span class="doodle-kicker">${esc(t?.label || '')}</span>
+        <b>Eine eigene Karte dazu?</b>
+      </div>
+      <p class="tiny muted center" style="margin:0 0 14px">
+        Sie landet unerkannt zwischen den anderen fünf. ${esc(partner)} sieht
+        nicht, welche von dir ist — und du erfährst trotzdem, ob es ein Ja gibt.
+      </p>
+      <input class="input" data-own maxlength="88" autocomplete="off"
+        placeholder="Etwas, das du dich sonst nicht traust">
+      <button class="btn btn-love btn-block" data-go style="margin-top:14px">Austeilen</button>
+      <button class="btn btn-ghost btn-sm btn-block" data-skipown>Ohne eigene Karte</button>`);
+
+    const inp = root.querySelector('[data-own]');
+    inp.focus();
+    const los = (eigen) => {
+      const st2 = get();
+      const g2 = kb(st2);
+      const cards = deal(seedFor('krib', `${g2.r}-${tier}`, st2), tier, g2.seen);
+      if (eigen) {
+        // Zufälliger Platz, damit die eigene Karte nicht immer unten steht
+        cards[Math.floor(Math.random() * cards.length)] = eigen;
+      }
+      g2.cur = { tier, cards, mine: null, theirs: null };
+      g2.turn = 'me';
+      commit('krib');
+      sendEvent('game', { g: 'krib', kind: 'kribDeal', r: g2.r, tier, cards });
+      fx('pop');
+      screenMark();
+    };
+    root.querySelector('[data-go]').onclick = () => los(inp.value.trim().slice(0, 88));
+    root.querySelector('[data-skipown]').onclick = () => los('');
     bindClose();
   }
 
@@ -562,14 +724,16 @@ export function mount(root, ctx) {
       </div>
       ${g.list.length ? `
         <p class="tiny muted center" style="margin:0 0 14px">
-          Alles hier haben beide angekreuzt. Nichts davon hat jemand allein entschieden.
+          Alles hier haben beide angekreuzt. Antippen, wenn ihr es gemacht habt —
+          ${esc(partner)} sieht den Haken auch.
         </p>
         <div class="krib-reveal">
-          ${g.list.map((e) => `<div class="krib-line ${e.level}">
-            ${icon(e.level === 'beide' ? 'check' : 'nudgeThink', { size: 15 })}
+          ${g.list.map((e) => `<button class="krib-line ${e.level} ${e.done ? 'erledigt' : ''}"
+            data-tick="${esc(e.text)}">
+            ${icon(e.done ? 'check' : e.level === 'beide' ? 'sparkle' : 'nudgeThink', { size: 15 })}
             <span class="grow">${esc(e.text)}</span>
-            <span class="krib-tag">${e.level === 'beide' ? 'beide' : 'vielleicht'}</span>
-          </div>`).join('')}
+            <span class="krib-tag">${e.done ? 'gemacht' : e.level === 'beide' ? 'beide' : 'vielleicht'}</span>
+          </button>`).join('')}
         </div>` : `
         <div class="empty">
           <span class="empty-emoji">${icon('gameSpark', { size: 40 })}</span>
@@ -577,6 +741,21 @@ export function mount(root, ctx) {
         </div>`}
       <button class="btn btn-primary btn-block" data-next style="margin-top:14px">Zurück</button>`);
     root.querySelector('[data-next]').onclick = () => route();
+    root.querySelectorAll('[data-tick]').forEach((b) => {
+      b.onclick = () => {
+        const st2 = get();
+        const g2 = kb(st2);
+        const e = g2.list.find((x) => x.text === b.dataset.tick);
+        if (!e) return;
+        e.done = !e.done;
+        e.doneAt = e.done ? Date.now() : 0;
+        commit('krib');
+        sendEvent('game', { g: 'krib', kind: 'kribTick', text: e.text, on: e.done });
+        fx(e.done ? 'yay' : 'tap');
+        if (e.done) burst(['statJoy'], { from: b, count: 5, rise: 90 });
+        screenList();
+      };
+    });
     bindClose();
   }
 
@@ -584,13 +763,14 @@ export function mount(root, ctx) {
     const g = kb(get());
     if (!g.list.length) return '';
     const beide = g.list.filter((e) => e.level === 'beide').length;
+    const fertig = g.list.filter((e) => e.done).length;
     return `<div class="section-label">Eure Liste</div>
       <div class="list">
         <button class="li" data-list>
           <div class="li-ico">${icon('gameSpark', { size: 19 })}</div>
           <div class="grow">
             <div class="li-title">${g.list.length} ${g.list.length === 1 ? 'Wunsch' : 'Wünsche'}</div>
-            <div class="li-sub">${beide} davon wollt ihr beide · zuletzt ${relTime(g.list[0].at)}</div>
+            <div class="li-sub">${beide} davon wollt ihr beide${fertig ? ` · ${fertig} schon gemacht` : ''}</div>
           </div>
           <span class="li-chev">${icon('chevron', { size: 16 })}</span>
         </button>

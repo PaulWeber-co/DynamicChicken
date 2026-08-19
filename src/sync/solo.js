@@ -399,7 +399,9 @@ function maybeGameMove(state) {
     return;
   }
   if (roll < 0.44 && !state.games?.krib?.cur) {
-    // Der simulierte Mensch teilt nur aus, was ohne Zusatzschalter erlaubt ist
+    // Der simulierte Mensch teilt nur aus, was ohne Zusatzschalter erlaubt ist.
+    // Ohne Karten im Zug rechnet die Gegenseite sie aus dem Schlüssel nach —
+    // das reicht hier, weil im Solo-Modus nur ein Gedächtnis existiert.
     const tier = state.settings?.spicy && Math.random() < 0.4 ? 'heiss' : pick(['sanft', 'frech']);
     emitEv('game', { g: 'krib', kind: 'kribDeal', r: state.games?.krib?.r || 1, tier });
     return;

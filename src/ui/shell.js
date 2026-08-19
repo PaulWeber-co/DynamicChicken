@@ -62,9 +62,16 @@ export function go(tabId, { replace = false, fromHash = false } = {}) {
   cleanup = null;
   currentTab = tab.id;
 
-  // Der Tab steht am Element, damit das Stylesheet einzelne Screens anders
-  // behandeln kann — die Spiele-Seite etwa passt sich der Fensterhöhe an,
-  // statt zu scrollen.
+  /*
+   * Erst leeren, dann umschalten.
+   *
+   * Der alte Inhalt im neuen Rahmen ist ein Zwischenzustand, den niemand
+   * sehen soll: Ein langer Screen in einem auf Fensterhöhe begrenzten
+   * Kasten lässt die Seite für einen Bildaufbau springen. Das erzwungene
+   * Reflow unten braucht es für die Einblend-Animation — es darf nur nicht
+   * auf die alten Kinder treffen.
+   */
+  screenEl.innerHTML = '';
   screenEl.dataset.screen = tab.id;
   screenEl.classList.remove('screen-enter');
   void screenEl.offsetWidth;
