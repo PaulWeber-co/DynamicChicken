@@ -47,6 +47,35 @@ const STURZ_STRAFE = 1.6; // Sekunden, die ein Sturz kostet
 export const parZeit = (laenge) => laenge / TEMPO + 6;
 
 /**
+ * Wie schwer ist Strecke Nummer `n`?
+ *
+ * Die Level bauen aufeinander auf: Zuerst gibt es nur Lücken und Stufen,
+ * dann kommen Büsche dazu, ab vier Gegner, ab sechs schwebende Inseln und
+ * Sprungfedern, ab acht wandernde Plattformen. Gleichzeitig werden die
+ * Strecken länger und die Lücken breiter. Wer bei Strecke 1 anfängt, lernt
+ * jedes Element einzeln kennen, statt beim ersten Versuch von allem
+ * gleichzeitig überrascht zu werden.
+ */
+export function levelPlan(n) {
+  const l = Math.max(1, Math.floor(n));
+  return {
+    stufe: l,
+    abschnitte: Math.min(12, 6 + Math.floor(l / 2)),
+    // Was darf vorkommen?
+    busch: l >= 2,
+    gegner: l >= 4,
+    insel: l >= 3,
+    feder: l >= 6,
+    wackel: l >= 8,
+    // Wie unangenehm?
+    lueckeExtra: Math.min(60, (l - 1) * 7),
+    gegnerMehr: l >= 9,
+    name: l <= 2 ? 'Spaziergang' : l <= 4 ? 'Feldweg' : l <= 6 ? 'Hindernislauf'
+      : l <= 8 ? 'Rennstrecke' : l <= 11 ? 'Kletterpartie' : 'Wahnsinn'
+  };
+}
+
+/**
  * Die Strecke.
  *
  * Aufgebaut aus Abschnitten, damit sie sich fair anfühlt: Nach jeder Lücke
@@ -54,14 +83,20 @@ export const parZeit = (laenge) => laenge / TEMPO + 6;
  * hintereinander. Rein zufällig gestreute Hindernisse ergeben sonst
  * regelmäßig Stellen, die gar nicht schaffbar sind.
  *
- * @returns {{platten:Array, hindernisse:Array, koerner:Array, punkte:Array, laenge:number}}
+ * Welche Bausteine erlaubt sind, entscheidet der Level-Plan.
+ *
+ * @returns {{platten:Array, hindernisse:Array, gegner:Array, federn:Array,
+ *            koerner:Array, punkte:Array, laenge:number, plan:object}}
  */
-export function strecke(seed) {
+export function strecke(seed, level = 1) {
+  const plan = levelPlan(level);
   const r = rng(seed);
-  const platten = [];      // { x, w, y }  y = Oberkante
-  const hindernisse = [];  // { x, w, h, y, art }
+  const platten = [];      // { x, w, y, dx? }  dx = wandert
+  const hindernisse = [];  // { x, w, h, y }
+  const gegner = [];       // { x, y, von, bis, weg }
+  const federn = [];       // { x, y }
   const koerner = [];      // { x, y }
-  const punkte = [];       // Rettungspunkte (x)
+  const punkte = [];       // Rettungspunkte
 
   let x = 0;
   /**
@@ -76,75 +111,112 @@ export function strecke(seed) {
     if (y === BODEN && w >= 200) sicher.push({ x: x + 70, y });
     x += w;
   };
+  const luecke = (b) => { x += b + plan.lueckeExtra; };
 
   grund(360);              // Anlauf, ohne alles
 
   const bausteine = [
     /* Lücke — springen oder fallen */
-    () => {
-      const luecke = 90 + Math.floor(r() * 60);
-      x += luecke;
+    { id: 'luecke', bau: () => {
+      luecke(90 + Math.floor(r() * 50));
       grund(220 + Math.floor(r() * 120));
-    },
+    } },
     /* Stufe hoch, dann wieder runter */
-    () => {
+    { id: 'stufe', bau: () => {
       const h = 60 + Math.floor(r() * 40);
-      x += 70 + Math.floor(r() * 40);
+      luecke(60 + Math.floor(r() * 30));
       grund(200 + Math.floor(r() * 100), h);
       koerner.push({ x: x - 120, y: h + 60 });
-      x += 80 + Math.floor(r() * 40);
+      luecke(70 + Math.floor(r() * 30));
       grund(240);
-    },
+    } },
     /* Busch auf dem Boden — drüberspringen */
-    () => {
+    { id: 'busch', wenn: 'busch', bau: () => {
       const start = x;
       grund(340);
-      hindernisse.push({ x: start + 150, w: 30, h: 44, y: BODEN, art: 'busch' });
-    },
+      hindernisse.push({ x: start + 150, w: 30, h: 44, y: BODEN });
+    } },
     /* Zwei Büsche kurz hintereinander */
-    () => {
+    { id: 'buesche', wenn: 'busch', bau: () => {
       const start = x;
       grund(430);
-      hindernisse.push({ x: start + 120, w: 26, h: 40, y: BODEN, art: 'busch' });
-      hindernisse.push({ x: start + 290, w: 26, h: 40, y: BODEN, art: 'busch' });
+      hindernisse.push({ x: start + 120, w: 26, h: 40, y: BODEN });
+      hindernisse.push({ x: start + 290, w: 26, h: 40, y: BODEN });
       koerner.push({ x: start + 205, y: 96 });
-    },
+    } },
+    /* Ein Fuchs läuft auf dem Boden hin und her */
+    { id: 'gegner', wenn: 'gegner', bau: () => {
+      const start = x;
+      grund(400);
+      gegner.push({ x: start + 200, y: BODEN, von: start + 130, bis: start + 300, weg: false, dir: 1 });
+      koerner.push({ x: start + 200, y: 110 });
+    } },
+    /* Zwei Füchse — erst ab Stufe neun */
+    { id: 'gegner2', wenn: 'gegnerMehr', bau: () => {
+      const start = x;
+      grund(520);
+      gegner.push({ x: start + 160, y: BODEN, von: start + 110, bis: start + 240, weg: false, dir: 1 });
+      gegner.push({ x: start + 380, y: BODEN, von: start + 320, bis: start + 460, weg: false, dir: -1 });
+    } },
     /* Schwebende Insel mit Körnern darauf */
-    () => {
-      x += 100;
+    { id: 'insel', wenn: 'insel', bau: () => {
+      luecke(90);
       const h = 96 + Math.floor(r() * 40);
-      const w = 150 + Math.floor(r() * 80);
+      const w = 150 + Math.floor(r() * 70);
       platten.push({ x, w, y: h });
       for (let i = 0; i < 3; i++) koerner.push({ x: x + 30 + i * 42, y: h + 44 });
-      x += w + 100;
+      x += w;
+      luecke(90);
       grund(260);
-    },
+    } },
     /* Treppe */
-    () => {
+    { id: 'treppe', bau: () => {
       for (let i = 1; i <= 3; i++) { x += 26; grund(96, i * 44); }
       x += 40;
       koerner.push({ x: x - 20, y: 3 * 44 + 60 });
       grund(280);
-    },
+    } },
+    /* Sprungfeder: einmal drauf und sehr weit nach oben */
+    { id: 'feder', wenn: 'feder', bau: () => {
+      const start = x;
+      grund(300);
+      federn.push({ x: start + 150, y: BODEN });
+      luecke(150);
+      const h = 150;
+      platten.push({ x, w: 170, y: h });
+      koerner.push({ x: x + 50, y: h + 46 });
+      koerner.push({ x: x + 110, y: h + 46 });
+      x += 170;
+      luecke(110);
+      grund(280);
+    } },
+    /* Wandernde Plattform über einer breiten Lücke */
+    { id: 'wackel', wenn: 'wackel', bau: () => {
+      luecke(120);
+      const w = 110;
+      platten.push({ x, w, y: 60, dx: 130, tempo: 0.55 + r() * 0.3, phase: r() * 6.28 });
+      koerner.push({ x: x + w / 2, y: 118 });
+      x += w + 140;
+      grund(300);
+    } },
     /* Lange Lücke mit Trittstein in der Mitte */
-    () => {
-      x += 110;
+    { id: 'trittstein', bau: () => {
+      luecke(100);
       platten.push({ x, w: 76, y: 54 });
       koerner.push({ x: x + 38, y: 110 });
-      x += 76 + 110;
+      x += 76;
+      luecke(100);
       grund(280);
-    }
+    } }
   ];
 
-  // Acht Abschnitte ergeben rund 4500 px — knapp zwanzig Sekunden Laufzeit.
-  // Länger wird eine Zeitfahrt zäh: Man will sie noch einmal laufen, und das
-  // tut niemand, wenn ein Versuch eine Minute kostet.
+  const erlaubt = bausteine.filter((b) => !b.wenn || plan[b.wenn]);
   let letzter = -1;
-  for (let i = 0; i < 8; i++) {
-    let k = Math.floor(r() * bausteine.length);
-    if (k === letzter) k = (k + 1) % bausteine.length;   // nie zweimal dasselbe
+  for (let i = 0; i < plan.abschnitte; i++) {
+    let k = Math.floor(r() * erlaubt.length);
+    if (k === letzter && erlaubt.length > 1) k = (k + 1) % erlaubt.length;
     letzter = k;
-    bausteine[k]();
+    erlaubt[k].bau();
   }
 
   grund(340);              // Zielgerade
@@ -159,18 +231,25 @@ export function strecke(seed) {
   }
   if (!punkte.length) punkte.push({ x: 60, y: BODEN });
 
-  return { platten, hindernisse, koerner, punkte, laenge };
+  return { platten, hindernisse, gegner, federn, koerner, punkte, laenge, plan };
 }
 
-/** Punkte aus Zeit, Körnern und Ziel. */
-export function bewerten(sekunden, koerner, imZiel, laenge) {
-  if (!imZiel) return Math.max(0, koerner * 10);
+/** Punkte aus Zeit, Körnern, erledigten Füchsen und Ziel. */
+export function bewerten(sekunden, koerner, imZiel, laenge, gegner = 0, stufe = 1) {
+  if (!imZiel) return Math.max(0, koerner * 10 + gegner * 20);
   const par = parZeit(laenge);
   const bonus = Math.max(0, Math.round((par - sekunden) * 40));
-  return 300 + bonus + koerner * 15;
+  // Höhere Stufen sind mehr wert — sonst lohnt sich die leichte Strecke am meisten
+  return Math.round((300 + bonus + koerner * 15 + gegner * 40) * (1 + (stufe - 1) * 0.06));
 }
 
 export const zeitText = (s) => `${s.toFixed(1).replace('.', ',')} s`;
+
+/** Welcher Baustein kommt auf dieser Stufe zum ersten Mal vor? */
+export function neuHier(stufe) {
+  return ({ 2: 'Büsche', 3: 'schwebende Inseln', 4: 'Füchse', 6: 'Sprungfedern',
+    8: 'wandernde Plattformen', 9: 'Fuchsrudel' })[Math.floor(stufe)] || '';
+}
 
 export function summary(state) {
   const d = duel(state, meta.id);
@@ -202,6 +281,7 @@ export function mount(root, ctx) {
         <div class="game-center">
           <div class="game-hero">${icon('gameRun', { size: 68 })}</div>
           <h2 class="game-h">Strecke ${d.r}</h2>
+          <div class="game-kicker">${esc(levelPlan(d.r).name)}${neuHier(d.r) ? ` · neu: ${esc(neuHier(d.r))}` : ''}</div>
           <p class="game-p">${target != null
             ? `<b>${esc(partner)}</b> war schon durch: <b>${target}</b> Punkte${d.theirs?.detail?.zeit ? ` in ${zeitText(d.theirs.detail.zeit)}` : ''}. Gleiche Strecke für dich.`
             : 'Das Huhn rennt von allein. Tippen springt, halten springt höher. Je schneller im Ziel, desto mehr Punkte — Körner unterwegs zählen extra.'}</p>
@@ -220,7 +300,7 @@ export function mount(root, ctx) {
     running = true;
     const st = get();
     const d = duel(st, meta.id);
-    const S = strecke(seedFor(meta.id, d.r, st));
+    const S = strecke(seedFor(meta.id, d.r, st), d.r);
 
     root.innerHTML = `
       <div class="game-wrap game-playing">
@@ -263,20 +343,33 @@ export function mount(root, ctx) {
     messen();
 
     const held = { x: 40, y: BODEN, vy: 0, amBoden: true };
-    let zeit = 0, geholt = 0, stuerze = 0, fertig = false, gestartet = 0;
+    let zeit = 0, geholt = 0, stuerze = 0, fertig = false, gestartet = 0, erwischt = 0;
+    const gegner = S.gegner.map((g) => ({ ...g }));
     let haltenSeit = -1, coyote = 0, puffer = -1;
     let rettung = S.punkte[0];                 // letzter erreichter Rettungspunkt
     const genommen = new Set();
 
+    /**
+     * Wo steht diese Platte gerade?
+     *
+     * Wandernde Plattformen (`dx`) schwingen um ihre Ausgangsposition. Weil
+     * sie aus einer Sinuskurve über der Laufzeit kommen, sehen beide Geräte
+     * dieselbe Bewegung — die Zeit ist der einzige Eingang.
+     */
+    const platteX = (p) => p.dx ? p.x + Math.sin(zeit * p.tempo + p.phase) * p.dx : p.x;
+
     /** Oberkante der Platte unter einem Punkt, oder null über der Lücke. */
     function bodenUnter(px, py) {
-      let best = null;
+      let best = null, traeger = null;
       for (const p of S.platten) {
-        if (px + HELD_B * 0.35 < p.x || px - HELD_B * 0.35 > p.x + p.w) continue;
-        if (p.y <= py + 2 && (best === null || p.y > best)) best = p.y;
+        const px0 = platteX(p);
+        if (px + HELD_B * 0.35 < px0 || px - HELD_B * 0.35 > px0 + p.w) continue;
+        if (p.y <= py + 2 && (best === null || p.y > best)) { best = p.y; traeger = p; }
       }
+      letzterTraeger = traeger;
       return best;
     }
+    let letzterTraeger = null;
 
     function springen() {
       if (fertig) return;
@@ -360,11 +453,55 @@ export function mount(root, ctx) {
       // Ins Leere gefallen
       if (held.y < -120) { sturz(); return; }
 
+      // Auf einer wandernden Plattform fährt man mit
+      if (held.amBoden && letzterTraeger?.dx) {
+        const vor = platteX(letzterTraeger);
+        const nach = letzterTraeger.x + Math.sin((zeit + dt) * letzterTraeger.tempo + letzterTraeger.phase) * letzterTraeger.dx;
+        held.x += nach - vor;
+      }
+
       // Hindernisse: von oben drauf ist erlaubt, seitlich hinein nicht
       for (const h of S.hindernisse) {
         const treffer = held.x + HELD_B * 0.3 > h.x && held.x - HELD_B * 0.3 < h.x + h.w
           && held.y < h.y + h.h - 4 && held.y + HELD_H > h.y;
         if (treffer) { sturz(); return; }
+      }
+
+      /**
+       * Füchse laufen ihre Strecke ab. Von oben draufspringen erledigt sie
+       * und gibt einen kleinen Rückstoß — seitlich hineinlaufen kostet Zeit.
+       * Das ist die eine Stelle, an der man den Sprung nicht nur zum
+       * Ausweichen braucht, sondern zum Angreifen.
+       */
+      for (const g of gegner) {
+        if (g.weg) continue;
+        g.x += g.dir * 62 * dt;
+        if (g.x > g.bis) { g.x = g.bis; g.dir = -1; }
+        if (g.x < g.von) { g.x = g.von; g.dir = 1; }
+        const nah = Math.abs(g.x - held.x) < 26;
+        if (!nah) continue;
+        const vonOben = held.vy < 0 && held.y > g.y + 20;
+        if (vonOben) {
+          g.weg = true;
+          erwischt++;
+          held.vy = 380;                 // kleiner Absprung
+          fx('coin');
+          const b2 = field.getBoundingClientRect();
+          burst(['feather'], { x: b2.left + w2s(g.x, Math.max(0, held.x - W / (3 * skala))), y: b2.top + h2s(g.y), count: 5 });
+        } else if (held.y < g.y + 30) {
+          sturz();
+          return;
+        }
+      }
+
+      // Sprungfedern schleudern nach oben — einmal berührt, einmal hoch
+      for (const f of S.federn) {
+        if (Math.abs(f.x - held.x) < 26 && held.y <= f.y + 22 && held.vy <= 0) {
+          held.vy = SPRUNG * 1.72;
+          held.amBoden = false;
+          f.gedrueckt = zeit;
+          fx('pop');
+        }
       }
 
       // Körner
@@ -435,7 +572,7 @@ export function mount(root, ctx) {
 
       // Platten
       for (const p of S.platten) {
-        const sx = w2s(p.x, kamera), sw = p.w * skala;
+        const sx = w2s(platteX(p), kamera), sw = p.w * skala;
         if (sx > W || sx + sw < 0) continue;
         const sy = h2s(p.y);
         g.fillStyle = '#8FBF7A';
@@ -458,6 +595,49 @@ export function mount(root, ctx) {
         g.beginPath();
         g.arc(sx + h.w * skala * 0.3, h2s(h.y) - h.h * skala * 0.7, 3.2, 0, Math.PI * 2);
         g.arc(sx + h.w * skala * 0.75, h2s(h.y) - h.h * skala * 0.45, 3.2, 0, Math.PI * 2);
+        g.fill();
+      }
+
+      // Sprungfedern
+      for (const f of S.federn) {
+        const sx = w2s(f.x, kamera);
+        if (sx > W + 30 || sx < -30) continue;
+        const gedrueckt = f.gedrueckt && zeit - f.gedrueckt < 0.22;
+        const hoch = gedrueckt ? 6 : 18;
+        g.fillStyle = '#9A88E0';
+        g.beginPath();
+        g.roundRect(sx - 16, h2s(0) - hoch * skala, 32, hoch * skala, 5);
+        g.fill();
+        g.strokeStyle = '#C7BAF7';
+        g.lineWidth = 2.4;
+        for (let k = 1; k <= 2; k++) {
+          g.beginPath();
+          g.moveTo(sx - 13, h2s(0) - (hoch * k / 3) * skala);
+          g.lineTo(sx + 13, h2s(0) - (hoch * k / 3) * skala);
+          g.stroke();
+        }
+      }
+
+      // Füchse
+      for (const gg of gegner) {
+        if (gg.weg) continue;
+        const sx = w2s(gg.x, kamera);
+        if (sx > W + 40 || sx < -40) continue;
+        const sy = h2s(gg.y);
+        const wippe = Math.sin(zeit * 9) * 2;
+        g.fillStyle = '#E08A4A';
+        g.beginPath(); g.ellipse(sx, sy - 15 * skala + wippe, 15 * skala, 13 * skala, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#FFF6E4';
+        g.beginPath(); g.ellipse(sx, sy - 10 * skala + wippe, 8 * skala, 7 * skala, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#E08A4A';
+        g.beginPath();
+        g.moveTo(sx - 13 * skala, sy - 24 * skala + wippe); g.lineTo(sx - 6 * skala, sy - 31 * skala + wippe); g.lineTo(sx - 4 * skala, sy - 22 * skala + wippe);
+        g.moveTo(sx + 13 * skala, sy - 24 * skala + wippe); g.lineTo(sx + 6 * skala, sy - 31 * skala + wippe); g.lineTo(sx + 4 * skala, sy - 22 * skala + wippe);
+        g.fill();
+        g.fillStyle = '#3A2C21';
+        g.beginPath();
+        g.arc(sx - 5 * skala * gg.dir, sy - 18 * skala + wippe, 2 * skala, 0, Math.PI * 2);
+        g.arc(sx + 3 * skala * gg.dir, sy - 18 * skala + wippe, 2 * skala, 0, Math.PI * 2);
         g.fill();
       }
 
@@ -550,17 +730,17 @@ export function mount(root, ctx) {
       running = false;
       cancelAnimationFrame(raf);
       fx('yay');
-      finish(zeit, geholt, true, stuerze, S.laenge);
+      finish(zeit, geholt, true, stuerze, S.laenge, erwischt, S.plan.stufe);
     }
 
     raf = requestAnimationFrame(frame);
   }
 
-  function finish(zeit, koerner, imZiel, stuerze, laenge) {
+  function finish(zeit, koerner, imZiel, stuerze, laenge, gegnerWeg = 0, stufe = 1) {
     running = false;
     cancelAnimationFrame(raf);
-    const punkte = bewerten(zeit, koerner, imZiel, laenge);
-    const { settled } = submitScore(meta.id, punkte, { zeit: Math.round(zeit * 10) / 10, koerner, stuerze });
+    const punkte = bewerten(zeit, koerner, imZiel, laenge, gegnerWeg, stufe);
+    const { settled } = submitScore(meta.id, punkte, { zeit: Math.round(zeit * 10) / 10, koerner, stuerze, gegner: gegnerWeg });
     if (settled?.result === 'me') confetti(['trophy', 'sparkle', 'feather']);
 
     const par = parZeit(laenge);
@@ -575,6 +755,7 @@ export function mount(root, ctx) {
           <div class="game-stats">
             <div><b>${punkte}</b><small>Punkte</small></div>
             <div><b>${koerner}</b><small>Körner</small></div>
+            ${gegnerWeg ? `<div><b>${gegnerWeg}</b><small>Füchse</small></div>` : ''}
             <div><b>${stuerze}</b><small>Stürze</small></div>
           </div>
           <p class="game-p">${note.charAt(0).toUpperCase() + note.slice(1)}. ${!settled

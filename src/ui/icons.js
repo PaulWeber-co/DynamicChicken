@@ -549,6 +549,21 @@ const ICONS = {
   accChoker: () => `<path d="M6.6 11.4q9.4 4.4 18.8 0 .8 2.4 0 4-9.4 4.4-18.8 0-.8-1.6 0-4z" fill="#241F2B"/>
     <circle cx="16" cy="19.4" r="3" fill="none" stroke="#D9C08A" stroke-width="1.8"/>
     <circle cx="16" cy="16" r="1.4" fill="#D9C08A"/>`,
+  hatChef: () => `<path d="M16 4.4q4.4 0 6.1 3.4 4.7-.5 5.5 3.8.8 4.1-4.2 5.4v1.6H8.6v-1.6q-5-1.3-4.2-5.4.8-4.3 5.5-3.8Q11.6 4.4 16 4.4z" fill="#FFFDF7" stroke="#DFD2B8" stroke-width="1.4" stroke-linejoin="round"/>
+    <rect x="8.6" y="17.4" width="14.8" height="6.6" rx="2.3" fill="#F4EDDE" stroke="#DFD2B8" stroke-width="1.4"/>
+    <path d="M10 20.7h12" stroke="#DBCEB4" stroke-width="1.4"/>`,
+  accStetho: () => `<path d="M9 7.4q-3.4 8 1.4 12.6 4.4 4.2 10.6 1.4" fill="none" stroke="#3F5D72" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M23 7.4q3 6.6-.6 10.4-1.8 1.8-4.4 2.6" fill="none" stroke="#3F5D72" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="9" cy="6.6" r="1.9" fill="#93A6B4"/><circle cx="23" cy="6.6" r="1.9" fill="#93A6B4"/>
+    <circle cx="21.4" cy="22.6" r="4.6" fill="#C9D6DE" stroke="#8497A5" stroke-width="1.8"/>
+    <circle cx="21.4" cy="22.6" r="2" fill="#EEF3F6"/>`,
+  accCuffs: () => `<path d="M12.6 16q3.4 2.6 6.8 0" fill="none" stroke="#7E8894" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="9.4" cy="15.6" r="5.4" fill="none" stroke="#AFB9C4" stroke-width="3"/>
+    <circle cx="22.6" cy="15.6" r="5.4" fill="none" stroke="#AFB9C4" stroke-width="3"/>
+    <circle cx="9.4" cy="15.6" r="5.4" fill="none" stroke="#8894A2" stroke-width="1"/>
+    <circle cx="22.6" cy="15.6" r="5.4" fill="none" stroke="#8894A2" stroke-width="1"/>
+    <rect x="7.4" y="8" width="4" height="3.4" rx="1" fill="#8894A2"/>
+    <rect x="20.6" y="8" width="4" height="3.4" rx="1" fill="#8894A2"/>`,
   hatNone: () => `<circle cx="16" cy="16" r="10.4" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>
     <path d="M9 23 23 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35"/>`,
   hatBeanie: () => `<path d="M6.6 19c0-5.4 4.2-9.6 9.4-9.6s9.4 4.2 9.4 9.6z" fill="${C.sky}"/>

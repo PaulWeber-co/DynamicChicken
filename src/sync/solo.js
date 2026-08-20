@@ -465,6 +465,32 @@ function answerGame(ev, state) {
     return;
   }
 
+  /**
+   * Federgarn: Der simulierte Mensch kann nicht schreiben.
+   *
+   * Er antwortet mit einem Satz, der fast überall passt, und bewertet
+   * wohlwollend. Das ist ein Platzhalter, kein Mitspieler — aber der
+   * Solo-Modus bleibt bedienbar, statt beim ersten Zug hängen zu bleiben.
+   */
+  if (d.kind === 'garnStart' || d.kind === 'garnZug') {
+    later(async () => {
+      const g = await import('../games/garn.js');
+      const st = get();
+      const a = st.games?.garn?.aktiv;
+      if (!a || a.id !== d.id) return;
+      emitEv('game', {
+        g: 'garn', kind: 'garnZug', id: d.id,
+        rolle: d.rolle === 0 ? 1 : 0,
+        text: g.soloZug(),
+        wendung: g.zieheWendung(!!st.settings?.spicy),
+        kostuem: false,
+        funken: 3 + Math.round(Math.random() * 2)
+      });
+    }, jitter(20_000, 70_000));
+    return;
+  }
+  if (d.kind === 'garnEnde') return;
+
   /* Meme-Duell: der simulierte Mensch hat keine Bildersammlung, also
      schickt er ein gezeichnetes Hühner-Meme — die Oberfläche kann das. */
   if (d.kind === 'memePrompt') {

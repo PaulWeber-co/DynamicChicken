@@ -150,12 +150,27 @@ export function mount(root, ctx) {
         <div class="blk-field" data-field>
           <canvas class="blk-canvas" data-canvas></canvas>
         </div>
+        <p class="blk-tipp" data-tipp>Wisch den Stein hin und her · tipp zum Drehen · zieh nach unten</p>
         <div class="blk-pad">
-          <button class="blk-key" data-key="left" aria-label="Nach links">${icon('chevron', { size: 22 })}</button>
-          <button class="blk-key" data-key="soft" aria-label="Schneller fallen">${icon('chevron', { size: 22 })}</button>
-          <button class="blk-key dreh" data-key="rot" aria-label="Drehen">${icon('rotate', { size: 21 })}</button>
-          <button class="blk-key" data-key="right" aria-label="Nach rechts">${icon('chevron', { size: 22 })}</button>
-          <button class="blk-key ab" data-key="drop" aria-label="Fallen lassen">${icon('download', { size: 21 })}</button>
+          <div class="blk-gruppe">
+            <button class="blk-key" data-key="left" aria-label="Nach links">
+              ${icon('chevron', { size: 22 })}<span>Links</span>
+            </button>
+            <button class="blk-key" data-key="right" aria-label="Nach rechts">
+              ${icon('chevron', { size: 22 })}<span>Rechts</span>
+            </button>
+          </div>
+          <button class="blk-key dreh" data-key="rot" aria-label="Drehen">
+            ${icon('rotate', { size: 24 })}<span>Drehen</span>
+          </button>
+          <div class="blk-gruppe">
+            <button class="blk-key" data-key="soft" aria-label="Langsam fallen">
+              ${icon('chevron', { size: 22 })}<span>Sinken</span>
+            </button>
+            <button class="blk-key ab" data-key="drop" aria-label="Sofort fallen lassen">
+              ${icon('download', { size: 22 })}<span>Plumps</span>
+            </button>
+          </div>
         </div>
       </div>`;
     bindClose();
@@ -167,6 +182,9 @@ export function mount(root, ctx) {
     const elScore = root.querySelector('[data-score]');
     const elLines = root.querySelector('[data-lines]');
     const elCombo = root.querySelector('[data-combo]');
+    const elTipp = root.querySelector('[data-tipp]');
+    /** Der Hinweis geht beim ersten Zug — danach steht er nur im Weg. */
+    const tippWeg = () => elTipp?.classList.add('gone');
 
     const feld = root.querySelector('[data-field]');
     let zelle = 20, dpr = 1;
@@ -381,6 +399,7 @@ export function mount(root, ctx) {
       const k = b.dataset.key;
       const los = (e) => {
         e.preventDefault();
+        tippWeg();
         tasten[k]();
         // Seitwärts und abwärts wiederholen beim Halten — sonst tippt man
         // sich wund. Drehen und Fallenlassen bleiben einmalig.
@@ -409,6 +428,7 @@ export function mount(root, ctx) {
     const feldDown = (e) => {
       if (vorbei || !stein) return;
       e.preventDefault();
+      tippWeg();
       geste = { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, t: performance.now(), bewegt: false };
       cv.setPointerCapture?.(e.pointerId);
     };

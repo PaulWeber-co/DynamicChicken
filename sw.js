@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v12';
+const VERSION = 'knuddl-v13';
 const SHELL = [
   './',
   './index.html',
@@ -11,18 +11,26 @@ const SHELL = [
   './styles/screens.css',
   './styles/games.css',
   './src/main.js',
+  './src/games/blocks.js',
   './src/games/doodle.js',
   './src/games/featherFlight.js',
+  './src/games/garn.js',
+  './src/games/garnStoff.js',
   './src/games/grainRush.js',
   './src/games/hueCue.js',
   './src/games/index.js',
   './src/games/kribbeln.js',
   './src/games/meme.js',
   './src/games/nestTower.js',
+  './src/games/runner.js',
+  './src/games/sling.js',
+  './src/games/slingLevel.js',
+  './src/games/slingPhysik.js',
   './src/games/topFive.js',
   './src/pet/chicken.js',
   './src/pet/moods.js',
   './src/state/catalog.js',
+  './src/state/daily.js',
   './src/state/shared.js',
   './src/state/events.js',
   './src/state/model.js',
