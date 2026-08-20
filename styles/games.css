@@ -23,6 +23,15 @@
   padding: calc(env(safe-area-inset-top, 0px) + 58px) 0 env(safe-area-inset-bottom, 0px);
 }
 
+/**
+ * Über der Kopfzeile liegen 58 px Luft für Kerbe und Statusleiste. Auf
+ * einem kurzen Bildschirm ist das viel verschenkter Platz, den gerade die
+ * Spiele mit Spielfeld gut gebrauchen können.
+ */
+@media (max-height: 720px) {
+  .game-wrap { padding-top: calc(env(safe-area-inset-top, 0px) + 30px); }
+}
+
 .game-top {
   display: flex;
   align-items: center;
@@ -861,7 +870,7 @@ button.krib-line:active { transform: scale(.98); }
   position: relative;
   display: grid;
   place-items: center;
-  padding: 0 12px;
+  padding: 0 8px;
 }
 .blk-canvas {
   border-radius: var(--r-md);
@@ -889,17 +898,25 @@ button.krib-line:active { transform: scale(.98); }
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.blk-next-canvas { opacity: .92; }
+/* Feste Maße, damit die Kopfzeile schon vor dem ersten Zeichnen so hoch
+   ist wie später — sonst rechnet das Spielfeld mit zu wenig Platz. */
+.blk-next-canvas { width: 48px; height: 24px; opacity: .92; }
 
+/**
+ * Fünf Tasten: links, weicher Fall, drehen, rechts, fallen lassen.
+ *
+ * Gespielt wird vor allem mit der Wischgeste auf dem Feld — die Tasten
+ * sind die Alternative für alle, die lieber drücken, und für die Maus.
+ */
 .blk-pad {
   flex: none;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
 }
 .blk-key {
-  height: 56px;
+  height: 54px;
   display: grid;
   place-items: center;
   border-radius: var(--r-md);
@@ -910,10 +927,18 @@ button.krib-line:active { transform: scale(.98); }
   transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
 }
 .blk-key:active { transform: scale(.93); background: var(--accent-soft); color: var(--ink); }
-/* Der linke Pfeil ist derselbe Pfeil, nur andersherum */
+/* Ein Pfeil, vier Richtungen — gedreht statt viermal gezeichnet */
 .blk-key[data-key='left'] svg { transform: rotate(180deg); }
-.blk-key[data-key='drop'] { background: var(--accent-soft); color: var(--ink); }
-.blk-key[data-key='drop'] svg { transform: rotate(0deg); }
+.blk-key[data-key='soft'] svg { transform: rotate(90deg); }
+.blk-key.dreh { background: var(--calm-soft); color: var(--ink); }
+.blk-key.ab { background: var(--accent-soft); color: var(--ink); }
+
+/* Auf kurzen Bildschirmen ist jeder Pixel Spielfeld — die Leiste rückt
+   näher an den Rand und die Tasten werden etwas flacher. */
+@media (max-height: 700px) {
+  .blk-pad { padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
+  .blk-key { height: 48px; }
+}
 
 /* ── Federlauf ─────────────────────────────────────────── */
 

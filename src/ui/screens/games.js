@@ -23,7 +23,7 @@ import { esc } from '../../util/dom.js';
 import { icon } from '../icons.js';
 import { fx } from '../../util/feedback.js';
 import { get, subscribe } from '../../state/store.js';
-import { GAMES, gameSummary, todaysGames, istRotierend } from '../../games/index.js';
+import { GAMES, gameSummary, todaysGames, istRotierend, zeigtNeue } from '../../games/index.js';
 import { partnerOnline } from '../../sync/index.js';
 import { openGame } from '../gameHost.js';
 import { renderHead } from '../../pet/chicken.js';
@@ -77,8 +77,10 @@ export function render(root, ctx) {
       ${nowRow(waiting, online)}
 
       <div class="section-label row-between">
-        <span>Heute im Nest</span>
-        <span class="label-hint">${icon('shuffle', { size: 13 })} wechselt täglich</span>
+        <span>${zeigtNeue() ? 'Neu im Nest' : 'Heute im Nest'}</span>
+        <span class="label-hint">${zeigtNeue()
+          ? `${icon('sparkle', { size: 13 })} vier neue Spiele`
+          : `${icon('shuffle', { size: 13 })} wechselt täglich`}</span>
       </div>
       <div class="game-grid">
         ${heute.map(({ g, sum }) => tile(g, sum, online)).join('')}

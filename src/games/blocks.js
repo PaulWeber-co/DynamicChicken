@@ -26,11 +26,24 @@ export const meta = {
   tagline: 'Stapeln, bis die Reihe voll ist',
   modes: ['async'],
   tone: 'calm',
-  howto: 'Steine drehen und schieben, volle Reihen lösen sich auf. Beide bekommen dieselbe Steinfolge.'
+  howto: 'Wisch den Stein an die richtige Stelle, tipp zum Drehen, wisch nach unten zum Fallenlassen. Beide bekommen dieselbe Steinfolge.'
 };
 
 const COLS = 10;
-const ROWS = 18;
+/**
+ * Sechzehn Reihen, nicht zwanzig.
+ *
+ * Hochkant auf einem Handy bindet die Höhe, nicht die Breite: Bei zwanzig
+ * Reihen wird das Feld so schmal, dass ein Stein die Größe einer Erbse hat.
+ * Mit sechzehn ist die Breite der Engpass, das Feld füllt den Bildschirm,
+ * und die Partie ist kürzer — was einem Duell nebenbei guttut.
+ */
+const ROWS = 16;
+
+/** Wie lange ein aufsitzender Stein noch verschoben werden darf. */
+const LOCK_MS = 480;
+/** So oft darf man die Frist durch Bewegen verlängern, dann ist Schluss. */
+const LOCK_MAX = 12;
 
 /**
  * Die sieben Steine, jeder in seinen vier Drehungen.
@@ -139,9 +152,10 @@ export function mount(root, ctx) {
         </div>
         <div class="blk-pad">
           <button class="blk-key" data-key="left" aria-label="Nach links">${icon('chevron', { size: 22 })}</button>
-          <button class="blk-key" data-key="rot" aria-label="Drehen">${icon('shuffle', { size: 20 })}</button>
+          <button class="blk-key" data-key="soft" aria-label="Schneller fallen">${icon('chevron', { size: 22 })}</button>
+          <button class="blk-key dreh" data-key="rot" aria-label="Drehen">${icon('rotate', { size: 21 })}</button>
           <button class="blk-key" data-key="right" aria-label="Nach rechts">${icon('chevron', { size: 22 })}</button>
-          <button class="blk-key wide" data-key="drop" aria-label="Fallen lassen">${icon('download', { size: 20 })}</button>
+          <button class="blk-key ab" data-key="drop" aria-label="Fallen lassen">${icon('download', { size: 21 })}</button>
         </div>
       </div>`;
     bindClose();
@@ -156,20 +170,28 @@ export function mount(root, ctx) {
 
     const feld = root.querySelector('[data-field]');
     let zelle = 20, dpr = 1;
+    /** Feste Größe der Vorschau — siehe `messen()`. */
+    const NB = 12;
+
     function messen() {
       // Gemessen wird der *Rahmen*, nicht die Leinwand: Die hat vor dem
       // ersten Messen noch gar keine Größe und würde 300×150 melden.
+      //
+      // Aus demselben Grund hat die Vorschau oben eine feste Größe statt
+      // einer aus der Zellgröße errechneten. Sonst war sie beim ersten
+      // Messen 300×150 groß, blähte die Kopfzeile auf, das Feld bekam
+      // weniger Platz — und behielt die daraus errechnete, viel zu kleine
+      // Zellgröße für den Rest der Partie.
       const b = feld.getBoundingClientRect();
       dpr = Math.min(3, window.devicePixelRatio || 1);
-      zelle = Math.max(12, Math.floor(Math.min((b.width - 24) / COLS, (b.height - 8) / ROWS)));
+      zelle = Math.max(12, Math.floor(Math.min((b.width - 16) / COLS, (b.height - 6) / ROWS)));
       cv.width = Math.round(zelle * COLS * dpr);
       cv.height = Math.round(zelle * ROWS * dpr);
       cv.style.width = `${zelle * COLS}px`;
       cv.style.height = `${zelle * ROWS}px`;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const nb = Math.round(zelle * 0.62);
-      nx.width = nb * 4 * dpr; nx.height = nb * 2 * dpr;
-      nx.style.width = `${nb * 4}px`; nx.style.height = `${nb * 2}px`;
+      nx.width = NB * 4 * dpr; nx.height = NB * 2 * dpr;
+      nx.style.width = `${NB * 4}px`; nx.style.height = `${NB * 2}px`;
       gn.setTransform(dpr, 0, 0, dpr, 0, 0);
       zeichnen();
       naechsterZeichnen();
@@ -181,6 +203,8 @@ export function mount(root, ctx) {
     const brett = Array.from({ length: ROWS }, () => new Array(COLS).fill(-1));
     let index = 0, stein = null, punkte = 0, reihen = 0, stufe = 1, kombo = 0;
     let letzterFall = 0, vorbei = false;
+    // Aufsitzender Stein: seit wann, und wie oft die Frist schon verlängert wurde
+    let liegtSeit = 0, verlaengert = 0;
 
     const zellen = (s) => SHAPES[s.name].dreh[s.d % SHAPES[s.name].dreh.length]
       .map(([x, y]) => [s.x + x, s.y + y]);
@@ -191,9 +215,28 @@ export function mount(root, ctx) {
     function neuerStein() {
       const name = folge[index++ % folge.length];
       stein = { name, d: 0, x: Math.floor((COLS - 4) / 2), y: -1 };
+      liegtSeit = 0;
+      verlaengert = 0;
       if (!passt(stein)) { ende(); return false; }
       naechsterZeichnen();
       return true;
+    }
+
+    /** Sitzt der Stein auf? Dann läuft die Frist zum Verschieben. */
+    const sitztAuf = () => !!stein && !passt({ ...stein, y: stein.y + 1 });
+
+    /**
+     * Nach einer Bewegung bekommt ein aufsitzender Stein die Frist zurück.
+     *
+     * Ohne das rastet der Stein in der Sekunde ein, in der er aufkommt, und
+     * man kann ihn nicht mehr in die Lücke daneben schieben. Genau das macht
+     * den Unterschied zwischen „fühlt sich hakelig an“ und „fühlt sich gut
+     * an“. Die Verlängerung ist begrenzt, sonst kann man einen Stein ewig
+     * über dem Stapel herumschieben.
+     */
+    function fristZurueck() {
+      if (!sitztAuf()) { liegtSeit = 0; return; }
+      if (verlaengert < LOCK_MAX) { liegtSeit = performance.now(); verlaengert++; }
     }
 
     function ablegen() {
@@ -233,6 +276,8 @@ export function mount(root, ctx) {
       const versuch = { ...stein, x: stein.x + dx, y: stein.y + dy };
       if (!passt(versuch)) return false;
       stein = versuch;
+      if (dx) fristZurueck();
+      else if (dy) { liegtSeit = 0; verlaengert = 0; }
       zeichnen();
       return true;
     }
@@ -247,7 +292,7 @@ export function mount(root, ctx) {
       const naechste = (stein.d + 1) % SHAPES[stein.name].dreh.length;
       for (const dx of [0, -1, 1, -2, 2]) {
         const versuch = { ...stein, d: naechste, x: stein.x + dx };
-        if (passt(versuch)) { stein = versuch; fx('tap'); zeichnen(); return; }
+        if (passt(versuch)) { stein = versuch; fristZurueck(); fx('tap'); zeichnen(); return; }
       }
     }
 
@@ -310,23 +355,37 @@ export function mount(root, ctx) {
 
     function naechsterZeichnen() {
       const name = folge[index % folge.length];
-      const s = Math.round(zelle * 0.62);
-      gn.clearRect(0, 0, s * 4, s * 2);
-      for (const [x, y] of SHAPES[name].dreh[0]) block(gn, x * s, y * s, s, FARBEN[SHAPES[name].farbe]);
+      const form = SHAPES[name].dreh[0];
+      gn.clearRect(0, 0, NB * 4, NB * 2);
+      // Mittig setzen: Ein O-Stein sitzt sonst links, ein I-Stein klebt
+      // rechts am Rand, und die Vorschau wirkt bei jedem Stein verrutscht.
+      const xs = form.map(([x]) => x), ys = form.map(([, y]) => y);
+      const vx = (4 - (Math.max(...xs) - Math.min(...xs) + 1)) / 2 - Math.min(...xs);
+      const vy = (2 - (Math.max(...ys) - Math.min(...ys) + 1)) / 2 - Math.min(...ys);
+      for (const [x, y] of form) block(gn, (x + vx) * NB, (y + vy) * NB, NB, FARBEN[SHAPES[name].farbe]);
     }
 
     /* ── Steuerung ── */
 
-    const tasten = { left: () => bewegen(-1, 0), right: () => bewegen(1, 0), rot: drehen, drop: fallenLassen };
+    let weich = false;
+
+    const tasten = {
+      left: () => bewegen(-1, 0),
+      right: () => bewegen(1, 0),
+      rot: drehen,
+      drop: fallenLassen,
+      soft: () => { if (bewegen(0, 1)) { punkte += 1; elScore.textContent = punkte; } }
+    };
     root.querySelectorAll('[data-key]').forEach((b) => {
       let halten = 0, wieder = 0;
+      const k = b.dataset.key;
       const los = (e) => {
         e.preventDefault();
-        const f = tasten[b.dataset.key];
-        f();
-        // Links und rechts wiederholen beim Halten — sonst tippt man sich wund
-        if (b.dataset.key === 'left' || b.dataset.key === 'right') {
-          halten = setTimeout(() => { wieder = setInterval(f, 70); }, 260);
+        tasten[k]();
+        // Seitwärts und abwärts wiederholen beim Halten — sonst tippt man
+        // sich wund. Drehen und Fallenlassen bleiben einmalig.
+        if (k === 'left' || k === 'right' || k === 'soft') {
+          halten = setTimeout(() => { wieder = setInterval(tasten[k], k === 'soft' ? 55 : 70); }, k === 'soft' ? 130 : 240);
         }
       };
       const stop = () => { clearTimeout(halten); clearInterval(wieder); };
@@ -337,7 +396,56 @@ export function mount(root, ctx) {
       cleanups.push(stop);
     });
 
-    let weich = false;
+    /**
+     * Wischen auf dem Feld.
+     *
+     * Knöpfe allein sind für ein Stapelspiel zu langsam: Man schaut nach
+     * unten auf den Daumen statt nach oben auf den Stein. Mit der Geste
+     * folgt der Stein direkt dem Finger — eine Zellbreite pro Zellbreite —,
+     * ein Tipp dreht, und ein Wisch nach unten lässt fallen. Die Knöpfe
+     * bleiben trotzdem, für alle, die sie lieber mögen.
+     */
+    let geste = null;
+    const feldDown = (e) => {
+      if (vorbei || !stein) return;
+      e.preventDefault();
+      geste = { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, t: performance.now(), bewegt: false };
+      cv.setPointerCapture?.(e.pointerId);
+    };
+    const feldMove = (e) => {
+      if (!geste || vorbei) return;
+      e.preventDefault();
+      const dx = e.clientX - geste.x;
+      const schritte = Math.trunc(dx / Math.max(14, zelle));
+      if (schritte) {
+        for (let i = 0; i < Math.abs(schritte); i++) bewegen(Math.sign(schritte), 0);
+        geste.x += schritte * Math.max(14, zelle);
+        geste.bewegt = true;
+      }
+      // Ein deutlicher Zug nach unten lässt sofort fallen
+      if (e.clientY - geste.startY > 64 && Math.abs(e.clientX - geste.startX) < 46) {
+        geste = null;
+        fallenLassen();
+      }
+    };
+    const feldUp = () => {
+      if (!geste) return;
+      const kurz = performance.now() - geste.t < 260;
+      const still = Math.abs(geste.x - geste.startX) < 10;
+      if (kurz && still && !geste.bewegt) drehen();
+      geste = null;
+    };
+    cv.addEventListener('pointerdown', feldDown);
+    cv.addEventListener('pointermove', feldMove);
+    window.addEventListener('pointerup', feldUp);
+    window.addEventListener('pointercancel', feldUp);
+    cleanups.push(() => {
+      cv.removeEventListener('pointerdown', feldDown);
+      cv.removeEventListener('pointermove', feldMove);
+      window.removeEventListener('pointerup', feldUp);
+      window.removeEventListener('pointercancel', feldUp);
+    });
+
     const onKey = (e) => {
       if (vorbei) return;
       const k = e.key;
@@ -360,8 +468,18 @@ export function mount(root, ctx) {
       const tempo = weich ? 55 : fallTempo(stufe);
       if (now - letzterFall >= tempo) {
         letzterFall = now;
-        if (!bewegen(0, 1) && stein) { ablegen(); zeichnen(); }
-        else if (weich) { punkte += 1; elScore.textContent = punkte; }
+        if (bewegen(0, 1)) {
+          if (weich) { punkte += 1; elScore.textContent = punkte; }
+        } else if (stein && !liegtSeit) {
+          // Aufgekommen: jetzt läuft die Frist, noch wird nichts eingerastet
+          liegtSeit = now;
+        }
+      }
+      // Frist abgelaufen → einrasten. Nach LOCK_MAX Verlängerungen wird sie
+      // nicht mehr zurückgesetzt, also läuft sie dann zwangsläufig ab.
+      if (stein && liegtSeit && now - liegtSeit >= LOCK_MS) {
+        if (sitztAuf()) { ablegen(); zeichnen(); }
+        else liegtSeit = 0;
       }
       raf = requestAnimationFrame(frame);
     }
