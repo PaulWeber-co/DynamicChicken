@@ -847,3 +847,248 @@ button.krib-line {
   transition: transform var(--t-fast) var(--spring-pop), opacity var(--t-med);
 }
 button.krib-line:active { transform: scale(.98); }
+
+/* ── Federblock ────────────────────────────────────────── */
+
+/**
+ * Das Feld nimmt den Platz, den es kriegt; die Zellgröße rechnet das Spiel
+ * daraus aus. Deshalb steht hier nur der Rahmen — keine festen Maße, sonst
+ * passt es auf dem einen Gerät und läuft auf dem anderen über.
+ */
+.blk-field {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+}
+.blk-canvas {
+  border-radius: var(--r-md);
+  background: var(--surface-sunk);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-2), var(--card-shadow);
+  touch-action: none;
+}
+/**
+ * Der nächste Stein steht in der Kopfzeile, nicht über dem Feld.
+ *
+ * Über dem Feld verdeckte er die obersten Reihen — genau die, in denen es
+ * am Ende eng wird. Oben rechts ist er Information, kein Hindernis.
+ */
+.blk-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+.blk-next-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.blk-next-canvas { opacity: .92; }
+
+.blk-pad {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.blk-key {
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-2);
+  box-shadow: var(--card-shadow);
+  touch-action: none;
+  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
+}
+.blk-key:active { transform: scale(.93); background: var(--accent-soft); color: var(--ink); }
+/* Der linke Pfeil ist derselbe Pfeil, nur andersherum */
+.blk-key[data-key='left'] svg { transform: rotate(180deg); }
+.blk-key[data-key='drop'] { background: var(--accent-soft); color: var(--ink); }
+.blk-key[data-key='drop'] svg { transform: rotate(0deg); }
+
+/* ── Federlauf ─────────────────────────────────────────── */
+
+.run-field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+.run-canvas { display: block; width: 100%; height: 100%; }
+/* Wie weit die Strecke schon geschafft ist — unten am Rand, nicht im Weg */
+.run-progress {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 10px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: rgba(90, 70, 50, .18);
+  overflow: hidden;
+}
+.run-progress > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  transition: width 120ms linear;
+}
+
+/* ── Federschleuder ────────────────────────────────────── */
+
+.sling-field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+.sling-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+/* Die verbleibenden Eier oben rechts — verbrauchte werden blass */
+.hud-live .sling-egg { display: inline-flex; margin-left: 2px; color: var(--ink-2); }
+.hud-live .sling-egg.leer { opacity: .26; }
+
+/* ── Maskenball ────────────────────────────────────────── */
+
+.story-lead { text-align: center; margin-bottom: 6px; }
+.story-kap { font-size: 12px; font-weight: 800; color: var(--ink-3); }
+
+.story-rollen { display: flex; flex-direction: column; gap: 8px; }
+.story-rolle {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  transition: transform var(--t-fast) var(--spring-pop), box-shadow var(--t-med);
+}
+.story-rolle:active { transform: scale(.98); }
+.story-rolle-kopf { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.story-rolle-kopf b { font-size: 17px; font-weight: 850; letter-spacing: -.02em; }
+.story-rolle-kopf small { font-size: 12.5px; color: var(--ink-3); font-weight: 650; }
+.story-rolle-satz { font-size: 13px; color: var(--ink-2); line-height: 1.35; }
+.story-werte { display: flex; flex-wrap: wrap; gap: 5px; }
+.story-wert {
+  font-size: 11px;
+  font-weight: 750;
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunk);
+  color: var(--ink-3);
+}
+/* Der Wert, der die Rolle ausmacht, sticht heraus — sonst liest man vier Listen */
+.story-wert.stark { background: var(--love-soft); color: var(--love); }
+
+.story-ort {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 2px 4px 10px;
+}
+/* Was gerade passiert ist, steht abgesetzt über der Szene */
+.story-echo {
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  animation: echoIn var(--t-med) var(--spring) both;
+}
+@keyframes echoIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.story-text { font-size: 15.5px; line-height: 1.58; color: var(--ink); }
+.story-text p { margin: 0 0 12px; }
+.story-text p:last-child { margin-bottom: 0; }
+/* Die freizügigen Absätze sind sichtbar abgesetzt — man soll wissen, woran man ist */
+.story-spicy {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: linear-gradient(150deg, var(--love-soft), var(--accent-soft));
+  color: var(--ink);
+}
+
+.story-optionen { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 14px; }
+.story-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
+}
+.story-option:active { transform: scale(.98); background: var(--love-soft); }
+.story-probe-tag {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunk);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.story-frei { display: flex; gap: 8px; align-items: stretch; }
+.story-frei .input { flex: 1; min-width: 0; margin: 0; }
+.story-frei .btn { flex: none; width: auto; padding: 0 18px; }
+.story-hilfe { margin: 10px 4px 0; line-height: 1.4; }
+
+/* ── Die Würfel ── */
+
+.story-wurf { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.story-w {
+  width: 58px; height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  font-size: 28px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+.story-w.fest { animation: wuerfelFest 320ms var(--spring-pop); }
+@keyframes wuerfelFest { from { transform: scale(1.25) rotate(-8deg); } to { transform: none; } }
+.story-plus { font-size: 20px; font-weight: 800; color: var(--ink-3); }
+.story-summe { font-size: 34px; font-weight: 850; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.story-stufe {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  transition: opacity var(--t-med);
+}
+.story-stufe.gut { background: var(--grow-soft); color: var(--grow); }
+.story-stufe.teils { background: var(--accent-soft); color: var(--yolk-dp); }
+.story-stufe.schlecht { background: var(--surface-sunk); color: var(--ink-2); }
+
+.story-ende-kopf { text-align: center; margin-bottom: 14px; }
+.story-bilanz { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.story-bilanz .chip { font-size: 12px; }
