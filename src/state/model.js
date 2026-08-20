@@ -11,7 +11,7 @@ import { defaultLook } from '../pet/chicken.js';
 import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /** Verfall pro Stunde, wach. */
 const DECAY = { energy: 4.6, clean: 3.2, joy: 4.0 };
@@ -286,7 +286,12 @@ const STEPS = {
         revealedAt: d.revealedAt || null
       }]
     };
-  }
+  },
+
+  // Aus dem Maskenball (einer las, einer klickte) wurde Federgarn (beide
+  // schreiben). Andere Mechanik, anderer Zustand — der alte Spielstand
+  // passt nirgends mehr hinein und bliebe sonst als Ballast liegen.
+  6: (s) => { if (s.games) delete s.games.story; }
 };
 
 /** Vor einem Umbau eine Kopie wegschreiben — einmal, nicht bei jedem Start. */

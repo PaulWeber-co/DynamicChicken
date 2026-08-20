@@ -23,7 +23,7 @@ import * as doodle from './doodle.js';
 import * as blocks from './blocks.js';
 import * as runner from './runner.js';
 import * as sling from './sling.js';
-import * as story from './story.js';
+import * as garn from './garn.js';
 import * as hueCue from './hueCue.js';
 import * as meme from './meme.js';
 import * as topFive from './topFive.js';
@@ -35,7 +35,7 @@ import * as kribbeln from './kribbeln.js';
  * etwas voneinander erfährt.
  */
 export const GAMES = [
-  grainRush, featherFlight, nestTower, doodle, blocks, runner, sling, story,
+  grainRush, featherFlight, nestTower, doodle, blocks, runner, sling, garn,
   topFive, meme, kribbeln, hueCue
 ];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
@@ -53,7 +53,7 @@ export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
  * Kribbeln, Farbfunk), bleiben immer da. Eine angefangene Runde soll nicht
  * bis übermorgen warten müssen, nur weil der Kalender es so will.
  */
-export const ROTIEREND = ['grain', 'flight', 'tower', 'doodle', 'blocks', 'runner', 'sling', 'story'];
+export const ROTIEREND = ['grain', 'flight', 'tower', 'doodle', 'blocks', 'runner', 'sling', 'garn'];
 export const FEST = ['top5', 'meme', 'krib', 'hue'];
 export const PRO_TAG = 4;
 
@@ -68,7 +68,7 @@ export const PRO_TAG = 4;
  * am selben Tag dasselbe zeigen, auch wenn eines die App später zum ersten
  * Mal öffnet.
  */
-export const NEU = ['blocks', 'runner', 'sling', 'story'];
+export const NEU = ['blocks', 'runner', 'sling', 'garn'];
 export const NEU_BIS = '2026-08-24';   // ab diesem Tag wird gewürfelt
 
 export const zeigtNeue = (tag = dayKey()) => dayIndex(tag) < dayIndex(NEU_BIS);

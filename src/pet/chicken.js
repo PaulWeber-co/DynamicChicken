@@ -124,7 +124,8 @@ export const HATS = [
   { id: 'top',    label: 'Zylinder',    icon: 'hatTop',     price: 110 },
   { id: 'ears',   label: 'Katzenohren', icon: 'hatEars',    price: 130 },
   { id: 'pirate', label: 'Piratenhut',  icon: 'hatPirate',  price: 150 },
-  { id: 'viking', label: 'Wikinger',    icon: 'hatViking',  price: 175 }
+  { id: 'viking', label: 'Wikinger',    icon: 'hatViking',  price: 175 },
+  { id: 'chef',   label: 'Kochmütze',   icon: 'hatChef',    price: 85 }
 ];
 
 export const ACCESSORIES = [
@@ -148,7 +149,9 @@ export const ACCESSORIES = [
   { id: 'medal',      label: 'Medaille',     icon: 'accMedal',      price: 105 },
   { id: 'robe',       label: 'Bademantel',   icon: 'accRobe',       price: 125 },
   { id: 'boa',        label: 'Federboa',     icon: 'accBoa',        price: 145 },
-  { id: 'choker',     label: 'Halsband',     icon: 'accChoker',     price: 165, spicy: true }
+  { id: 'choker',     label: 'Halsband',     icon: 'accChoker',     price: 165, spicy: true },
+  { id: 'stetho',     label: 'Stethoskop',   icon: 'accStetho',     price: 135 },
+  { id: 'cuffs',      label: 'Handschellen', icon: 'accCuffs',      price: 195, spicy: true }
 ];
 
 export function defaultLook(seed = 0) {
@@ -590,6 +593,34 @@ function neckAcc(id) {
         <path d="M160 226l-11 44 11 16 11-16z" fill="#6C5A8F"/>
       </g>`;
 
+    case 'stetho':
+      // Zwei Schläuche über die Schultern, unten die Bruststück-Scheibe.
+      return `<g class="ck-acc">
+        <path d="M112 176q-18 46 8 70 24 22 60 8" fill="none" stroke="#3F5D72" stroke-width="9" stroke-linecap="round"/>
+        <path d="M208 176q16 36-2 58-9 11-24 15" fill="none" stroke="#3F5D72" stroke-width="9" stroke-linecap="round"/>
+        <path d="M112 176q-18 46 8 70" fill="none" stroke="#5A7E96" stroke-width="3.4" stroke-linecap="round"/>
+        <circle cx="112" cy="174" r="8" fill="#93A6B4"/>
+        <circle cx="208" cy="174" r="8" fill="#93A6B4"/>
+        <circle cx="186" cy="252" r="19" fill="#C9D6DE"/>
+        <circle cx="186" cy="252" r="19" fill="none" stroke="#8497A5" stroke-width="4.4"/>
+        <circle cx="186" cy="252" r="9" fill="#EEF3F6"/>
+      </g>`;
+
+    case 'cuffs':
+      // Zwei Ringe mit Kette dazwischen — sitzt vorn, wo die Flügel liegen.
+      return `<g class="ck-acc">
+        <path d="M136 250q24 16 48 0" fill="none" stroke="#7E8894" stroke-width="7" stroke-linecap="round"/>
+        <path d="M136 250q24 16 48 0" fill="none" stroke="#A7B1BC" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="118" cy="248" r="22" fill="none" stroke="#AFB9C4" stroke-width="10"/>
+        <circle cx="202" cy="248" r="22" fill="none" stroke="#AFB9C4" stroke-width="10"/>
+        <circle cx="118" cy="248" r="22" fill="none" stroke="#8894A2" stroke-width="3.4"/>
+        <circle cx="202" cy="248" r="22" fill="none" stroke="#8894A2" stroke-width="3.4"/>
+        <rect x="110" y="222" width="16" height="12" rx="3" fill="#8894A2"/>
+        <rect x="194" y="222" width="16" height="12" rx="3" fill="#8894A2"/>
+        <circle cx="118" cy="264" r="4" fill="#6F7A87"/>
+        <circle cx="202" cy="264" r="4" fill="#6F7A87"/>
+      </g>`;
+
     case 'apron':
       return `<g class="ck-acc">
         <path d="M124 188q36 14 72 0l-6 18h-60z" fill="#9BE0C0"/>
@@ -770,6 +801,20 @@ function hat(id) {
         <path d="M160 8c31 0 56 20 56 52h-20c0-28-14-46-36-52z" fill="#8194A8"/>
         <rect x="96" y="54" width="128" height="16" rx="8" fill="#8194A8"/>
         <path d="M156 20h8v40h-8z" fill="#8DA0B4"/>
+      </g>`;
+
+    case 'chef':
+      // Drei Wolken als Haube, darunter ein Bund. Ganz ohne Kante verschwindet
+      // das Weiß vor dem hellen Hintergrund — daher die dünne Umrandung.
+      return `<g class="ck-hat">
+        <ellipse cx="122" cy="40" rx="30" ry="24" fill="#FFFDF7" stroke="#E9DFC8" stroke-width="3"/>
+        <ellipse cx="198" cy="40" rx="30" ry="24" fill="#FFFDF7" stroke="#E9DFC8" stroke-width="3"/>
+        <ellipse cx="160" cy="30" rx="34" ry="26" fill="#FFFDF7" stroke="#E9DFC8" stroke-width="3"/>
+        <path d="M108 34h104v30H108z" fill="#FFFDF7"/>
+        <path d="M186 12q26 8 26 26 0 12-12 20l-11-7q9-6 9-15t-12-16z" fill="#F1EADB" opacity=".8"/>
+        <rect x="106" y="56" width="108" height="26" rx="8" fill="#F6EFE1" stroke="#E9DFC8" stroke-width="3"/>
+        <path d="M110 69h100" stroke="#E3D8C2" stroke-width="3.2"/>
+        <path d="M190 58h22v22h-22z" fill="#EAE1CE" opacity=".6"/>
       </g>`;
 
     default:
