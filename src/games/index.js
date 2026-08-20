@@ -138,7 +138,20 @@ function settle(state, id, partnerName = 'Dein Mensch') {
   const result = mine > theirs ? 'me' : theirs > mine ? 'them' : 'draw';
 
   d.wins[result]++;
-  d.history.unshift({ r: d.r, mine, theirs, result, at: Date.now() });
+  /**
+   * Die Einzelheiten wandern mit in den Verlauf.
+   *
+   * `settle` räumt `mine` und `theirs` gleich weg, um die nächste Runde
+   * anzufangen — wer erst danach nachsehen will, wer bei welcher Frage
+   * richtig lag, fände sonst nichts mehr vor. Nur der jüngste Eintrag
+   * behält sie; alles Ältere ist bloß noch Punktestand und würde den
+   * Speicher unnötig aufblähen.
+   */
+  if (d.history[0]) delete d.history[0].detail;
+  d.history.unshift({
+    r: d.r, mine, theirs, result, at: Date.now(),
+    detail: { mine: d.mine.detail || {}, theirs: d.theirs.detail || {} }
+  });
   if (d.history.length > 24) d.history.length = 24;
 
   const reward = result === 'me' ? REWARDS.gameWon : result === 'draw' ? REWARDS.gameDraw : REWARDS.gamePlayed;

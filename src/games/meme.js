@@ -105,7 +105,42 @@ export const PROMPTS = [
   'Ich beim Versuch, früher aufzustehen',
   'Wenn mich jemand fragt, wie es mir geht',
   'Mein Blick, wenn der Plan aufgeht',
-  'Ich, wenn ich das Haus verlasse und alles dabei habe'
+  'Ich, wenn ich das Haus verlasse und alles dabei habe',
+  /* Nachschub: zwischen uns */
+  'Mein Blick, wenn du „wir müssen reden" schreibst',
+  'Ich, wenn du drei Stunden nicht antwortest',
+  'Wie ich aussehe, wenn du endlich online gehst',
+  'Der Moment, wenn wir gleichzeitig dasselbe schreiben',
+  'Ich beim Warten auf deine Antwort',
+  'Wenn du sagst „mach du mal" und ich es wirklich mache',
+  'Mein Gesicht bei deinem letzten schlechten Wortspiel',
+  'Wenn du fragst, ob mir kalt ist, und ich schon deine Jacke trage',
+  /* Nachschub: draußen */
+  'Ich beim Sport nach der zweiten Minute',
+  'Wenn die Kassiererin schneller packt als ich',
+  'Mein Gesicht im Nachbarschaftschat',
+  'Ich, wenn die Ampel drei Sekunden vor mir umspringt',
+  'Wenn jemand im Zug ohne Kopfhörer Videos schaut',
+  'Ich beim Versuch, den Regenschirm zuzumachen',
+  'Wenn im Bus jemand neben mich sitzt, obwohl alles frei ist',
+  /* Nachschub: innen */
+  'Ich um 3 Uhr nachts mit einer Frage im Kopf',
+  'Mein Konto nach dem Wocheneinkauf',
+  'Wenn ich sage „ich räume gleich auf"',
+  'Ich beim vierten Mal Snooze',
+  'Mein Kühlschrank, wenn Besuch kommt',
+  'Wenn ich denke, ich hätte Zeit, und dann ist Sonntagabend',
+  'Ich beim Versuch, früher ins Bett zu gehen',
+  'Mein Gesicht, wenn die Waschmaschine fertig ist und ich nicht zu Hause bin',
+  /* Nachschub: absurd */
+  'Der letzte Keks in der Packung',
+  'Mein Staubsauger nach zwei Metern Kabel',
+  'Ich beim Falten einer Bettdecke',
+  'Wie mein Handy aussieht, wenn ich es fallen lasse',
+  'Der Moment, in dem der Drucker gewinnt',
+  'Ich und meine Zimmerpflanze im Machtkampf',
+  'Wenn ich das Passwort das dritte Mal falsch eingebe',
+  'Mein Gesicht bei „Bitte akzeptieren Sie die Cookies"'
 ];
 
 /** Wie viele Vorschläge unter dem Eingabefeld stehen. */
