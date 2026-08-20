@@ -58,6 +58,22 @@ export const FEST = ['top5', 'meme', 'krib', 'hue'];
 export const PRO_TAG = 4;
 
 /**
+ * Die vier neuen Spiele — und bis wann sie garantiert dastehen.
+ *
+ * Vier Tage lang belegen sie alle Plätze, danach mischen sie sich unter die
+ * anderen. Sonst hätte man am ersten Tag ein Drittel davon gesehen und
+ * müsste bis nächste Woche warten, um den Rest überhaupt kennenzulernen.
+ *
+ * Das Datum steht fest im Code, nicht im Speicherstand: Beide Geräte müssen
+ * am selben Tag dasselbe zeigen, auch wenn eines die App später zum ersten
+ * Mal öffnet.
+ */
+export const NEU = ['blocks', 'runner', 'sling', 'story'];
+export const NEU_BIS = '2026-08-24';   // ab diesem Tag wird gewürfelt
+
+export const zeigtNeue = (tag = dayKey()) => dayIndex(tag) < dayIndex(NEU_BIS);
+
+/**
  * Welche Spiele stehen heute im Raster?
  *
  * Wartet in einem rotierenden Spiel ein Zug auf dich, kommt es dazu — auch
@@ -68,7 +84,9 @@ export function todaysGames(state = get(), tag = dayKey()) {
   const a = state.me?.code || 'SOLO';
   const b = state.partner?.code || 'SOLO';
   const salz = `spiele|${[a, b].sort().join('~')}`;
-  const heute = cycledMany(ROTIEREND, PRO_TAG, dayIndex(tag), salz);
+  const heute = zeigtNeue(tag)
+    ? NEU.slice()
+    : cycledMany(ROTIEREND, PRO_TAG, dayIndex(tag), salz);
 
   const wartend = ROTIEREND.filter((id) => {
     if (heute.includes(id)) return false;

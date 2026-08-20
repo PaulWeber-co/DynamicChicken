@@ -599,6 +599,9 @@ const ICONS = {
   close: () => S('M9 9l14 14M23 9L9 23', 'fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"'),
   check: () => S('M7 17l6 6L25 9', 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'),
   plus: () => S('M16 8v16M8 16h16', 'fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"'),
+  /* Kreisbogen mit Spitze — „dreh das Ding“ */
+  rotate: () => `<path d="M25.6 16a9.6 9.6 0 1 1-2.9-6.9" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M24.6 4.2v6.2h-6.2" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`,
   /* Zwei gekreuzte Wege mit Pfeilspitzen — „zeig mir andere“ */
   shuffle: () => `<path d="M4.6 9.4h4.8L22 22.6h5M4.6 22.6h4.8L22 9.4h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M24 6.4l3 3-3 3M24 19.6l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`,
