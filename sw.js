@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v13';
+const VERSION = 'knuddl-v14';
 const SHELL = [
   './',
   './index.html',
@@ -11,7 +11,6 @@ const SHELL = [
   './styles/screens.css',
   './styles/games.css',
   './src/main.js',
-  './src/games/blocks.js',
   './src/games/doodle.js',
   './src/games/featherFlight.js',
   './src/games/garn.js',
@@ -22,6 +21,8 @@ const SHELL = [
   './src/games/kribbeln.js',
   './src/games/meme.js',
   './src/games/nestTower.js',
+  './src/games/quiz.js',
+  './src/games/quizFragen.js',
   './src/games/runner.js',
   './src/games/sling.js',
   './src/games/slingLevel.js',

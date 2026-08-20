@@ -394,14 +394,11 @@ const ICONS = {
     <path d="M24.6 3.4l1.1 3.1 3.1 1.1-3.1 1.1-1.1 3.1-1.1-3.1L20.4 7.6l3.1-1.1z" fill="${C.yolk}"/>
     <path d="M7.4 4.6l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" fill="${C.lav}"/>
     <circle cx="27.4" cy="16.6" r="1.5" fill="${C.yolkL}"/>`,
-  /* Vier Steine im Fallen — L, Balken, Quadrat */
-  gameBlocks: () => `<rect x="3.4" y="4.2" width="7.2" height="7.2" rx="2" fill="${C.sky}"/>
-    <rect x="11.4" y="4.2" width="7.2" height="7.2" rx="2" fill="${C.sky}"/>
-    <rect x="11.4" y="12.2" width="7.2" height="7.2" rx="2" fill="${C.lav}"/>
-    <rect x="19.4" y="12.2" width="7.2" height="7.2" rx="2" fill="${C.lav}"/>
-    <rect x="3.4" y="20.2" width="7.2" height="7.2" rx="2" fill="${C.yolk}"/>
-    <rect x="11.4" y="20.2" width="7.2" height="7.2" rx="2" fill="${C.yolk}"/>
-    <rect x="19.4" y="20.2" width="7.2" height="7.2" rx="2" fill="${C.yolk}"/>`,
+  /* Sprechblase mit Fragezeichen — zwei Köpfe, eine Frage */
+  gameQuiz: () => `<path d="M5 8.6a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v9.8a3 3 0 0 1-3 3h-8.4L10 26v-4.6H8a3 3 0 0 1-3-3z" fill="${C.sky}"/>
+    <path d="M24 5.6a3 3 0 0 1 3 3v9.8a3 3 0 0 1-3 3h-8.4L14 23V8.6a3 3 0 0 1 3-3z" fill="${C.skyD}" opacity=".55"/>
+    <path d="M12.9 10.6a3.3 3.3 0 0 1 6.3 1.2c0 2.1-2.6 2.4-2.6 4.2" fill="none" stroke="${C.cream}" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="16.5" cy="18.6" r="1.6" fill="${C.cream}"/>`,
   /* Huhn im Sprung über eine Kante, mit Tempolinien */
   gameRun: () => `<path d="M2.6 12.4h4.2M2 16.6h5.4" stroke="${C.skyD}" stroke-width="2" stroke-linecap="round" opacity=".55"/>
     <path d="M4.6 26.6h8.8v3.2H4.6z" fill="${C.leafD}"/>
