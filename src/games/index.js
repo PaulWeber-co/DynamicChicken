@@ -11,28 +11,81 @@
 import { get, commit } from '../state/store.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
-import { roundSeed } from '../util/rng.js';
+import { roundSeed, cycledMany } from '../util/rng.js';
+import { dayKey } from '../util/time.js';
+import { dayIndex } from '../pet/moods.js';
 import { sendEvent } from '../sync/index.js';
 
 import * as grainRush from './grainRush.js';
 import * as featherFlight from './featherFlight.js';
 import * as nestTower from './nestTower.js';
 import * as doodle from './doodle.js';
+import * as blocks from './blocks.js';
+import * as runner from './runner.js';
+import * as sling from './sling.js';
+import * as story from './story.js';
 import * as hueCue from './hueCue.js';
 import * as meme from './meme.js';
 import * as topFive from './topFive.js';
 import * as kribbeln from './kribbeln.js';
 
 /**
- * Die Reihenfolge ist die Reihenfolge auf dem Bildschirm: erst die vier
- * flinken Einzelspiele, dann die vier, bei denen man etwas voneinander
- * erfährt.
+ * Alle Spiele, die es gibt. Die Reihenfolge ist die Reihenfolge auf dem
+ * Bildschirm: erst die flinken Einzelspiele, dann die vier, bei denen man
+ * etwas voneinander erfährt.
  */
 export const GAMES = [
-  grainRush, featherFlight, nestTower, doodle,
+  grainRush, featherFlight, nestTower, doodle, blocks, runner, sling, story,
   topFive, meme, kribbeln, hueCue
 ];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
+
+/**
+ * Acht Spiele für sich allein, vier davon pro Tag.
+ *
+ * Zwölf Kacheln gleichzeitig wären eine Wand, durch die man scrollen müsste,
+ * und nach zwei Wochen spielt man ohnehin nur noch dieselben zwei. Also
+ * rotiert die Hälfte: Jeden Tag stehen vier andere im Raster. Welche, hängt
+ * am Datum und am Paarcode — beide Geräte kommen also auf dieselben vier,
+ * ohne sich abzusprechen, und zwei Paare sehen an einem Tag Verschiedenes.
+ *
+ * Die vier Spiele, bei denen ihr euch abwechselt (Top Fünf, Meme-Duell,
+ * Kribbeln, Farbfunk), bleiben immer da. Eine angefangene Runde soll nicht
+ * bis übermorgen warten müssen, nur weil der Kalender es so will.
+ */
+export const ROTIEREND = ['grain', 'flight', 'tower', 'doodle', 'blocks', 'runner', 'sling', 'story'];
+export const FEST = ['top5', 'meme', 'krib', 'hue'];
+export const PRO_TAG = 4;
+
+/**
+ * Welche Spiele stehen heute im Raster?
+ *
+ * Wartet in einem rotierenden Spiel ein Zug auf dich, kommt es dazu — auch
+ * wenn es heute eigentlich nicht dran wäre. Sonst würde eine Partie
+ * unsichtbar, die jemand angefangen hat.
+ */
+export function todaysGames(state = get(), tag = dayKey()) {
+  const a = state.me?.code || 'SOLO';
+  const b = state.partner?.code || 'SOLO';
+  const salz = `spiele|${[a, b].sort().join('~')}`;
+  const heute = cycledMany(ROTIEREND, PRO_TAG, dayIndex(tag), salz);
+
+  const wartend = ROTIEREND.filter((id) => {
+    if (heute.includes(id)) return false;
+    const g = gameById(id);
+    return g && gameSummary(state, g).badge === 'wait';
+  });
+
+  const ids = [...heute, ...wartend];
+  // In der Reihenfolge von GAMES ausgeben, damit das Raster nicht springt
+  return [
+    ...GAMES.filter((g) => ids.includes(g.meta.id)),
+    ...GAMES.filter((g) => FEST.includes(g.meta.id))
+  ];
+}
+
+/** Steht dieses Spiel nur heute im Raster? Für den kleinen Hinweis darauf. */
+export const istRotierend = (id) => ROTIEREND.includes(id);
 
 /** Gemeinsamer Schlüssel beider Geräte — Reihenfolge-unabhängig. */
 export function pairKey(state = get()) {

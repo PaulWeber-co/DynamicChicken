@@ -1475,3 +1475,21 @@
  * in beiden Fällen scrollt man eben. Nichts verschwindet mehr, und nichts
  * springt, wenn eine Benachrichtigung kommt oder geht.
  */
+
+/**
+ * Die Hälfte der Kacheln wechselt täglich. Das steht als leiser Hinweis in
+ * der Überschrift — sonst sucht man morgen ein Spiel, das gestern noch da
+ * war, und hält es für einen Fehler.
+ */
+.section-label.row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.label-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--ink-3);
+  opacity: .85;
+}

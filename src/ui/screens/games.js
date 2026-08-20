@@ -23,7 +23,7 @@ import { esc } from '../../util/dom.js';
 import { icon } from '../icons.js';
 import { fx } from '../../util/feedback.js';
 import { get, subscribe } from '../../state/store.js';
-import { GAMES, gameSummary } from '../../games/index.js';
+import { GAMES, gameSummary, todaysGames, istRotierend } from '../../games/index.js';
 import { partnerOnline } from '../../sync/index.js';
 import { openGame } from '../gameHost.js';
 import { renderHead } from '../../pet/chicken.js';
@@ -48,14 +48,17 @@ export function render(root, ctx) {
     const s = get();
     const online = partnerOnline();
 
-    const rated = GAMES.map((g) => ({ g, sum: gameSummary(s, g) }));
-    const waiting = rated.filter((x) => x.sum.badge === 'wait');
+    // Im Raster steht die heutige Auswahl; gewartet wird über alle Spiele,
+    // sonst verschwände eine offene Partie mitsamt ihrer Wartezeile.
+    const heute = todaysGames(s).map((g) => ({ g, sum: gameSummary(s, g) }));
+    const waiting = GAMES.map((g) => ({ g, sum: gameSummary(s, g) }))
+      .filter((x) => x.sum.badge === 'wait');
 
     const jetzt = JSON.stringify([
       s.me.coins, online, s.partner?.name || null,
       s.me.pet.name, s.partner?.pet?.name || null,
       s.partner ? [petPower(s.me.pet), petPower(s.partner.pet)] : null,
-      rated.map(({ g, sum }) => [g.meta.id, sum.badge, sum.text])
+      heute.map(({ g, sum }) => [g.meta.id, sum.badge, sum.text])
     ]);
     if (jetzt === letztes) return;
     letztes = jetzt;
@@ -73,9 +76,12 @@ export function render(root, ctx) {
 
       ${nowRow(waiting, online)}
 
-      <div class="section-label">Alle Spiele</div>
+      <div class="section-label row-between">
+        <span>Heute im Nest</span>
+        <span class="label-hint">${icon('shuffle', { size: 13 })} wechselt täglich</span>
+      </div>
       <div class="game-grid">
-        ${rated.map(({ g, sum }) => tile(g, sum, online)).join('')}
+        ${heute.map(({ g, sum }) => tile(g, sum, online)).join('')}
       </div>
 
       ${s.partner ? arena(s) : ''}`;
@@ -139,7 +145,7 @@ export function render(root, ctx) {
   /** Kachel — zwei nebeneinander, alle gleichzeitig sichtbar. */
   function tile(g, sum, online) {
     const live = g.meta.modes.includes('live') && online;
-    return `<button class="game-tile tone-${g.meta.tone} ${sum.badge === 'wait' ? 'is-wait' : ''}"
+    return `<button class="game-tile tone-${g.meta.tone} ${sum.badge === 'wait' ? 'is-wait' : ''}${istRotierend(g.meta.id) ? ' is-heute' : ''}"
       data-game="${g.meta.id}">
       <span class="game-tile-e">${icon(g.meta.icon, { size: 24 })}</span>
       <span class="grow">
