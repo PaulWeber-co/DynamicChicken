@@ -274,7 +274,24 @@ function cleanRanks(raw) {
   return nums;
 }
 
+/**
+ * Runde abschließen — und die Auflösung liegen lassen.
+ *
+ * Wer die Liste gestellt hat, erfuhr bisher nur die Punktzahl. Genau das
+ * Interessante fehlte: welche Antwort der andere wohin gelegt hat. Also
+ * bleibt die fertige Runde in `offen` stehen, bis man sie einmal gesehen
+ * und weggetippt hat — auf beiden Seiten dieselbe Ansicht.
+ */
 function closeRound(state, g, { exact, pairs, pts, joker }) {
+  g.offen = {
+    cat: g.cur.cat,
+    items: (g.cur.items || []).slice(),
+    sol: (g.cur.sol || []).slice(),
+    guess: (g.cur.guess || []).slice(),
+    // Wer geraten hat: `me`, wenn ich die Liste bekommen habe
+    riet: g.cur.by === 'me' ? 'me' : 'them',
+    exact, pairs, pts, joker: !!joker
+  };
   // Beide bekommen dieselben Punkte — gute Liste, guter Tipp
   g.score.me += pts;
   g.score.them += pts;
@@ -397,8 +414,8 @@ export function handleRemote(state, msg, { partnerName }) {
     avatar: 'them',
     title: `${res.exact}/${N} auf dem richtigen Platz`,
     sub: `„${cat}“ · ${res.pts} Punkte${res.joker ? ' (Joker)' : ''}`,
-    body: `${partnerName} hat deine Liste geraten. ${verdictFor(res.pts)}`,
-    actions: [{ label: 'Weiter', act: 'game:top5', primary: true }, { label: 'Ok', act: 'dismiss' }],
+    body: `${partnerName} hat deine Liste geraten. ${verdictFor(res.pts)} Öffne das Spiel, um zu sehen, was wohin getippt wurde.`,
+    actions: [{ label: 'Ansehen', act: 'game:top5', primary: true }, { label: 'Später', act: 'dismiss' }],
     tone: res.pts >= 18 ? 'warm' : 'calm'
   };
 }
@@ -762,7 +779,6 @@ export function mount(root, ctx) {
     const g = tf(st);
     if (!g.cur?.sol) { route(); return; }
     const res = scoreGuess(g.cur.sol, guess, joker);
-    const view = { cat: g.cur.cat, items: g.cur.items.slice(), sol: g.cur.sol.slice(), guess, ...res };
     g.cur.guess = guess;
     sendEvent('game', { g: 'top5', kind: 'topGuess', r: g.r, guess, joker: !!joker });
     closeRound(st, g, res);
@@ -770,10 +786,21 @@ export function mount(root, ctx) {
 
     fx(res.pts >= 18 ? 'yay' : res.pts >= 8 ? 'pop' : 'fail');
     if (res.exact === N) confetti(['gameTop5', 'trophy', 'sparkle']);
-    screenResult(view);
+    screenResult(g.offen);
   }
 
+  /**
+   * Die Auflösung — dieselbe für beide, nur die Beschriftung dreht sich.
+   *
+   * Links steht, wohin die Antwort wirklich gehörte, rechts, wohin sie
+   * getippt wurde. Wer selbst geraten hat, liest „du"; wer die Liste
+   * gestellt hat, liest den Namen des anderen und sieht endlich, was
+   * drüben passiert ist.
+   */
   function screenResult(v) {
+    if (!v) { route(); return; }
+    const selbst = v.riet !== 'them';
+    const wer = selbst ? 'du' : esc(partner);
     // Nach wahrer Nummer sortiert — so liest sich die Auflösung von selbst
     const rows = v.items
       .map((t, i) => ({ t, sol: v.sol[i], guess: v.guess[i] }))
@@ -782,10 +809,14 @@ export function mount(root, ctx) {
     root.innerHTML = shell(`
       <div class="game-center">
         <div class="game-hero">${icon(v.pts >= 18 ? 'trophy' : 'gameTop5', { size: 60 })}</div>
+        <div class="game-kicker">${selbst ? 'Dein Tipp' : `${esc(partner)} hat geraten`}</div>
         <h2 class="game-h">${v.exact}/${N} auf dem Punkt</h2>
         <p class="game-p">„${esc(v.cat)}“ · ${v.pts} von ${MAX_POINTS} Punkten<br>
           <span class="tiny muted">${v.exact} Treffer · ${v.pairs} Paare richtig herum${
             v.joker ? ` · Joker −${JOKER_COST}` : ''}</span></p>
+      </div>
+      <div class="top-kopf">
+        <span>Richtig</span><span class="grow">Antwort</span><span>${wer}</span>
       </div>
       <div class="top-solution">
         ${rows.map((r) => `<div class="top-line ${r.sol === r.guess ? 'hit' : ''}">
@@ -793,14 +824,21 @@ export function mount(root, ctx) {
           <b class="grow">${esc(r.t)}</b>
           <span class="top-tip">${r.sol === r.guess
             ? icon('check', { size: 14, cls: 'ic-inline' })
-            : `du: ${r.guess}`}</span>
+            : r.guess}</span>
         </div>`).join('')}
       </div>
       <div class="rate-verdict" style="margin-top:12px">${esc(verdictFor(v.pts))}</div>
       <button class="btn btn-primary btn-block" data-next style="margin-top:12px">Weiter</button>
       <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       ${history()}`);
-    root.querySelector('[data-next]').onclick = () => route();
+    root.querySelector('[data-next]').onclick = () => {
+      // Gesehen ist gesehen — sonst stünde die Auflösung beim nächsten Mal
+      // wieder da, statt der neuen Runde.
+      const st = get();
+      const g = tf(st);
+      if (g.offen) { g.offen = null; commit('top5'); }
+      route();
+    };
     const first = root.querySelector('.top-line.hit');
     if (first) burst(['sparkle'], { from: first, count: 4, rise: 90 });
     bindClose();
@@ -836,6 +874,7 @@ export function mount(root, ctx) {
 
   function route() {
     const g = tf(get());
+    if (g.offen) { screenResult(g.offen); return; }
     if (g.cur?.by === 'them' && !g.cur.items) screenList();
     else if (g.cur?.by === 'them') screenWaitGuess();
     else if (g.cur?.by === 'me' && g.cur.items) screenGuess();

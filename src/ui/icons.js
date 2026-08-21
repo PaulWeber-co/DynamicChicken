@@ -394,6 +394,11 @@ const ICONS = {
     <path d="M24.6 3.4l1.1 3.1 3.1 1.1-3.1 1.1-1.1 3.1-1.1-3.1L20.4 7.6l3.1-1.1z" fill="${C.yolk}"/>
     <path d="M7.4 4.6l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" fill="${C.lav}"/>
     <circle cx="27.4" cy="16.6" r="1.5" fill="${C.yolkL}"/>`,
+  /* Sprechblase mit durchgestrichenen Zeilen — was man nicht sagen darf */
+  gameTabu: () => `<path d="M4.6 8.4a3 3 0 0 1 3-3h16.8a3 3 0 0 1 3 3v9.4a3 3 0 0 1-3 3H14L8.6 25.4v-4.6H7.6a3 3 0 0 1-3-3z" fill="${C.roseL}"/>
+    <path d="M24.4 5.4a3 3 0 0 1 3 3v9.4a3 3 0 0 1-3 3H14l-1.4 1.2V8.4a3 3 0 0 1 3-3z" fill="${C.rose}" opacity=".5"/>
+    <path d="M9.4 10.4h13.2M9.4 14h9.6M9.4 17.4h6.4" stroke="${C.cream}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M6.6 18.6 25.4 7.2" stroke="${C.roseD}" stroke-width="2.6" stroke-linecap="round"/>`,
   /* Sprechblase mit Fragezeichen — zwei Köpfe, eine Frage */
   gameQuiz: () => `<path d="M5 8.6a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v9.8a3 3 0 0 1-3 3h-8.4L10 26v-4.6H8a3 3 0 0 1-3-3z" fill="${C.sky}"/>
     <path d="M24 5.6a3 3 0 0 1 3 3v9.8a3 3 0 0 1-3 3h-8.4L14 23V8.6a3 3 0 0 1 3-3z" fill="${C.skyD}" opacity=".55"/>
