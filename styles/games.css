@@ -843,6 +843,21 @@
 }
 .top-line.hit .top-tip { color: var(--grow); }
 
+/* Spaltenköpfe über der Auflösung — sonst rät man, was die Zahl rechts ist */
+.top-kopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.top-kopf > span:first-child { width: 22px; }
+.top-kopf > span:last-child { min-width: 34px; text-align: right; }
+
 /* ── Kribbeln ──────────────────────────────────────────── */
 
 .krib-tiers { display: flex; flex-direction: column; gap: 9px; }
@@ -900,7 +915,45 @@
 .krib-mark.vielleicht.on { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .krib-mark.nein.on       { background: var(--surface-sunk); color: var(--ink); box-shadow: none; }
 
+/* Spaltenköpfe über der Auflösung: wessen Kreuz steht wo */
+/* Die Extrem-Stufe trägt ihre Ansage sichtbar */
+.krib-tier.extrem { box-shadow: inset 0 0 0 1.5px var(--love); }
+.krib-tier-w {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  color: var(--love);
+}
+
+.krib-kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.krib-kopf > span:not(.grow) { width: 26px; text-align: center; }
+
 .krib-reveal { display: flex; flex-direction: column; gap: 6px; }
+
+/* Zeilen, bei denen jemand Nein gesagt hat, bleiben sichtbar, aber ruhig */
+.krib-line.aus { background: var(--surface-sunk); color: var(--ink-3); }
+.krib-line.aus .ic { color: var(--ink-3); }
+.krib-kreuz {
+  width: 26px;
+  display: inline-flex;
+  justify-content: center;
+  flex: none;
+}
+.krib-kreuz.ja { color: var(--love); }
+.krib-kreuz.vielleicht { color: var(--yolk-dp, var(--accent)); }
+.krib-kreuz.nein { color: var(--ink-3); opacity: .55; }
 .krib-line {
   display: flex;
   align-items: center;
@@ -1321,173 +1374,140 @@ button.krib-line:active { transform: scale(.98); }
 .hud-live .sling-egg { display: inline-flex; margin-left: 2px; color: var(--ink-2); }
 .hud-live .sling-egg.leer { opacity: .26; }
 
-/* ── Federgarn ─────────────────────────────────────────── */
+/* ── Tabu ──────────────────────────────────────────────── */
 
-.garn-lead { text-align: center; margin-bottom: 6px; }
-.garn-punkte { font-variant-numeric: tabular-nums; font-weight: 850; font-size: 15px; }
-.garn-punkte small { color: var(--ink-3); margin: 0 1px; }
-
-.garn-liste { display: flex; flex-direction: column; gap: 8px; }
-.garn-karte {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 15px;
+/**
+ * Die Karte: Begriff groß, darunter die fünf Verbote.
+ *
+ * Beim Erklären sind das die Feinde, in der Auflösung die Pointe — deshalb
+ * derselbe Baustein für beides, nur mit anderer Farbe. Ein gebrochenes
+ * Wort leuchtet rot auf, solange es im Text steht.
+ */
+.tabu-karte {
+  padding: 16px 18px 14px;
   border-radius: var(--r-lg);
   background: var(--surface);
+  border: 1px solid var(--hairline-2);
   box-shadow: var(--card-shadow);
-  text-align: left;
-  transition: transform var(--t-fast) var(--spring-pop);
+  text-align: center;
 }
-.garn-karte:active { transform: scale(.98); }
-.garn-karte.tone-love { background: linear-gradient(150deg, var(--love-soft), var(--surface) 70%); }
-.garn-karte.tone-warm { background: linear-gradient(150deg, var(--accent-soft), var(--surface) 70%); }
-.garn-karte.tone-calm { background: linear-gradient(150deg, var(--calm-soft), var(--surface) 70%); }
-.garn-karte.eigen { border: 2px dashed var(--hairline-2); box-shadow: none; background: none; }
-.garn-karte.gesperrt { opacity: .68; }
-.garn-karte-kopf { display: flex; flex-direction: column; gap: 2px; }
-.garn-karte-kopf b { font-size: 16.5px; font-weight: 850; letter-spacing: -.02em; }
-.garn-karte-kopf small { font-size: 12.5px; color: var(--ink-3); font-weight: 650; }
-.garn-rollen { display: flex; flex-wrap: wrap; gap: 5px; }
-.garn-rollen .chip { font-size: 11.5px; padding: 3px 9px; }
-.chip-spicy { background: var(--love-soft); color: var(--love); }
-.chip-lock { background: var(--surface-sunk); color: var(--ink-3); }
-.chip-mine { background: var(--accent-soft); }
-
-/* Der Kostümhinweis ist die Brücke zum Laden — deshalb steht er auf jeder
-   Rollenkarte, auch wenn gerade nichts passt. */
-.garn-hinweis {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
+.tabu-karte.gut { box-shadow: inset 0 0 0 2px var(--grow), var(--card-shadow); }
+.tabu-karte.daneben { box-shadow: inset 0 0 0 2px var(--warn), var(--card-shadow); }
+.tabu-kicker {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
   color: var(--ink-3);
-  line-height: 1.3;
+  margin-bottom: 3px;
 }
-.garn-hinweis.gut { color: var(--grow); }
-.garn-hinweis.warn { color: var(--yolk-dp); }
-
-.garn-anfang {
-  padding: 14px 16px;
-  border-radius: var(--r-lg);
+.tabu-wort {
+  display: block;
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  margin-bottom: 10px;
+}
+.tabu-liste { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.tabu-verboten {
+  padding: 5px 11px;
+  border-radius: var(--r-full);
   background: var(--surface-sunk);
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink-2);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast) var(--spring-pop);
+}
+/* Steht das Wort gerade im Text, springt es an */
+.tabu-verboten.gebrochen {
+  background: var(--love-soft);
+  color: var(--love);
+  transform: scale(1.06);
+  box-shadow: inset 0 0 0 1.5px var(--love);
+}
+.tabu-verboten.offen { background: var(--accent-soft); color: var(--on-accent); }
+.tabu-leer { font-size: 12.5px; color: var(--ink-3); font-style: italic; }
+
+.tabu-text {
+  width: 100%;
+  resize: none;
+  line-height: 1.4;
   font-size: 15px;
-  line-height: 1.55;
 }
-.garn-anfang p { margin: 0 0 10px; }
-.garn-anfang p:last-child { margin-bottom: 0; }
+.tabu-eingabe { width: 100%; font-size: 16px; font-weight: 700; }
+.tabu-verbote { display: grid; gap: 7px; margin-top: 9px; }
+.tabu-verbote .input { font-size: 14px; }
 
-.garn-kopf { margin-bottom: 12px; }
-.garn-besetzung { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-
-/* Die Züge stehen als Wechselrede untereinander — eigene rechts angesetzt,
-   damit man beim Scrollen sofort sieht, wer gerade dran war. */
-.garn-zug {
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--card-shadow);
-}
-.garn-zug.me { background: var(--accent-soft); box-shadow: none; margin-left: 22px; }
-.garn-zug.them { margin-right: 22px; }
-.garn-zug-kopf {
+.tabu-fuss {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  margin-bottom: 6px;
-  font-size: 12px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 4px 0;
+  min-height: 18px;
 }
-.garn-zug-kopf b { font-weight: 850; }
-.garn-zug-kopf span { color: var(--ink-3); font-weight: 650; }
-.garn-kostuem { color: var(--grow); display: inline-flex; }
-.garn-funken { margin-left: auto; color: var(--yolk-dp); letter-spacing: 1px; font-size: 11px; }
-.garn-wendung-zeile {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 6px;
-  font-size: 11.5px;
+.tabu-warnung {
+  font-size: 12.5px;
   font-weight: 750;
-  color: var(--ink-3);
+  color: var(--love);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.garn-text { font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+.tabu-warnung.an { opacity: 1; }
 
-.garn-warten {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 18px;
-  padding: 14px 16px;
-  border-radius: var(--r-lg);
+/* Die Umschreibung selbst — beim Warten und beim Raten dasselbe Kästchen */
+.tabu-eigen {
+  padding: 13px 16px;
+  border-radius: var(--r-md);
   background: var(--surface-sunk);
-  color: var(--ink-2);
 }
-.garn-warten b { display: block; font-size: 14.5px; }
-.garn-warten span { font-size: 12.5px; color: var(--ink-3); }
+.tabu-eigen p { margin: 0; font-size: 15.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.tabu-hilfe { margin-top: 12px; text-align: center; }
 
-/* ── Das Formular: drei nummerierte Schritte ── */
-
-.garn-form { margin-top: 20px; }
-.garn-schritt {
-  display: flex;
+.tabu-versuche { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tabu-daneben {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin: 18px 2px 8px;
-  font-size: 14px;
-}
-.garn-schritt b { font-weight: 800; }
-.garn-schritt .link-btn { margin-left: auto; }
-.garn-nr {
-  display: grid;
-  place-items: center;
-  width: 20px; height: 20px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--love);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 850;
-}
-.garn-funkenwahl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
-.garn-fk {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 9px 2px;
-  border-radius: var(--r-md);
-  background: var(--surface);
-  box-shadow: var(--card-shadow);
-  color: var(--ink-2);
-  transition: transform var(--t-fast) var(--spring-pop), background var(--t-fast);
-}
-.garn-fk span { font-size: 9.5px; font-weight: 800; color: var(--ink-3); }
-.garn-fk:active { transform: scale(.93); }
-.garn-fk.an { background: var(--love-soft); color: var(--love); box-shadow: inset 0 0 0 2px var(--love); }
-.garn-fk.an span { color: var(--love); }
-.garn-fk-sub { margin: 8px 4px 0; min-height: 16px; }
-
-.garn-wendung {
-  padding: 13px 15px;
-  border-radius: var(--r-md);
-  background: linear-gradient(140deg, var(--calm-soft), var(--surface));
-  box-shadow: inset 0 0 0 1.5px var(--hairline-2);
-  font-size: 14.5px;
-  font-weight: 750;
-  line-height: 1.35;
-}
-.garn-wendung.aus { background: var(--surface-sunk); color: var(--ink-3); font-weight: 650; }
-
-.garn-eingabe { min-height: 120px; margin: 0; }
-.garn-zaehler {
-  text-align: right;
-  font-size: 11px;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunk);
+  font-size: 13px;
+  font-weight: 700;
   color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-  margin: 4px 4px 10px;
 }
-.garn-zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-@media (max-width: 360px) { .garn-zwei { grid-template-columns: 1fr; } }
+.tabu-daneben.treffer { background: var(--grow-soft); color: var(--ink); }
+.tabu-daneben.treffer .ic { color: var(--grow); }
+
+/* Punktestand und die letzten Karten */
+.tabu-bilanz {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-sunk);
+}
+.tabu-summe { display: flex; align-items: baseline; gap: 6px; }
+.tabu-summe b { font-size: 22px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.tabu-summe small { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.tabu-verlauf { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.tabu-alt {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-3);
+}
+.tabu-alt.gut { color: var(--ink); }
+.tabu-alt i { font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tabu-alt.gut i { color: var(--grow); }
+

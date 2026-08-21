@@ -290,20 +290,131 @@ export const CARDS = {
     'Ein ganzer Tag mit Regeln, die wir morgens festlegen',
     'Etwas, das wir danach nie wieder erwähnen',
     'Einen Abend lang alles zweimal machen'
+  ],
+
+  /**
+   * Extrem — die Stufe, auf der nichts umschrieben wird.
+   *
+   * Alle anderen Stapel arbeiten mit Andeutung; hier steht, was gemeint
+   * ist, samt Namen und kurzer Erklärung. Genau das ist der Sinn: Man kann
+   * nur ehrlich Ja oder Nein sagen zu etwas, das man auch wirklich
+   * verstanden hat. Wer bei „irgendwas Wildes" ankreuzt, kreuzt eine
+   * Vermutung an.
+   *
+   * Diese Karten kommen nur mit eingeschaltetem Schalter für freizügige
+   * Inhalte, und auch dann bleibt jedes Nein für immer unsichtbar.
+   */
+  extrem: [
+    /* ── Stellungen ── */
+    'Missionarsstellung, aber mit angezogenen Beinen über den Schultern',
+    'Reiten — du oben, du bestimmst Tempo und Tiefe',
+    'Reiten mit dem Rücken zu mir, damit ich alles sehe',
+    'Von hinten im Stehen, vor dem Spiegel',
+    'Von hinten, während du dich auf den Ellenbogen abstützt',
+    'Löffelchen von hinten, ganz langsam und ohne Eile',
+    'Auf der Bettkante — einer sitzt, einer steht',
+    'Auf dem Stuhl, ich sitze, du auf mir, Gesicht zu Gesicht',
+    'Du auf dem Bauch, ich flach auf dir',
+    'Beide auf der Seite, ein Bein über meinem',
+    'Auf allen Vieren, mit einer Hand in meinen Haaren',
+    'Gegen die Wand, du hebst mich hoch',
+    'Auf dem Küchentisch, du liegst, ich stehe',
+    'Über die Sofalehne gebeugt',
+    'Auf dem Boden, ohne Kissen, ohne Rücksicht auf Möbel',
+    'Beide auf den Knien, ich hinter dir, Arme um dich',
+    'Sechsundsechzig — gleichzeitig, beide gleichzeitig',
+    'Ich zwischen deinen Beinen, du auf dem Rücken, Beine über meinen Schultern',
+    'Du sitzt auf meinem Gesicht',
+    'Ich liege, du kniest über mir und beugst dich nach vorn',
+    'Im Sitzen ineinander verschränkt, kaum Bewegung, viel Nähe',
+    'Du am Bettrand, Kopf nach hinten hängend',
+    'Stehend, ein Bein von dir auf meiner Hüfte',
+    'Von hinten, während du dich am Kopfteil festhältst',
+    'Du auf dem Rücken quer über dem Bett, ich stehe davor',
+    'Rücken an Rücken, nur Hände',
+    'In der Dusche, du mit dem Gesicht zur Wand',
+    'Auf der Waschmaschine, während sie läuft',
+    'Wir wechseln alle paar Minuten die Stellung, bis eine bleibt',
+    'Erst probieren wir drei neue, dann nehmen wir die beste nochmal',
+
+    /* ── Mund und Hände ── */
+    'Nur mit dem Mund, bis zum Schluss',
+    'Ich bringe dich mit der Hand dahin, ganz langsam',
+    'Du zeigst mir mit meiner Hand, wie du es machst',
+    'Du machst es dir selbst und ich sehe zu, ohne mitzumachen',
+    'Ich mache es mir selbst und du gibst die Anweisungen',
+    'Mit den Fingern, während wir uns küssen',
+    'Erst eine halbe Stunde nur Hände und Mund, kein Eindringen',
+    'Bis kurz davor und dann aufhören — dreimal hintereinander',
+    'Du sagst mir währenddessen, was du gerade fühlst',
+    'Ich verbinde dir die Augen und du weißt nicht, was kommt',
+
+    /* ── Führung und Tempo ── */
+    'Einer bestimmt vollständig, der andere sagt nur Ja oder Stopp',
+    'Ganz langsam, eine Stunde lang, ohne Ziel',
+    'Schnell und ohne Vorspiel, weil keine Zeit ist',
+    'Du hältst meine Handgelenke fest',
+    'Ich fessle dir die Hände mit dem, was gerade da ist',
+    'Ein Abend mit Handschellen',
+    'Du darfst dich nicht bewegen, egal was passiert',
+    'Ich darf nicht kommen, bevor du es erlaubst',
+    'Wir zählen mit, wie oft du kommst',
+    'Es hört erst auf, wenn einer aufgibt',
+    'Etwas fester zupacken, als wir es sonst tun',
+    'Ein Klaps auf den Hintern — und dann mehr',
+    'Am Hals gehalten werden, sanft, aber deutlich',
+    'Beißen, kratzen, Spuren hinterlassen',
+    'Erst betteln, dann bekommen',
+    'Ich sage dir stundenlang vorher, was abends passiert',
+
+    /* ── Spielzeug und Zusätze ── */
+    'Ein Vibrator, den der andere steuert',
+    'Ein Vibrator, während wir zusammen sind',
+    'Gleitgel und viel davon',
+    'Massageöl über den ganzen Körper, bevor irgendwas passiert',
+    'Etwas Kaltes und etwas Warmes im Wechsel',
+    'Ein Spielzeug zusammen aussuchen und bestellen',
+    'Federn, Seide, Eiswürfel — der Reihe nach',
+    'Augenbinde und Kopfhörer, damit nur das Fühlen bleibt',
+
+    /* ── Orte und Umstände ── */
+    'Nicht im Schlafzimmer — such du den Ort aus',
+    'Im Auto, irgendwo, wo niemand hinschaut',
+    'Im Hotelzimmer, mit offenem Fenster',
+    'Draußen, nachts, mit dem Risiko',
+    'Auf dem Balkon, im Dunkeln',
+    'Morgens, bevor einer von uns wach genug ist, um nachzudenken',
+    'Mittags, mitten am Tag, ohne Anlass',
+    'Nach einem Streit, weil es dann anders ist',
+
+    /* ── Reden und Zusehen ── */
+    'Uns dabei filmen und es danach zusammen ansehen',
+    'Ein Foto machen, das nur wir beide je sehen',
+    'Beim Videoanruf, jeder für sich',
+    'Mir am Telefon genau erzählen, was du gerade machst',
+    'Vorher aufschreiben, was ich mit dir vorhabe',
+    'Danach ehrlich sagen, was am besten war',
+    'Eine Fantasie erzählen, die ich noch nie ausgesprochen habe',
+    'Ein Rollenspiel mit Namen, Kleidung und allem'
   ]
 };
 
 export const TIERS = [
   { id: 'sanft', label: 'Sanft',  sub: 'Nähe, Wärme, nichts weiter', icon: 'nudgeHug', spicy: false },
   { id: 'frech', label: 'Frech',  sub: 'Da wird jemand rot',         icon: 'statJoy',  spicy: false },
-  { id: 'heiss', label: 'Heiß',   sub: 'Nur mit freizügigen Inhalten', icon: 'gameSpark', spicy: true }
+  { id: 'heiss', label: 'Heiß',   sub: 'Nur mit freizügigen Inhalten', icon: 'gameSpark', spicy: true },
+  { id: 'extrem', label: 'Extrem', sub: 'Beim Namen genannt — Stellungen und alles andere',
+    icon: 'flame', spicy: true, warnung: true }
 ];
 
 /** Auch die heißeste Runde beginnt harmlos — jede Stufe mischt die milderen mit. */
 const MIX = {
   sanft: [['sanft', 6]],
   frech: [['sanft', 3], ['frech', 3]],
-  heiss: [['sanft', 2], ['frech', 2], ['heiss', 2]]
+  heiss: [['sanft', 2], ['frech', 2], ['heiss', 2]],
+  // Auf „Extrem" bleibt eine milde Karte dabei: Sechs von der Sorte am Stück
+  // liest sich wie eine Liste, nicht wie ein Abend.
+  extrem: [['frech', 1], ['heiss', 2], ['extrem', 3]]
 };
 
 export const CARDS_PER_ROUND = 6;
@@ -647,11 +758,12 @@ export function mount(root, ctx) {
       <div class="krib-tiers">
         ${TIERS.map((t) => {
           const off = t.spicy && !spicyOn;
-          return `<button class="krib-tier ${off ? 'off' : ''}" data-tier="${t.id}" ${off ? 'disabled' : ''}>
+          return `<button class="krib-tier ${off ? 'off' : ''}${t.warnung ? ' extrem' : ''}" data-tier="${t.id}" ${off ? 'disabled' : ''}>
             <span class="krib-tier-e">${icon(t.icon, { size: 24 })}</span>
             <span class="grow">
               <span class="krib-tier-t">${esc(t.label)}</span>
               <span class="krib-tier-s">${off ? 'Erst unter Mehr → freizügige Inhalte' : esc(t.sub)}</span>
+              ${!off && t.warnung ? '<span class="krib-tier-w">Nichts wird umschrieben</span>' : ''}
             </span>
             ${off ? icon('lock', { size: 14 }) : icon('chevron', { size: 14 })}
           </button>`;
@@ -806,22 +918,23 @@ export function mount(root, ctx) {
         <p class="game-p">${esc(verdictFor(v))}<br>
           <span class="tiny muted">+${v.pts} Punkte für euch beide</span></p>
       </div>
+      <div class="krib-kopf">
+        <span class="grow">Karte</span>
+        <span>Du</span><span>${esc(partner).slice(0, 8)}</span>
+      </div>
       <div class="krib-reveal">
         ${v.cards.map((text, i) => {
           const m = matchOf(v.mine[i], v.theirs[i]);
-          if (!m.level) {
-            return `<div class="krib-line geheim">
-              ${icon('lock', { size: 14 })}<span class="grow">Bleibt geheim</span></div>`;
-          }
-          return `<div class="krib-line ${m.level}">
-            ${icon(m.level === 'beide' ? 'check' : 'nudgeThink', { size: 15 })}
+          return `<div class="krib-line ${m.level || 'aus'}">
+            ${icon(m.level === 'beide' ? 'check' : m.level ? 'nudgeThink' : 'close', { size: 15 })}
             <span class="grow">${esc(text)}</span>
-            <span class="krib-tag">${m.level === 'beide' ? 'beide' : 'vielleicht'}</span>
+            ${kreuz(v.mine[i])}${kreuz(v.theirs[i])}
           </div>`;
         }).join('')}
       </div>
       <p class="tiny muted center" style="margin:12px 4px 0">
-        Verdeckte Zeilen bleiben verdeckt — auch für ${esc(partner)}. Niemand erfährt, wer was weggelassen hat.
+        Ihr seht beide dieselbe Tafel — auch, wo einer Nein gesagt hat.
+        Auf die Liste kommt nur, wo keiner Nein gesagt hat.
       </p>
       ${v.treffer.length ? `<p class="tiny muted center" style="margin:6px 4px 0">
         Die Treffer stehen jetzt auf eurer Liste${esc(bis)}.</p>` : ''}
@@ -831,6 +944,18 @@ export function mount(root, ctx) {
     const first = root.querySelector('.krib-line.beide');
     if (first) burst(['statJoy'], { from: first, count: 5, rise: 100 });
     bindClose();
+  }
+
+  /**
+   * Eine Spalte der Auflösung: Ja, Vielleicht oder Nein.
+   *
+   * Bisher stand da nur, wo ihr euch einig wart — das Interessante fehlte:
+   * wo einer Ja und der andere Nein gesagt hat. Genau daraus entsteht das
+   * Gespräch danach. Was auf die Liste kommt, ändert sich dadurch nicht.
+   */
+  function kreuz(v) {
+    const m = MARKS.find((x) => x.v === v) || MARKS[2];
+    return `<span class="krib-kreuz ${m.cls}" title="${esc(m.label)}">${icon(m.icon, { size: 13 })}</span>`;
   }
 
   /* — Die gemeinsame Liste — */
