@@ -39,28 +39,112 @@ const SPEED0 = 168;        // Startgeschwindigkeit in px/s
 const GAP0 = 230;          // Anfangs­lücke
 const GAP_MIN = 158;       // enger wird es nicht — sonst ist es kein Spiel mehr
 const GATE_W = 56;
+const BALKEN_H = 36;       // Klotz in der Lücke, ab Stufe 5
 
-function buildFence(seed) {
+/** Sechs Stufen. Danach von vorn, aber der Zaun bleibt der von Stufe 6. */
+export const STUFEN = 6;
+export const stufeFuer = (runde) => 1 + ((Math.max(1, Math.floor(runde)) - 1) % STUFEN);
+
+/**
+ * Was auf dieser Stufe im Zaun steht.
+ *
+ * Der alte Zaun war über 120 Lücken hinweg immer derselbe: enger werden und
+ * sonst nichts. Das ist nach der dritten Partie auswendig gelernt. Jetzt
+ * kommt pro Stufe ein Element dazu, und der Vorspann sagt vorher, welches —
+ * überrascht werden ist gut, überrumpelt werden nicht.
+ */
+export function plan(stufe) {
+  const s = Math.max(1, stufe);
+  return {
+    stufe: s,
+    gap0: GAP0 - (s - 1) * 8,
+    gapMin: Math.max(132, GAP_MIN - (s - 1) * 5),
+    enger: 2.2 + (s - 1) * 0.35,       // wie schnell die Lücke schrumpft
+    tempo: 1 + (s - 1) * 0.07,
+    wandert: s >= 2,                    // Lücken fahren auf und ab
+    feder: s >= 2,                      // eine Feder verzeiht eine Berührung
+    doppel: s >= 3,                     // zwei Tore dicht hintereinander
+    boe: s >= 4,                        // Aufwind und Fallwind im Wechsel
+    balken: s >= 5,                     // ein Klotz mitten in der Lücke
+    neu: ['', '', 'Federn schützen, Lücken wandern', 'Doppeltore',
+      'Böen ziehen dich hoch und runter', 'Klötze mitten in der Lücke', 'Alles zusammen'][s] || ''
+  };
+}
+
+/**
+ * Darf die nächste Lücke dort sitzen, wo der Zufall sie hinlegt?
+ *
+ * Bisher würfelte jedes Tor seine Höhe frei aus. Meistens ging das gut —
+ * und manchmal lagen zwei Tore so weit auseinander, dass die Strecke
+ * dazwischen selbst mit ununterbrochenem Flattern nicht reicht. Das merkt
+ * man als Spieler nicht als Pech, sondern als kaputtes Spiel.
+ *
+ * Also wird der Wunschwert an dem gemessen, was in der Zeit bis dorthin
+ * überhaupt geht: Steigen schafft gut 230 Pixel pro Sekunde, Fallen etwa
+ * 430. Gerechnet wird mit einem hohen Bildschirm, weil dieselbe
+ * Bildschirmhälfte dort mehr Pixel bedeutet — was auf dem Tablet passt,
+ * passt auf dem Handy erst recht.
+ */
+const H_REF = 700, STEIGEN = 230, FALLEN = 430;
+
+function erreichbar(vor, wunsch, x, i, wandert, p) {
+  if (!vor) return wunsch;
+  const tempo = (SPEED0 + Math.min(140, i * 4.5)) * p.tempo;
+  const t = Math.max(0.15, (x - vor.x) / tempo);
+  // Zwei Drittel des Machbaren, damit auch ein Verzögern noch verziehen wird
+  const rauf = (0.62 * STEIGEN * t) / H_REF;
+  const runter = (0.62 * FALLEN * t) / H_REF;
+  // Was beide Lücken an Höhe wandern, muss zusätzlich überwunden werden
+  const spiel = vor.wandert + wandert;
+  return Math.max(vor.c - rauf + spiel, Math.min(vor.c + runter - spiel, wunsch));
+}
+
+function buildFence(seed, p = plan(1)) {
   const r = rng(seed);
   const gates = [];
   let x = 640;               // erste Lücke erst nach ein paar Sekunden Luft
   for (let i = 0; i < 120; i++) {
+    const eng = Math.max(p.gapMin, p.gap0 - i * p.enger);
+    // Ein Doppeltor steht dicht hinter seinem Vorgänger — dafür ist seine
+    // Lücke etwas größer, sonst wäre es keine Aufgabe, sondern eine Falle.
+    const zwilling = p.doppel && i > 5 && r() < 0.18 && !gates[gates.length - 1]?.zwilling;
+    const balken = p.balken && i > 8 && r() < 0.20;
+    // Ein Tor mit Klotz bekommt den Platz des Klotzes obendrauf. Sonst wäre
+    // die Lücke auf Stufe 6 schmaler als das Huhn — kein Kunststück mehr,
+    // sondern eine Sackgasse.
+    // Ein Doppeltor sitzt auf fast derselben Höhe wie sein Vorgänger. Sonst
+    // müsste man in einer Dreiviertelsekunde quer durchs Bild — das ist kein
+    // Doppeltor mehr, sondern ein Zufallsgenerator.
+    const vor = gates[gates.length - 1];
+    const wandert = !zwilling && p.wandert && i > 3 && r() < 0.38 ? 0.04 + r() * 0.055 : 0;
+    const c = zwilling && vor
+      ? Math.max(0.26, Math.min(0.74, vor.c + (r() - 0.5) * 0.10))
+      : erreichbar(vor, 0.3 + r() * 0.4, x, i, wandert, p);
     gates.push({
       i,
       x,
-      // Lücke wandert langsam, wird nach und nach enger
-      c: 0.3 + r() * 0.4,
-      gap: Math.max(GAP_MIN, GAP0 - i * 2.2),
+      c,
+      gap: eng + (zwilling ? 26 : 0) + (balken ? BALKEN_H + 22 : 0),
+      zwilling,
+      // Wandern: Ausschlag in Bildschirmanteilen, plus eine eigene Phase
+      wandert,
+      phase: r() * Math.PI * 2,
+      feder: p.feder && i > 2 && r() < 0.16,
+      balken,
+      federWeg: false,
       passed: false,
       el: null
     });
-    x += 268 + r() * 80 - Math.min(64, i * 1.2);
+    const luft = zwilling ? 168 : (268 + r() * 80 - Math.min(64, i * 1.2));
+    x += luft / p.tempo;
   }
   return gates;
 }
 
+export { buildFence };
+
 /** Ein Zaunelement: Pfosten mit Latten, Kappe und ggf. Fähnchen. */
-function gateMarkup(ghost) {
+function gateMarkup(g, ghost) {
   const planks = (n) => Array.from({ length: n }, (_, k) =>
     `<span class="fly-plank" style="--k:${k}"></span>`).join('');
   return `
@@ -72,6 +156,8 @@ function gateMarkup(ghost) {
       <span class="fly-cap up"></span>
       <span class="fly-grain"></span>${planks(6)}
     </div>
+    ${g.balken ? '<div class="fly-balken"></div>' : ''}
+    ${g.feder ? `<div class="fly-feder">${icon('feather', { size: 26 })}</div>` : ''}
     ${ghost ? `<div class="fly-flag">${icon('feather', { size: 18 })}</div>` : ''}`;
 }
 
@@ -99,15 +185,18 @@ export function mount(root, ctx) {
   function intro() {
     const d = duel(get(), meta.id);
     const target = d.theirs?.score ?? null;
+    const p = plan(stufeFuer(d.r));
     root.innerHTML = `
       <div class="game-wrap">
         ${header()}
         <div class="game-center">
           <div class="game-hero">${icon('gameFlight', { size: 68 })}</div>
-          <h2 class="game-h">Runde ${d.r}</h2>
+          <div class="game-kicker">Runde ${d.r} · Stufe ${p.stufe} von ${STUFEN}${p.neu ? ` · neu: ${esc(p.neu)}` : ''}</div>
+          <h2 class="game-h">${esc(['', 'Erster Zaun', 'Federleicht', 'Doppelt hält', 'Gegenwind', 'Klotzig', 'Alles auf einmal'][p.stufe] || 'Federflug')}</h2>
           <p class="game-p">${target != null
             ? `<b>${esc(partner)}</b> hat <b>${target}</b> Lücken geschafft. Bei Lücke ${target} steht das Fähnchen.`
             : 'Antippen lässt Knuddl flattern. Der Zaun wird enger, je weiter du kommst.'}</p>
+          ${p.feder ? `<div class="game-legend"><span class="legend">${icon('feather', { size: 15 })} eine Feder verzeiht eine Berührung</span></div>` : ''}
           <button class="btn btn-primary btn-block" data-go>Abheben</button>
           ${target == null && get().partner ? `<button class="btn btn-ghost btn-block" data-invite>${esc(partner)} anstupsen</button>` : ''}
         </div>
@@ -122,8 +211,10 @@ export function mount(root, ctx) {
     running = true;
     const st = get();
     const d = duel(st, meta.id);
-    const gates = buildFence(seedFor(meta.id, d.r, st));
+    const p = plan(stufeFuer(d.r));
+    const gates = buildFence(seedFor(meta.id, d.r, st), p);
     const ghostAt = d.theirs?.score ?? null;
+    let schild = 0;              // eingesammelte Federn = verzeihbare Berührungen
 
     root.innerHTML = `
       <div class="game-wrap game-playing">
@@ -131,6 +222,7 @@ export function mount(root, ctx) {
         <div class="game-hud">
           <div class="hud-score"><span data-score>0</span><small>Lücken</small></div>
           <div class="hud-combo" data-combo></div>
+          <div class="fly-schild" data-schild></div>
           ${ghostAt != null ? `<div class="hud-live"><span data-ghost>${ghostAt}</span><small>${esc(partner)}</small></div>` : ''}
         </div>
         <div class="fly-field fly-ready" data-field>
@@ -155,6 +247,11 @@ export function mount(root, ctx) {
     const hero = root.querySelector('[data-hero]');
     const elScore = root.querySelector('[data-score]');
     const elHint = root.querySelector('[data-hint]');
+    const elSchild = root.querySelector('[data-schild]');
+    const zeigeSchild = () => {
+      elSchild.innerHTML = Array.from({ length: schild }, () =>
+        `<span>${icon('feather', { size: 15 })}</span>`).join('');
+    };
 
     let W = field.clientWidth, H = field.clientHeight;
     const resize = () => { W = field.clientWidth; H = field.clientHeight; };
@@ -204,10 +301,15 @@ export function mount(root, ctx) {
       last = now;
 
       if (started) {
-        const speed = SPEED0 + Math.min(140, score * 4.5);
+        const speed = (SPEED0 + Math.min(140, score * 4.5)) * p.tempo;
         dist += speed * dt;
-        vy = Math.min(VY_MAX, vy + GRAVITY * dt);
+        // Böen: die Schwerkraft schwankt um ein Fünftel, langsam genug, dass
+        // man es ausgleichen kann, schnell genug, dass man es merkt.
+        const wind = p.boe ? Math.sin(dist / 340) * 0.14 : 0;
+        vy = Math.min(VY_MAX, vy + GRAVITY * (1 + wind) * dt);
         y += vy * dt;
+        field.classList.toggle('aufwind', wind < -0.12);
+        field.classList.toggle('fallwind', wind > 0.12);
       } else {
         // Warteschleife: Knuddl schwebt und wartet höflich auf den ersten Tipp
         y = H * 0.42 + Math.sin(now / 420) * 7;
@@ -232,22 +334,45 @@ export function mount(root, ctx) {
         if (!g.el) {
           const node = document.createElement('div');
           node.className = 'fly-gate';
-          node.innerHTML = gateMarkup(ghostAt != null && g.i === ghostAt);
+          node.innerHTML = gateMarkup(g, ghostAt != null && g.i === ghostAt);
           gatesHost.appendChild(node);
           g.el = node;
           g.top = node.querySelector('.top');
           g.bot = node.querySelector('.bot');
           g.flag = node.querySelector('.fly-flag');
+          g.federEl = node.querySelector('.fly-feder');
+          g.balkenEl = node.querySelector('.fly-balken');
         }
-        const cy = g.c * H;
+        // Wandernde Lücken: die Mitte fährt auf und ab, aber nie so weit,
+        // dass sie den Boden oder die Decke berührt.
+        const cy = Math.max(g.gap / 2 + 30, Math.min(H - GROUND - g.gap / 2 - 10,
+          (g.c + (g.wandert ? Math.sin(dist / 190 + g.phase) * g.wandert : 0)) * H));
         const half = g.gap / 2;
+        g.cy = cy;
         g.el.style.transform = `translateX(${gx}px)`;
         g.top.style.height = `${Math.max(0, cy - half)}px`;
         g.bot.style.height = `${Math.max(0, H - GROUND - (cy + half))}px`;
         if (g.flag) g.flag.style.top = `${cy + half - 30}px`;
+        if (g.federEl) g.federEl.style.top = `${cy - 13}px`;
+        // Der Klotz sitzt an der oberen Kante der Lücke und lässt unten durch
+        if (g.balkenEl) g.balkenEl.style.top = `${cy - half + 4}px`;
 
         if (started && Math.abs(gx + GATE_W / 2 - hx) < HIT_X + GATE_W / 2) {
-          if (y - HIT_Y < cy - half || y + HIT_Y > cy + half) { die(); break; }
+          const balkenTrifft = g.balken && y - HIT_Y < cy - half + BALKEN_H;
+          if (y - HIT_Y < cy - half || y + HIT_Y > cy + half || balkenTrifft) {
+            if (!verzeih(g)) { die(); break; }
+          }
+        }
+        // Feder einsammeln — sie hängt genau in der Mitte der Lücke
+        if (started && !g.federWeg && g.feder
+            && Math.abs(gx + GATE_W / 2 - hx) < 40 && Math.abs(y - cy) < 40) {
+          g.federWeg = true;
+          schild = Math.min(3, schild + 1);
+          zeigeSchild();
+          g.federEl?.remove();
+          g.federEl = null;
+          fx('coin');
+          burst(['feather'], { from: hero, count: 5, rise: 90 });
         }
         if (started && !g.passed && gx + GATE_W < hx - HIT_X) {
           g.passed = true;
@@ -268,6 +393,26 @@ export function mount(root, ctx) {
       if (!dead) raf = requestAnimationFrame(frame);
     }
 
+    /**
+     * Eine Berührung mit Feder überleben.
+     *
+     * Ohne Nachsicht wäre die Feder wertlos: Man würde zwei Bilder später am
+     * selben Pfosten wieder hängen. Also wird sie verbraucht, das Tor gilt
+     * als durch, und ein kurzer Stoß schiebt Knuddl zurück in die Lücke.
+     */
+    function verzeih(g) {
+      if (!schild) return false;
+      schild--;
+      zeigeSchild();
+      g.passed = true;
+      y = Math.max(40, Math.min(H - GROUND - 30, g.cy ?? (g.c * H)));
+      vy = -120;
+      fx('fail');
+      field.classList.remove('gerettet'); void field.offsetWidth; field.classList.add('gerettet');
+      burst(['feather'], { from: hero, count: 6, rise: 110 });
+      return true;
+    }
+
     function die() {
       if (dead) return;
       dead = true;
@@ -283,20 +428,21 @@ export function mount(root, ctx) {
       hero.style.setProperty('--land', `${Math.max(0, H - GROUND - 46 - y).toFixed(1)}px`);
       hero.style.setProperty('--tilt', `${tilt.toFixed(1)}deg`);
       hero.classList.add('crashed');
-      setTimeout(() => finish(score), 820);
+      setTimeout(() => finish(score, p, schild), 820);
     }
 
     raf = requestAnimationFrame(frame);
   }
 
-  function finish(score) {
-    const { settled } = submitScore(meta.id, score);
+  function finish(score, p = plan(1), federn = 0) {
+    const { settled } = submitScore(meta.id, score, { stufe: p.stufe, federn });
     fx(settled?.result === 'me' ? 'yay' : 'pop');
     root.innerHTML = `
       <div class="game-wrap">
         ${header()}
         <div class="game-center">
           <div class="game-hero">${icon(settled?.result === 'me' ? 'trophy' : 'feather', { size: 68 })}</div>
+          <div class="game-kicker">Stufe ${p.stufe} von ${STUFEN}</div>
           <h2 class="game-h">${score} ${score === 1 ? 'Lücke' : 'Lücken'}</h2>
           <p class="game-p">${!settled
             ? `Unterwegs zu ${esc(partner)}. Derselbe Zaun wartet dort.`

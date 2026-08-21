@@ -129,7 +129,49 @@ export const IDEAS = [
   'Was ich mit einer Zeitmaschine als Erstes mache',
   'Die albernsten Gründe für einen Streit',
   'Was in einem Museum über mich hängen würde',
-  'Regeln für ein Land, in dem ich bestimme'
+  'Regeln für ein Land, in dem ich bestimme',
+  /* Nachschub: über uns */
+  'Momente, in denen ich dich am meisten vermisse',
+  'Die Sätze, an denen ich dich sofort erkenne',
+  'Was ich an dir zuerst bemerkt habe, ohne es zu sagen',
+  'Verabredungen, die wir immer wieder verschieben',
+  'Die besten Ausreden, um dich anzurufen',
+  'Was ich mir für unser erstes gemeinsames Zuhause wünsche',
+  'Orte, an denen ich dich gern wiedersehen würde',
+  'Die kleinsten Dinge, die mich an dich denken lassen',
+  'Was ich dir noch nie erzählt habe',
+  'Unsere seltsamsten gemeinsamen Angewohnheiten',
+  /* Nachschub: hätte, wäre, wenn */
+  'Was ich täte, wenn Geld egal wäre',
+  'Die Superkräfte, die eigentlich nutzlos wären',
+  'Wofür ich sofort aufstehen würde, egal wie früh',
+  'Was ich in einer Zeitmaschine als Erstes ansehen würde',
+  'Die Berufe, in denen ich nach einer Woche gefeuert wäre',
+  'Womit man mich sofort bestechen kann',
+  'Was ich auf eine einsame Insel mitnehmen würde',
+  'Die Regeln, die ich in meinem eigenen Land aufstellen würde',
+  /* Nachschub: peinlich */
+  'Lieder, die ich heimlich mag',
+  'Dinge, die ich gegoogelt habe und lieber nicht',
+  'Was ich als Kind für die Wahrheit gehalten habe',
+  'Die peinlichsten Verletzungen meines Lebens',
+  'Was in meinem Suchverlauf keiner sehen darf',
+  'Ausreden, die niemand geglaubt hat',
+  /* Nachschub: streitbar */
+  'Essen, das völlig überbewertet ist',
+  'Regeln, die es nicht bräuchte',
+  'Was auf jeder Party fehlt',
+  'Dinge, bei denen alle so tun, als würden sie sie mögen',
+  'Die schlechtesten Ratschläge, die man ständig hört',
+  'Filme, die niemand zweimal braucht',
+  'Was sofort abgeschafft gehört',
+  /* Nachschub: zärtlich */
+  'Wo ich am liebsten berührt werde',
+  'Die besten Gerüche der Welt',
+  'Momente, in denen ich mich sicher fühle',
+  'Was mich sofort beruhigt',
+  'Die schönsten Arten, geweckt zu werden',
+  'Wofür ich dankbar bin, ohne es zu sagen'
 ];
 
 /** Wie viele Vorschläge unter dem Eingabefeld stehen. */
@@ -152,7 +194,11 @@ export const RULES = [
   { id: 'gratis',  label: 'Nichts, was Geld kostet', hint: 'Kein Gegenstand, den man kaufen muss.', w: 2 },
   { id: 'buchstabe', label: 'Alle mit demselben Buchstaben', hint: 'Alle fünf Antworten fangen gleich an.', w: 2 },
   { id: 'kurz',    label: 'Höchstens zwei Wörter', hint: 'Jede Antwort passt in zwei Wörter.', w: 2 },
-  { id: 'peinlich', label: 'Je peinlicher, desto besser', hint: 'Nimm die Antworten, die du sonst nicht sagen würdest.', w: 2 }
+  { id: 'peinlich', label: 'Je peinlicher, desto besser', hint: 'Nimm die Antworten, die du sonst nicht sagen würdest.', w: 2 },
+  { id: 'anders',  label: 'Nichts Naheliegendes', hint: 'Streich deine erste Idee. Nimm die zweite.', w: 2 },
+  { id: 'reihe',   label: 'Von harmlos nach heftig', hint: 'Platz 1 ist zahm, Platz 5 traust du dich kaum.', w: 2 },
+  { id: 'begruenden', label: 'Mit halbem Satz', hint: 'Zu jeder Antwort gehört ein „weil …".', w: 2 },
+  { id: 'fremd',   label: 'Aus seiner Sicht', hint: 'Antworte so, wie dein Mensch antworten würde.', w: 2 }
 ];
 
 export function ruleFor(seed) {

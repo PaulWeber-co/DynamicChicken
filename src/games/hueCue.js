@@ -75,6 +75,28 @@ export const PALETTES = [
   {
     id: 'wiese', label: 'Wiese',
     cell: (x, y) => [72 + x * 96 / COLS, 26 + y * 10, 86 - y * 11.4]
+  },
+  {
+    id: 'beere', label: 'Beerenkorb',
+    cell: (x, y) => [(288 + x * 78 / COLS + y * 4) % 360, 44 + y * 8, 84 - y * 12.4]
+  },
+  {
+    id: 'nebel', label: 'Nebelmorgen',
+    // Kaum Sättigung: Hier entscheidet die Helligkeit, nicht der Farbton —
+    // das ist die schwerste Palette und deshalb selten.
+    cell: (x, y) => [(200 + x * 40 / COLS) % 360, 10 + y * 4, 92 - y * 13 - x * 1.4]
+  },
+  {
+    id: 'gewuerz', label: 'Gewürzregal',
+    cell: (x, y) => [(8 + x * 52 / COLS + y * 5) % 360, 52 + y * 7, 76 - y * 10.4]
+  },
+  {
+    id: 'eismeer', label: 'Eismeer',
+    cell: (x, y) => [(158 + x * 62 / COLS) % 360, 28 + y * 11, 90 - y * 13.2]
+  },
+  {
+    id: 'neon', label: 'Neonnacht',
+    cell: (x, y, r) => [(r.shift + x * 300 / COLS + y * 22) % 360, 78 - y * 3, 62 - y * 6.4]
   }
 ];
 
@@ -110,7 +132,13 @@ export const MODES = [
   { id: 'kurz', label: 'Höchstens fünf Buchstaben', hint: 'Kurz halten: fünf Buchstaben, nicht mehr.',
     give: 'Fünf Buchstaben für diese Farbe', guess: 'Kurz und knapp — welche Farbe?', w: 2 },
   { id: 'gefuehl', label: 'Nur ein Gefühl', hint: 'Kein Ding, kein Ort — nur ein Gefühl oder eine Stimmung.',
-    give: 'Ein Gefühl für diese Farbe', guess: 'Ein Gefühl als Hinweis — welche Farbe?', w: 2 }
+    give: 'Ein Gefühl für diese Farbe', guess: 'Ein Gefühl als Hinweis — welche Farbe?', w: 2 },
+  { id: 'essen', label: 'Nur Essbares', hint: 'Das Wort muss etwas sein, das man essen oder trinken kann.',
+    give: 'Etwas Essbares für diese Farbe', guess: 'Etwas Essbares als Hinweis — welche Farbe?', w: 2 },
+  { id: 'erinnerung', label: 'Aus unserem Leben', hint: 'Nimm etwas, das nur ihr zwei versteht — einen Ort, einen Tag, einen Witz.',
+    give: 'Etwas aus eurer Geschichte', guess: 'Ein Hinweis aus eurer Geschichte — welche Farbe?', w: 2 },
+  { id: 'lang', label: 'Mindestens zehn Buchstaben', hint: 'Ein langes Wort. Zusammensetzen ist erlaubt.',
+    give: 'Ein langes Wort für diese Farbe', guess: 'Ein sehr langes Wort — welche Farbe?', w: 1 }
 ];
 
 /** Gewichtet gezogen: „Freies Wort“ bleibt der Normalfall. */
@@ -128,6 +156,7 @@ export function checkClue(mode, clue) {
   if (!clue) return 'Ein Wort brauchen wir';
   if (/\s/.test(clue)) return 'Nur ein einziges Wort';
   if (mode.id === 'kurz' && clue.length > 5) return 'Höchstens fünf Buchstaben';
+  if (mode.id === 'lang' && clue.length < 10) return 'Mindestens zehn Buchstaben';
   return null;
 }
 

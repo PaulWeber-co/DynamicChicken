@@ -138,6 +138,10 @@ export function mount(root, ctx) {
     const fragen = rundenFragen(d.r, seedFor(meta.id, d.r, st), pairKey(st));
     const themen = [...new Set(fragen.map((f) => f.t))];
     const target = d.theirs?.score ?? null;
+    const wartet = d.mine && !d.theirs;
+    // Die letzte abgerechnete Runde lässt sich nachträglich ansehen — dafür
+    // liegen ihre Einzelheiten im Verlauf.
+    const letzte = d.history?.[0]?.detail?.mine?.z ? d.history[0] : null;
 
     root.innerHTML = `
       <div class="game-wrap">
@@ -146,18 +150,35 @@ export function mount(root, ctx) {
           <div class="game-hero">${icon('gameQuiz', { size: 68 })}</div>
           <div class="game-kicker">Runde ${d.r} · ${FRAGEN_PRO_RUNDE} Fragen</div>
           <h2 class="game-h">${themen.slice(0, 3).map(esc).join(' · ')}</h2>
-          <p class="game-p">${target != null
-            ? `<b>${esc(partner)}</b> hat <b>${target}</b> von ${FRAGEN_PRO_RUNDE * MAX_PRO_FRAGE} Punkten geholt. Du bekommst genau dieselben Fragen.`
-            : `Zwei Wissensfragen, eine Schätzfrage. Bei Wissen zählt auch das Tempo, beim Schätzen zählt, wie nah du drankommst. Danach ist <b>${esc(partner)}</b> mit denselben Fragen dran.`}</p>
+          <p class="game-p">${wartet
+            ? `Deine Antworten sind eingeloggt: <b>${d.mine.score}</b> Punkte. Jetzt ist <b>${esc(partner)}</b> mit denselben Fragen dran.`
+            : target != null
+              ? `<b>${esc(partner)}</b> hat vorgelegt: <b>${target}</b> von ${FRAGEN_PRO_RUNDE * MAX_PRO_FRAGE} Punkten. Du bekommst genau dieselben Fragen — welche davon gesessen haben, siehst du erst hinterher.`
+              : `Zwei Wissensfragen, eine Schätzfrage. Einmal getippt gilt: Die Antwort wird eingeloggt und lässt sich nicht mehr ändern. Danach ist <b>${esc(partner)}</b> mit denselben Fragen dran.`}</p>
           <div class="game-legend">
             <span class="legend">${icon('clock', { size: 15 })} ${ZEIT_WISSEN} s pro Wissensfrage</span>
             <span class="legend">${FRAGEN_PRO_RUNDE * MAX_PRO_FRAGE} möglich</span>
           </div>
-          <button class="btn btn-primary btn-block" data-go>Los</button>
-          ${target == null && st.partner ? `<button class="btn btn-ghost btn-block" data-invite>${esc(partner)} anstupsen</button>` : ''}
+          ${wartet
+            ? `<button class="btn btn-ghost btn-block" data-close>Fertig</button>`
+            : `<button class="btn btn-primary btn-block" data-go>${target != null ? 'Dagegenhalten' : 'Los'}</button>`}
+          ${letzte ? `<button class="btn btn-ghost btn-block" data-letzte>Runde ${letzte.r} ansehen</button>` : ''}
+          ${!wartet && target == null && st.partner ? `<button class="btn btn-ghost btn-block" data-invite>${esc(partner)} anstupsen</button>` : ''}
         </div>
       </div>`;
-    root.querySelector('[data-go]').onclick = () => { fx('pop'); spielen(fragen, d.r); };
+    const go = root.querySelector('[data-go]');
+    if (go) go.onclick = () => { fx('pop'); spielen(fragen, d.r); };
+    const alt = root.querySelector('[data-letzte]');
+    if (alt) alt.onclick = () => {
+      fx('tap');
+      const st2 = get();
+      vergleich(
+        rundenFragen(letzte.r, seedFor(meta.id, letzte.r, st2), pairKey(st2)),
+        letzte.detail.mine.z, letzte.detail.theirs?.z || [],
+        { result: letzte.result, mine: letzte.mine, theirs: letzte.theirs },
+        letzte.r
+      );
+    };
     const inv = root.querySelector('[data-invite]');
     if (inv) inv.onclick = () => { inviteToPlay(meta.id); fx('tap'); inv.textContent = 'Angestupst'; inv.disabled = true; };
     bindClose();
@@ -284,7 +305,7 @@ export function mount(root, ctx) {
         setTimeout(() => {
           nr++;
           if (nr < fragen.length) frageZeigen();
-          else fertig(ergebnisse, runde);
+          else fertig(ergebnisse, runde, fragen);
         }, q.z ? 2600 : 1700);
       }
     }
@@ -292,19 +313,43 @@ export function mount(root, ctx) {
     frageZeigen();
   }
 
-  function fertig(ergebnisse, runde) {
+  /**
+   * Was von einer gespielten Runde übrig bleibt und mitgeschickt wird.
+   *
+   * Absichtlich mager: pro Frage nur die Punkte, ob es gestimmt hat und was
+   * getippt wurde. Die Fragen selbst stehen auf beiden Geräten ohnehin in
+   * derselben Datei und lassen sich aus der Rundennummer wieder herstellen —
+   * sie mitzuschicken würde eine Brieftauben-Nachricht unnötig aufblähen.
+   */
+  const alsBericht = (ergebnisse) => ergebnisse.map((e) => ({
+    p: e.punkte, r: e.richtig ? 1 : 0,
+    t: e.art === 'schaetzen' && Number.isFinite(e.tipp) ? e.tipp
+      : e.art === 'wissen' && e.tipp != null ? e.tipp : null
+  }));
+
+  function fertig(ergebnisse, runde, fragen) {
     stopUhr();
     const punkte = ergebnisse.reduce((s, e) => s + e.punkte, 0);
     const treffer = ergebnisse.filter((e) => e.richtig).length;
-    const { settled } = submitScore(meta.id, punkte, { treffer, runde });
-    fx(settled?.result === 'me' ? 'yay' : 'pop');
-    if (treffer === ergebnisse.length) confetti(['sparkle', 'trophy']);
 
+    // Vor dem Abschicken nachsehen: `submitScore` rechnet sofort ab und
+    // räumt dabei den fremden Bericht aus dem laufenden Duell.
+    const vorher = duel(get(), meta.id).theirs?.detail?.z || null;
+
+    const { settled } = submitScore(meta.id, punkte, { treffer, runde, z: alsBericht(ergebnisse) });
+    fx(settled?.result === 'me' ? 'yay' : 'pop');
+    if (settled?.result === 'me') confetti(['sparkle', 'trophy']);
+    else if (treffer === ergebnisse.length) confetti(['sparkle']);
+
+    if (settled && vorher) { vergleich(fragen, alsBericht(ergebnisse), vorher, settled, runde); return; }
+
+    /* Ich habe vorgelegt — es gibt noch nichts zu vergleichen. */
     root.innerHTML = `
       <div class="game-wrap">
         ${header()}
         <div class="game-center">
-          <div class="game-hero">${icon(settled?.result === 'me' ? 'trophy' : 'gameQuiz', { size: 68 })}</div>
+          <div class="game-hero">${icon('gameQuiz', { size: 68 })}</div>
+          <div class="game-kicker">Eingeloggt · Runde ${runde}</div>
           <h2 class="game-h">${punkte} Punkte</h2>
           <div class="quiz-bilanz">
             ${ergebnisse.map((e) => `
@@ -314,17 +359,82 @@ export function mount(root, ctx) {
                 <b>${e.punkte}</b>
               </div>`).join('')}
           </div>
-          <p class="game-p">${!settled
-            ? `Ergebnis unterwegs zu ${esc(partner)} — gleiche Fragen.`
-            : settled.result === 'me' ? `Du gewinnst ${settled.mine}:${settled.theirs}. +${settled.reward} Körner.`
-            : settled.result === 'draw' ? `Unentschieden bei ${settled.mine}. +${settled.reward} Körner.`
-            : `${esc(partner)} wusste mehr: ${settled.theirs}:${settled.mine}. +${settled.reward} Körner.`}</p>
+          <p class="game-p">Deine Antworten sind eingeloggt und lassen sich nicht mehr ändern.
+            ${esc(partner)} bekommt jetzt genau dieselben ${FRAGEN_PRO_RUNDE} Fragen — danach seht ihr,
+            wer wo richtig lag.</p>
+          <button class="btn btn-primary btn-block" data-close>Fertig</button>
+        </div>
+      </div>`;
+    bindClose();
+  }
+
+  /**
+   * Der Vergleich — der eigentliche Punkt des Spiels.
+   *
+   * Nebeneinander, Frage für Frage: was du hattest, was der andere hatte.
+   * Die Punktzahl allein sagt nur, wer gewonnen hat; interessant ist die
+   * Zeile, in der einer von beiden als Einziger richtig lag.
+   */
+  function vergleich(fragen, meins, seins, settled, runde) {
+    const ich = get().me?.name || 'Du';
+    const summe = (b) => b.reduce((s, x) => s + (x?.p || 0), 0);
+    const meinP = settled ? settled.mine : summe(meins);
+    const seinP = settled ? settled.theirs : summe(seins);
+    const ergebnis = settled?.result || (meinP > seinP ? 'me' : seinP > meinP ? 'them' : 'draw');
+
+    root.innerHTML = `
+      <div class="game-wrap">
+        ${header(`<span class="tiny muted">Runde ${runde}</span>`)}
+        <div class="game-scroll">
+          <div class="quiz-duell">
+            <div class="quiz-seite ${ergebnis === 'me' ? 'sieger' : ''}">
+              <b>${meinP}</b><small>${esc(ich)}</small>
+            </div>
+            <span class="quiz-vs">${ergebnis === 'draw' ? 'gleich' : 'vs'}</span>
+            <div class="quiz-seite ${ergebnis === 'them' ? 'sieger' : ''}">
+              <b>${seinP}</b><small>${esc(partner)}</small>
+            </div>
+          </div>
+          <p class="quiz-urteil">${(ergebnis === 'me'
+            ? 'Du gewinnst die Runde.'
+            : ergebnis === 'draw' ? 'Unentschieden.'
+            : `${esc(partner)} gewinnt die Runde.`)
+            + (settled?.reward ? ` +${settled.reward} Körner.` : '')}</p>
+
+          ${fragen.map((q, i) => zeileVergleich(q, meins[i], seins[i])).join('')}
+
           <button class="btn btn-primary btn-block" data-again>Nächste Runde</button>
           <button class="btn btn-ghost btn-block" data-close>Fertig</button>
         </div>
       </div>`;
     root.querySelector('[data-again]').onclick = () => intro();
     bindClose();
+  }
+
+  /** Eine Frage im Vergleich: Text, richtige Antwort, beide Spalten. */
+  function zeileVergleich(q, a = {}, b = {}) {
+    const ich = get().me?.name || 'Du';
+    const loesung = q.art === 'wissen' ? q.a[0] : `${zahl(q.w)} ${q.e}`;
+    const gabe = (x) => {
+      if (!x) return '<i>keine Antwort</i>';
+      if (q.art === 'wissen') return x.t == null ? '<i>Zeit vorbei</i>' : esc(q.a[x.t]);
+      return x.t == null ? '<i>Zeit vorbei</i>' : `${zahl(x.t)} ${esc(q.e)}`;
+    };
+    const spalte = (name, x, gewinnt) => `
+      <div class="quiz-spalte ${x?.p > 0 ? 'gut' : 'daneben'}${gewinnt ? ' vorn' : ''}">
+        <span class="quiz-wer">${esc(name)}</span>
+        <span class="quiz-gabe">${gabe(x)}</span>
+        <b>${x?.p || 0}</b>
+      </div>`;
+    return `
+      <div class="quiz-karte">
+        <p class="quiz-kfrage">${esc(q.f)}</p>
+        <p class="quiz-loesung">${icon('check', { size: 12 })} ${esc(loesung)}${q.z ? `<small>${esc(q.z)}</small>` : ''}</p>
+        <div class="quiz-spalten">
+          ${spalte(ich, a, (a?.p || 0) > (b?.p || 0))}
+          ${spalte(partner, b, (b?.p || 0) > (a?.p || 0))}
+        </div>
+      </div>`;
   }
 
   intro();

@@ -65,7 +65,26 @@ export const WORDS = [
   /* Kleinkram */
   'Kompass', 'Sanduhr', 'Zauberstab', 'Schallplatte', 'Angelrute', 'Fernglas',
   'Schneekugel', 'Glühbirne', 'Lupe', 'Drachen', 'Klavier', 'Trompete',
-  'Zahnrad', 'Anker', 'Fallschirm', 'Bumerang'
+  'Zahnrad', 'Anker', 'Fallschirm', 'Bumerang',
+  /* Nachschub: Berufe und Menschen */
+  'Astronautin', 'Bäcker', 'Zauberer', 'Taucher', 'Bergsteiger', 'Dirigent',
+  'Briefträger', 'Schornsteinfeger', 'Ritter', 'Pirat', 'Detektiv', 'Clown',
+  /* Wetter und Himmel */
+  'Gewitterwolke', 'Nordlicht', 'Sonnenfinsternis', 'Regenbogenfisch', 'Sternschnuppe',
+  'Nebelbank', 'Hagelkorn', 'Wirbelsturm',
+  /* Feste */
+  'Geburtstagstorte', 'Adventskranz', 'Feuerwerk', 'Osterei', 'Kürbislaterne',
+  'Konfetti', 'Girlande', 'Wunderkerze',
+  /* Werkzeug und Technik */
+  'Schraubenzieher', 'Nähmaschine', 'Mikroskop', 'Satellit', 'Roboterarm', 'Waage',
+  'Bohrmaschine', 'Taschenrechner', 'Plattenspieler', 'Diaprojektor',
+  /* Abstraktes — schwer zu malen, umso lustiger */
+  'Heimweh', 'Fernweh', 'Langeweile', 'Schadenfreude', 'Vorfreude',
+  'Ohrwurm', 'Torschlusspanik', 'Kopfkino',
+  /* Kleinkram, zweiter Schwung */
+  'Nussknacker', 'Kaleidoskop', 'Kompassrose', 'Hufeisen', 'Federkiel',
+  'Spieluhr', 'Marionette', 'Wetterfahne', 'Sonnenuhr', 'Lampion',
+  'Kastanie', 'Fliegenpilz', 'Tannenzapfen', 'Muschel', 'Treibholz'
 ];
 
 const MAX_POINTS = 420;
@@ -79,17 +98,31 @@ const DRAW_MS = 30_000;
  * denken; wer nur einen Strich hat, muss vereinfachen; wer zwölf Sekunden
  * hat, darf nicht zögern. Und es ist zum Lachen, was dabei ankommt.
  *
- *   ms     Zeit ab dem ersten Strich
- *   blind  Die Leinwand bleibt leer, bis abgeschickt wird
- *   one    Nach dem ersten Absetzen ist Schluss
- *   width  Strichstärke als Faktor — reist mit, damit drüben dasselbe ankommt
+ *   ms       Zeit ab dem ersten Strich
+ *   blind    Die Leinwand bleibt leer, bis abgeschickt wird
+ *   striche  Wie oft man absetzen darf, bevor Schluss ist
+ *   width    Strichstärke als Faktor — reist mit, damit drüben dasselbe ankommt
+ *   spiegel  Links und rechts sind vertauscht
+ *   kopf     Die ganze Leinwand steht auf dem Kopf
+ *   zittern  Jeder Punkt bekommt einen kleinen Versatz
+ *   schwund  Nach der Hälfte der Zeit verschwindet, was schon da ist
+ *
+ * `w` ist das Ziehungsgewicht: „Freie Hand" soll häufiger kommen als die
+ * gemeinen, sonst ist jede Runde ein Sonderfall und keine mehr besonders.
  */
 export const HANDICAPS = [
-  { id: 'frei',  label: 'Freie Hand', hint: 'Mal einfach drauflos.',                       ms: DRAW_MS, width: 1,   w: 5 },
+  { id: 'frei',  label: 'Freie Hand', hint: 'Mal einfach drauflos.',                        ms: DRAW_MS, width: 1,   w: 6 },
   { id: 'blind', label: 'Blind',      hint: 'Du siehst deine Striche erst beim Abschicken.', ms: DRAW_MS, width: 1, blind: true, w: 3 },
-  { id: 'one',   label: 'Ein Strich', hint: 'Absetzen beendet die Zeichnung.',              ms: DRAW_MS, width: 1, one: true, w: 3 },
+  { id: 'one',   label: 'Ein Strich', hint: 'Absetzen beendet die Zeichnung.',              ms: DRAW_MS, width: 1, striche: 1, w: 3 },
   { id: 'dick',  label: 'Dicker Pinsel', hint: 'Der Strich ist viel zu breit. Viel Glück.', ms: DRAW_MS, width: 3.2, w: 2 },
-  { id: 'hetze', label: 'Zwölf Sekunden', hint: 'Statt dreißig hast du zwölf.',             ms: 12_000, width: 1,   w: 2 }
+  { id: 'hetze', label: 'Zwölf Sekunden', hint: 'Statt dreißig hast du zwölf.',             ms: 12_000, width: 1,   w: 2 },
+  { id: 'drei',  label: 'Drei Striche', hint: 'Nach dem dritten Absetzen ist Schluss.',     ms: DRAW_MS, width: 1, striche: 3, w: 3 },
+  { id: 'spiegel', label: 'Spiegelverkehrt', hint: 'Links ist rechts. Rechts ist links.',   ms: DRAW_MS, width: 1, spiegel: true, w: 3 },
+  { id: 'kopf',  label: 'Auf dem Kopf', hint: 'Die Leinwand steht verkehrt herum.',         ms: DRAW_MS, width: 1, kopf: true, w: 2 },
+  { id: 'zitter',label: 'Zittrige Hand', hint: 'Dein Strich hat einen eigenen Willen.',     ms: DRAW_MS, width: 1, zittern: true, w: 2 },
+  { id: 'duenn', label: 'Haarfein',   hint: 'Ein Strich wie ein Faden. Zeichne groß.',      ms: DRAW_MS, width: 0.35, w: 2 },
+  { id: 'schwund', label: 'Verblassen', hint: 'Nach der halben Zeit ist der Anfang weg.',   ms: DRAW_MS, width: 1, schwund: true, w: 2 },
+  { id: 'kurz',  label: 'Achtzehn Sekunden', hint: 'Etwas mehr Ruhe als bei zwölf.',        ms: 18_000, width: 1,   w: 2 }
 ];
 
 export function handicapFor(seedKey) {
@@ -268,14 +301,37 @@ export function mount(root, ctx) {
       cx.lineCap = cx.lineJoin = 'round';
       cx.lineWidth = Math.max(3, size * 0.022) * hc.width;
       cx.strokeStyle = '#3A2C21';
-      for (const st2 of strokes) drawStroke(cx, st2, size);
+      // `sichtbarAb` blendet beim Verblassen die frühen Striche aus; beim
+      // Abschicken wird alles gezeichnet, sonst wäre die Hälfte weg.
+      const von = fertig ? 0 : sichtbarAb;
+      for (const st2 of strokes.slice(von)) drawStroke(cx, st2, size);
     }
 
+    /**
+     * Bildschirmpunkt zu Leinwandpunkt — und dabei gleich das Handicap.
+     *
+     * Spiegel und Kopfstand werden hier eingebaut und nicht beim Zeichnen:
+     * Was gespeichert wird, ist dann schon das fertige Bild. Der Empfänger
+     * sieht also eine ganz normale Zeichnung — nur eine, bei der der Maler
+     * sich schwergetan hat.
+     */
+    let zitterN = 0, sichtbarAb = 0;
     const toLocal = (e) => {
       const r = canvas.getBoundingClientRect();
+      let x = ((e.clientX - r.left) / r.width) * 99;
+      let y = ((e.clientY - r.top) / r.height) * 99;
+      if (hc.spiegel) x = 99 - x;
+      if (hc.kopf) { x = 99 - x; y = 99 - y; }
+      if (hc.zittern) {
+        // Kein echter Zufall: derselbe Strich soll beim Neuzeichnen nicht
+        // wandern. Ein Zähler reicht als Quelle.
+        zitterN++;
+        x += Math.sin(zitterN * 1.7) * 3.4;
+        y += Math.cos(zitterN * 2.3) * 3.4;
+      }
       return [
-        Math.max(0, Math.min(99, Math.round(((e.clientX - r.left) / r.width) * 99))),
-        Math.max(0, Math.min(99, Math.round(((e.clientY - r.top) / r.height) * 99)))
+        Math.max(0, Math.min(99, Math.round(x))),
+        Math.max(0, Math.min(99, Math.round(y)))
       ];
     };
 
@@ -301,8 +357,8 @@ export function mount(root, ctx) {
     const up = () => {
       cur = null;
       bSend.disabled = points < 6;
-      // Ein Strich: Absetzen beendet die Zeichnung — danach nur noch senden
-      if (hc.one && points >= 6) {
+      // Begrenzte Striche: Nach dem letzten Absetzen ist Schluss
+      if (hc.striche && strokes.length >= hc.striche && points >= 6) {
         fertig = true;
         redraw();
         const hint = root.querySelector('[data-blindhint]');
@@ -317,10 +373,23 @@ export function mount(root, ctx) {
 
     function startTimer() {
       elTimer.hidden = false;
+      let verblasst = false;
       const tick = () => {
         const left = Math.max(0, hc.ms - (Date.now() - started));
         elTimer.textContent = `${Math.ceil(left / 1000)}s`;
         elTimer.classList.toggle('urgent', left < 8000);
+        /*
+         * Verblassen: Zur Halbzeit ist alles Bisherige weg — aber nur vom
+         * Bildschirm des Malers, nicht aus der Zeichnung. Wer bis dahin die
+         * Umrisse gesetzt hat, muss den Rest aus dem Gedächtnis anbauen.
+         */
+        if (hc.schwund && !verblasst && left <= hc.ms / 2) {
+          verblasst = true;
+          sichtbarAb = strokes.length;
+          redraw();
+          toast('Weg damit — weiter aus dem Kopf');
+          fx('tap');
+        }
         if (left <= 0) { send(); return; }
         raf = requestAnimationFrame(tick);
       };
