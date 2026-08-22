@@ -31,7 +31,7 @@ import { sendEvent } from '../sync/index.js';
 import { relTime } from '../util/time.js';
 import { toast } from '../ui/toast.js';
 import { rng, cycledMany } from '../util/rng.js';
-import { seedFor, pairKey } from './index.js';
+import { seedFor, pairKey, dranIn } from './index.js';
 
 export const meta = {
   id: 'top5',
@@ -251,7 +251,16 @@ function tf(state) {
   const g = state.games.top5;
   g.score ||= { me: 0, them: 0 };
   g.hist ||= [];
-  if (!g.turn) g.turn = iAmFirst(state) ? 'me' : 'them';
+  /**
+   * Wer dran ist, steht nicht im Speicher — es folgt aus der Runde.
+   *
+   * Vorher wurde `turn` bei jeder Runde umgelegt und mitgeschleppt. Ging
+   * dabei eine Nachricht verloren, legte nur eine Seite um, und danach
+   * stand auf beiden Geräten „der andere ist dran". Jetzt kann das nicht
+   * mehr passieren: derselbe Wert entsteht auf beiden Seiten aus derselben
+   * Rundennummer.
+   */
+  g.turn = dranIn(state, g.r);
   return g;
 }
 
@@ -312,7 +321,6 @@ function closeRound(state, g, { exact, pairs, pts, joker }) {
   });
 
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
   g.cur = null;
 }
 
@@ -326,7 +334,6 @@ function closeRound(state, g, { exact, pairs, pts, joker }) {
 function abortRound(g) {
   g.cur = null;
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
 }
 
 /* ── Netzwerk ───────────────────────────────────────────── */
@@ -340,6 +347,7 @@ export function handleRemote(state, msg, { partnerName }) {
   if (msg.kind === 'topSkip') {
     if (msg.r < g.r || !g.cur) return null;
     abortRound(g);
+    g.turn = dranIn(state, g.r);
     commit('top5');
     return {
       kind: 'gameTurn',
@@ -363,7 +371,6 @@ export function handleRemote(state, msg, { partnerName }) {
     if (!cat) return null;
     const rule = ruleById(msg.rule || ruleFor(seedFor('top5', msg.r, state)).id);
     g.r = msg.r;
-    g.turn = 'them';
     g.cur = { cat, by: 'them', rule: rule.id, items: null, sol: null, guess: null };
     commit('top5');
     return {
@@ -844,15 +851,34 @@ export function mount(root, ctx) {
     bindClose();
   }
 
+  /**
+   * Warten — mit Ausweg.
+   *
+   * Selbst wenn beide Seiten dieselbe Runde kennen, kann eine Nachricht
+   * hängen bleiben, und dann wartet man auf etwas, das nie kommt. Der
+   * Knopf zieht die Runde einfach an sich: eine Runde weiter, damit ist
+   * man dran, und die nächste Kategorie synchronisiert drüben mit.
+   */
   function screenIdle() {
     root.innerHTML = shell(`
       <div class="game-center">
         <div class="game-hero">${icon('gameTop5', { size: 62 })}</div>
         <h2 class="game-h">${esc(partner)} ist dran</h2>
         <p class="game-p">Die nächste Kategorie kommt von drüben.</p>
+        <button class="btn btn-ghost btn-block" data-uebernehmen>Ich fange an</button>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       </div>
       ${history()}`);
+    root.querySelector('[data-uebernehmen]').onclick = () => {
+      const st = get();
+      const g = tf(st);
+      g.r++;
+      g.cur = null;
+      g.turn = dranIn(st, g.r);
+      commit('top5');
+      fx('tap');
+      route();
+    };
     bindClose();
   }
 

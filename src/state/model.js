@@ -11,7 +11,7 @@ import { defaultLook } from '../pet/chicken.js';
 import { shortCode } from '../util/rng.js';
 import { guessTz, dayKey, daysBetween, HOUR } from '../util/time.js';
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 /** Verfall pro Stunde, wach. */
 const DECAY = { energy: 4.6, clean: 3.2, joy: 4.0 };
@@ -293,7 +293,8 @@ const STEPS = {
   // passt nirgends mehr hinein und bliebe sonst als Ballast liegen.
   6: (s) => { if (s.games) delete s.games.story; },
   7: (s) => { if (s.games) delete s.games.blocks; },
-  8: (s) => { if (s.games) delete s.games.garn; }
+  8: (s) => { if (s.games) delete s.games.garn; },
+  9: (s) => { if (s.games) delete s.games.sling; }
 };
 
 /** Vor einem Umbau eine Kopie wegschreiben — einmal, nicht bei jedem Start. */

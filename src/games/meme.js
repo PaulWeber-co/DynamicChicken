@@ -27,7 +27,7 @@ import { toast } from '../ui/toast.js';
 import { shrink, prettyBytes } from '../util/image.js';
 import { renderChicken } from '../pet/chicken.js';
 import { cycledMany } from '../util/rng.js';
-import { pairKey } from './index.js';
+import { pairKey, dranIn } from './index.js';
 
 export const meta = {
   id: 'meme',
@@ -168,8 +168,11 @@ function mm(state) {
   const g = state.games.meme;
   g.score ||= { me: 0, them: 0 };
   g.hist ||= [];
-  // Wer anfängt, hängt am Code — sonst schrieben beide gleichzeitig
-  if (!g.turn) g.turn = iAmFirst(state) ? 'me' : 'them';
+  // Wer die Vorlage gibt, folgt aus der Runde — siehe `dranIn` in
+  // games/index.js. Ein mitgeschleppter Zeiger läuft auseinander, sobald
+  // eine Nachricht verlorengeht; danach steht auf beiden Geräten „der
+  // andere ist dran", und keiner darf mehr etwas tun.
+  g.turn = dranIn(state, g.r);
   return g;
 }
 
@@ -204,7 +207,6 @@ function closeRound(state, g, score) {
 
   dropImage(g);
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
   g.cur = null;
 }
 
@@ -220,7 +222,6 @@ function abortRound(g) {
   dropImage(g);
   g.cur = null;
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
 }
 
 /* ── Netzwerk ───────────────────────────────────────────── */
@@ -256,7 +257,6 @@ export function handleRemote(state, msg, { partnerName }) {
     if (g.cur?.by === 'me' && msg.r === g.r && iAmFirst(state)) return null;
 
     g.r = msg.r;
-    g.turn = 'them';
     g.cur = { prompt: String(msg.prompt || '').slice(0, 120), by: 'them', img: null, drawn: false };
     commit('meme');
     return {
@@ -406,7 +406,6 @@ export function mount(root, ctx) {
       const st = get();
       const g2 = mm(st);
       g2.cur = { prompt, by: 'me', img: null, drawn: false };
-      g2.turn = 'me';
       commit('meme');
       sendEvent('game', { g: 'meme', kind: 'memePrompt', r: g2.r, prompt });
       fx('pop');
@@ -617,9 +616,23 @@ export function mount(root, ctx) {
         <div class="game-hero">${icon('gameMeme', { size: 62 })}</div>
         <h2 class="game-h">${esc(partner)} ist dran</h2>
         <p class="game-p">Die nächste Vorlage kommt von drüben.</p>
+        <button class="btn btn-ghost btn-block" data-uebernehmen>Ich gebe vor</button>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       </div>
       ${history()}`);
+    // Ausweg, falls eine Nachricht hängen bleibt: eine Runde weiter, dann
+    // ergibt `dranIn` auf dieser Seite „me". Die eigene Vorlage bringt die
+    // andere Seite von selbst wieder auf denselben Stand.
+    root.querySelector('[data-uebernehmen]').onclick = () => {
+      const st = get();
+      const g = mm(st);
+      g.r++;
+      g.cur = null;
+      g.turn = dranIn(st, g.r);
+      commit('meme');
+      fx('tap');
+      route();
+    };
     bindClose();
   }
 

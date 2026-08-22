@@ -30,7 +30,7 @@ import { pushFeed, addBondXp } from '../state/model.js';
 import { REWARDS } from '../state/catalog.js';
 import { sendEvent } from '../sync/index.js';
 import { toast } from '../ui/toast.js';
-import { seedFor } from './index.js';
+import { seedFor, dranIn } from './index.js';
 
 export const meta = {
   id: 'krib',
@@ -509,7 +509,9 @@ function kb(state) {
   g.hist ||= [];
   g.list ||= [];
   g.seen ||= [];
-  if (!g.turn) g.turn = iAmFirst(state) ? 'me' : 'them';
+  // Wer austeilt, folgt aus der Runde — siehe `dranIn`. Ein mitgeschleppter
+  // Zeiger läuft auseinander, sobald eine Nachricht verlorengeht.
+  g.turn = dranIn(state, g.r);
   return g;
 }
 
@@ -582,7 +584,6 @@ function settle(state, g) {
    */
   g.last = { ...view, seen: false };
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
   g.cur = null;
   return view;
 }
@@ -593,7 +594,6 @@ function abortRound(g) {
   g.cur = null;
   g.last = null;
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
 }
 
 /* ── Netzwerk ───────────────────────────────────────────── */
@@ -646,7 +646,6 @@ export function handleRemote(state, msg, { partnerName }) {
     const cards = cleanCards(msg.cards)
       || deal(seedFor('krib', `${msg.r}-${tier}`, state), tier, g.seen);
     g.r = msg.r;
-    g.turn = 'them';
     g.cur = { tier, cards, mine: null, theirs: null };
     commit('krib');
     return {
@@ -1031,9 +1030,24 @@ export function mount(root, ctx) {
         <div class="game-hero">${icon('gameSpark', { size: 60 })}</div>
         <h2 class="game-h">${esc(partner)} teilt aus</h2>
         <p class="game-p">Die nächsten sechs Karten kommen von drüben.</p>
+        <button class="btn btn-ghost btn-block" data-uebernehmen>Ich teile aus</button>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       </div>
       ${listTeaser()}`);
+    // Ausweg, falls eine Nachricht hängen bleibt: eine Runde weiter, dann
+    // ergibt `dranIn` auf dieser Seite „me". Das Austeilen bringt die andere
+    // Seite von selbst wieder auf denselben Stand.
+    root.querySelector('[data-uebernehmen]').onclick = () => {
+      const st = get();
+      const g = kb(st);
+      g.r++;
+      g.cur = null;
+      g.last = null;
+      g.turn = dranIn(st, g.r);
+      commit('krib');
+      fx('tap');
+      route();
+    };
     bindClose();
   }
 
