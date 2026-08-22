@@ -163,7 +163,7 @@ function gateMarkup(g, ghost) {
 
 export function summary(state) {
   const d = duel(state, meta.id);
-  if (d.theirs && !d.mine) return { badge: 'wait', text: `${d.theirs.score} zu schlagen` };
+  if (d.theirs && !d.mine) return { badge: 'wait', text: `Schlag ${d.theirs.score}` };
   if (d.mine && !d.theirs) return { badge: 'off', text: `Du: ${d.mine.score}` };
   const n = d.wins.me + d.wins.them + d.wins.draw;
   return n ? { badge: null, text: `${d.wins.me}–${d.wins.them}` } : { badge: null, text: 'Neu' };

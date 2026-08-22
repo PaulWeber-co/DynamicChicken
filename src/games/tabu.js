@@ -27,7 +27,7 @@ import { rng } from '../util/rng.js';
 import { REWARDS } from '../state/catalog.js';
 import { pushFeed, addBondXp } from '../state/model.js';
 import { sendEvent } from '../sync/index.js';
-import { seedFor, pairKey } from './index.js';
+import { seedFor, pairKey, dranIn } from './index.js';
 import {
   WORTE, STUFEN, TABUS, VERSUCHE, MAX_TEXT, PUNKTE,
   verstoesse, trifft, stufeById, stapelGroesse
@@ -58,7 +58,8 @@ function tb(state) {
   g.score ||= { me: 0, them: 0 };
   g.hist ||= [];
   g.gesehen ||= [];
-  if (!g.turn) g.turn = ersterZug(state) ? 'me' : 'them';
+  // Wer erklärt, folgt aus der Runde — siehe `dranIn` in games/index.js
+  g.turn = dranIn(state, g.r);
   return g;
 }
 
@@ -122,7 +123,6 @@ function abrechnen(state, g, { tipps, punkte, versuch, geloest }) {
 
   merken(g, c.karte.w);
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
   g.cur = null;
 }
 
@@ -131,7 +131,6 @@ function abbrechen(g) {
   g.cur = null;
   g.offen = null;
   g.r++;
-  g.turn = g.turn === 'me' ? 'them' : 'me';
 }
 
 /* ── Netzwerk ───────────────────────────────────────────── */
@@ -145,6 +144,7 @@ export function handleRemote(state, msg, { partnerName }) {
   if (msg.kind === 'tabuSkip') {
     if (msg.r < g.r || !g.cur) return null;
     abbrechen(g);
+    g.turn = dranIn(state, g.r);
     commit('tabu');
     return {
       kind: 'gameTurn', icon: 'gameTabu', avatar: 'them',
@@ -164,7 +164,6 @@ export function handleRemote(state, msg, { partnerName }) {
     const k = saubereKarte(msg);
     if (!k) return null;
     g.r = msg.r;
-    g.turn = 'them';
     g.cur = {
       stufe: stufeById(msg.stufe).id, by: 'them',
       karte: { w: k.w, t: k.t }, text: k.text, tipps: []
@@ -206,13 +205,14 @@ export function handleRemote(state, msg, { partnerName }) {
 }
 
 export function summary(state) {
-  const g = state.games?.tabu;
-  if (!g) return { badge: null, text: 'Neu' };
+  const g = tb(state);
   if (g.offen) return { badge: 'wait', text: 'Auflösung da' };
   if (g.cur?.by === 'them') return { badge: 'wait', text: 'Du bist dran' };
-  if (g.cur?.by === 'me') return { badge: 'off', text: 'Wartet auf Antwort' };
-  if (g.turn === 'me') return { badge: 'wait', text: 'Du erklärst' };
-  const n = (g.hist || []).length;
+  if (g.cur?.by === 'me') return { badge: 'off', text: 'Unterwegs' };
+  const n = g.hist.length;
+  if (g.turn === 'me') {
+    return n ? { badge: 'wait', text: 'Du erklärst' } : { badge: null, text: 'Du fängst an' };
+  }
   return n ? { badge: null, text: `${g.score.me} Punkte` } : { badge: null, text: 'Neu' };
 }
 
@@ -558,9 +558,23 @@ export function mount(root, ctx) {
         <h2 class="game-h">${esc(partner)} ist dran</h2>
         <p class="game-p">${esc(partner)} sucht sich einen Begriff und schreibt eine
           Umschreibung. Sobald sie da ist, bekommst du sie.</p>
+        <button class="btn btn-ghost btn-block" data-uebernehmen>Ich erkläre</button>
         <button class="btn btn-ghost btn-block" data-close>Fertig</button>
       </div>
       ${punktestand(g)}`);
+    // Falls eine Nachricht hängen bleibt: die Runde an sich ziehen. Eine
+    // Runde weiter heißt, dass `dranIn` auf dieser Seite „me" ergibt — und
+    // die nächste Karte bringt die andere Seite von selbst mit.
+    root.querySelector('[data-uebernehmen]').onclick = () => {
+      const st = get();
+      const g2 = tb(st);
+      g2.r++;
+      g2.cur = null;
+      g2.turn = dranIn(st, g2.r);
+      commit('tabu');
+      fx('tap');
+      route();
+    };
     bindClose();
   }
 

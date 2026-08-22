@@ -1453,6 +1453,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/**
+ * Auf sehr schmalen Geräten wird jede Kachel etwas sparsamer.
+ *
+ * Bei 320 px bleiben pro Kachel rund 70 px für die Unterzeile — „Du fängst
+ * an" passt da nicht mehr hinein und endet mit drei Punkten. Weniger
+ * Innenabstand und ein kleineres Symbolfeld holen fünfzehn Pixel heraus,
+ * und damit passt die Zeile wieder ganz.
+ */
+@media (max-width: 360px) {
+  .game-tile { gap: 7px; padding: 9px; }
+  .game-tile-e { width: 30px; height: 30px; border-radius: 10px; }
+  .game-tile-s { font-size: 10.5px; }
+}
+
 /* Statuspunkt oben rechts — mehr Platz für ein Abzeichen ist nicht */
 .game-dot {
   position: absolute;

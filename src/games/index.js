@@ -22,7 +22,7 @@ import * as nestTower from './nestTower.js';
 import * as doodle from './doodle.js';
 import * as quiz from './quiz.js';
 import * as runner from './runner.js';
-import * as sling from './sling.js';
+import * as stellung from './stellung.js';
 import * as tabu from './tabu.js';
 import * as hueCue from './hueCue.js';
 import * as meme from './meme.js';
@@ -35,7 +35,7 @@ import * as kribbeln from './kribbeln.js';
  * etwas voneinander erfährt.
  */
 export const GAMES = [
-  grainRush, featherFlight, nestTower, doodle, quiz, runner, sling, tabu,
+  grainRush, featherFlight, nestTower, doodle, quiz, runner, stellung, tabu,
   topFive, meme, kribbeln, hueCue
 ];
 export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
@@ -53,7 +53,7 @@ export const gameById = (id) => GAMES.find((g) => g.meta.id === id);
  * Kribbeln, Farbfunk), bleiben immer da. Eine angefangene Runde soll nicht
  * bis übermorgen warten müssen, nur weil der Kalender es so will.
  */
-export const ROTIEREND = ['grain', 'flight', 'tower', 'doodle', 'quiz', 'runner', 'sling', 'tabu'];
+export const ROTIEREND = ['grain', 'flight', 'tower', 'doodle', 'quiz', 'runner', 'pose', 'tabu'];
 export const FEST = ['top5', 'meme', 'krib', 'hue'];
 export const PRO_TAG = 4;
 
@@ -68,7 +68,7 @@ export const PRO_TAG = 4;
  * am selben Tag dasselbe zeigen, auch wenn eines die App später zum ersten
  * Mal öffnet.
  */
-export const NEU = ['tabu', 'quiz', 'runner', 'sling'];
+export const NEU = ['pose', 'tabu', 'quiz', 'runner'];
 export const NEU_BIS = '2026-08-26';   // ab diesem Tag wird gewürfelt
 
 export const zeigtNeue = (tag = dayKey()) => dayIndex(tag) < dayIndex(NEU_BIS);
@@ -84,11 +84,23 @@ export function todaysGames(state = get(), tag = dayKey()) {
   const a = state.me?.code || 'SOLO';
   const b = state.partner?.code || 'SOLO';
   const salz = `spiele|${[a, b].sort().join('~')}`;
-  const heute = zeigtNeue(tag)
-    ? NEU.slice()
-    : cycledMany(ROTIEREND, PRO_TAG, dayIndex(tag), salz);
+  /**
+   * Gesperrte Spiele fallen schon aus dem Topf, nicht erst aus dem Raster.
+   *
+   * Anders herum hätte, wer die freizügigen Inhalte aus hat, an manchen Tagen
+   * nur drei Kacheln statt vier — der gesperrte Platz bliebe einfach leer.
+   * So wird stattdessen ein anderes Spiel nachgezogen.
+   */
+  const topf = ROTIEREND.filter((id) => erlaubt(state, gameById(id)));
+  const soll = Math.min(PRO_TAG, topf.length);
+  const heute = (zeigtNeue(tag) ? NEU.slice() : cycledMany(topf, PRO_TAG, dayIndex(tag), salz))
+    .filter((id) => topf.includes(id));
+  for (const id of cycledMany(topf, topf.length, dayIndex(tag), salz)) {
+    if (heute.length >= soll) break;
+    if (!heute.includes(id)) heute.push(id);
+  }
 
-  const wartend = ROTIEREND.filter((id) => {
+  const wartend = topf.filter((id) => {
     if (heute.includes(id)) return false;
     const g = gameById(id);
     return g && gameSummary(state, g).badge === 'wait';
@@ -98,9 +110,19 @@ export function todaysGames(state = get(), tag = dayKey()) {
   // In der Reihenfolge von GAMES ausgeben, damit das Raster nicht springt
   return [
     ...GAMES.filter((g) => ids.includes(g.meta.id)),
-    ...GAMES.filter((g) => FEST.includes(g.meta.id))
+    ...GAMES.filter((g) => FEST.includes(g.meta.id) && erlaubt(state, g))
   ];
 }
+
+/**
+ * Spiele, die es nur mit freizügigen Inhalten gibt, bleiben sonst weg.
+ *
+ * Eine gesperrte Kachel würde einen der vier Tagesplätze belegen und beim
+ * Antippen nur erklären, dass hier nichts zu sehen ist. Wer den Schalter
+ * nicht angemacht hat, soll die Plätze für Spiele bekommen, die er auch
+ * spielen kann.
+ */
+export const erlaubt = (state, g) => !g.meta.spicy || !!state.settings?.spicy;
 
 /** Steht dieses Spiel nur heute im Raster? Für den kleinen Hinweis darauf. */
 export const istRotierend = (id) => ROTIEREND.includes(id);
@@ -114,6 +136,25 @@ export function pairKey(state = get()) {
 
 export function seedFor(gameId, round, state = get()) {
   return roundSeed(gameId, String(round), pairKey(state));
+}
+
+/**
+ * Wer ist in Runde `r` dran?
+ *
+ * Abgeleitet statt gemerkt — und das ist der springende Punkt. Ein
+ * mitgeschleppter Zug-Zeiger, den beide Seiten bei jeder Runde umlegen,
+ * läuft auseinander, sobald eine Nachricht verlorengeht oder doppelt
+ * ankommt. Danach steht auf beiden Geräten „der andere ist dran", und es
+ * gibt keinen Weg zurück: Beide warten auf einen Zug, den keiner machen
+ * darf.
+ *
+ * Aus Rundennummer und Paarcode dagegen kommt auf beiden Seiten immer
+ * derselbe Wert, ohne dass sich jemand abstimmen muss. In ungeraden Runden
+ * fängt der mit dem kleineren Code an, in geraden der andere.
+ */
+export function dranIn(state, r) {
+  const ich = (state.me?.code || '') < (state.partner?.code || '~');
+  return (Math.max(1, Math.floor(r) || 1) % 2 === 1) === ich ? 'me' : 'them';
 }
 
 /* ── Generisches Punkte-Duell (Körner-Jagd, Federflug, Nest-Turm) ─── */
@@ -292,7 +333,7 @@ export function gameSummary(state, g) {
   if (typeof g.summary === 'function') return g.summary(state);
   const d = duel(state, g.meta.id);
   if (d.theirs && !d.mine) return { badge: 'wait', text: 'Du bist dran' };
-  if (d.mine && !d.theirs) return { badge: 'off', text: 'Wartet auf Antwort' };
+  if (d.mine && !d.theirs) return { badge: 'off', text: 'Unterwegs' };
   const total = d.wins.me + d.wins.them + d.wins.draw;
   if (!total) return { badge: null, text: 'Neu' };
   return { badge: null, text: `${d.wins.me}–${d.wins.them}` };
@@ -301,6 +342,7 @@ export function gameSummary(state, g) {
 /** Wie viele Spiele warten auf mich? Steuert den Punkt in der Tab-Bar. */
 export function pendingCount(state) {
   return GAMES.reduce((n, g) => {
+    if (!erlaubt(state, g)) return n;
     const s = gameSummary(state, g);
     return n + (s.badge === 'wait' ? 1 : 0);
   }, 0);

@@ -414,23 +414,16 @@ const ICONS = {
     <circle cx="19.8" cy="13" r="1.5" fill="${C.cocoa}"/>
     <path d="M23.4 15q2.4-.8 4.2.6-1.8 1.6-4.2 1z" fill="${C.beak}"/>
     <path d="M11.4 13.4c-2.4-1.4-5-.6-6 1.4 2.2 1.8 4.8 1.8 6.6.4z" fill="${C.yolkD}"/>`,
-  /* Schleuder mit gespanntem Gummi und Ei in der Tasche */
-  gameSling: () => `<path d="M8.6 29V17.4M23.4 29V17.4" stroke="${C.woodD}" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M8.6 22.4h14.8" stroke="${C.woodD}" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M8.6 17.4C8.6 12 11.8 8.4 16 8.4s7.4 3.6 7.4 9" stroke="${C.roseD}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="12.6" rx="5" ry="5.6" fill="${C.cream}"/>
-    <ellipse cx="14.2" cy="11.2" rx="1.6" ry="2.2" fill="#fff" opacity=".85"/>
-    <circle cx="27.2" cy="6.4" r="1.6" fill="${C.yolk}"/>`,
-  /* Aufgeschlagenes Buch mit einem Würfel darauf */
-  gameStory: () => `<path d="M3.4 7.4c3.8-1.6 8-1.6 11.8.6v17.4c-3.8-2.2-8-2.2-11.8-.6z" fill="${C.cream}"/>
-    <path d="M28.6 7.4c-3.8-1.6-8-1.6-11.8.6v17.4c3.8-2.2 8-2.2 11.8-.6z" fill="${C.shell}"/>
-    <path d="M15.2 8v17.4" stroke="${C.woodD}" stroke-width="1.6"/>
-    <path d="M5.8 11.4h6.4M5.8 14.6h5M19.8 11.4h6.4M19.8 14.6h5" stroke="${C.woodD}" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
-    <path d="M16 17.2l5.6 3.2v6.4L16 30l-5.6-3.2v-6.4z" fill="${C.lav}"/>
-    <path d="M16 17.2l5.6 3.2L16 23.6l-5.6-3.2z" fill="${C.lavD}" opacity=".7"/>
-    <circle cx="16" cy="20.4" r="1.1" fill="#fff"/>
-    <circle cx="13.4" cy="24.6" r="1" fill="#fff" opacity=".8"/>
-    <circle cx="18.6" cy="24.6" r="1" fill="#fff" opacity=".8"/>`,
+  /* Zwei Strichfiguren, wie im Spiel gezeichnet — eine liegt, eine kniet */
+  gamePose: () => `<rect x="3" y="21.6" width="26" height="6.4" rx="3.2" fill="${C.shell}"/>
+    <path d="M7.4 19.4h7.6" stroke="${C.rose}" stroke-width="4.4" stroke-linecap="round"/>
+    <path d="M15 19.4l4.2 1.4" stroke="${C.rose}" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="6.2" cy="19.4" r="2.9" fill="${C.rose}"/>
+    <path d="M21.4 19.6V10" stroke="${C.sky}" stroke-width="4.4" stroke-linecap="round"/>
+    <path d="M21.4 19.6h-4.2M21.4 12.4l-4 2.6" stroke="${C.sky}" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="21.4" cy="7.6" r="3.1" fill="${C.sky}"/>
+    <circle cx="20" cy="7.2" r=".9" fill="${C.cream}"/>
+    <circle cx="5.4" cy="18.4" r=".9" fill="${C.cream}"/>`,
   gameTop5: () => `<rect x="3.6" y="4.4" width="24.8" height="23.2" rx="3.6" fill="${C.cream}"/>
     <circle cx="9.4" cy="9.8" r="2.6" fill="${C.yolk}"/>
     <rect x="14" y="8.3" width="11.6" height="3" rx="1.5" fill="${C.yolkD}"/>
