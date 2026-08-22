@@ -691,7 +691,7 @@ export function handleRemote(state, msg, { partnerName }) {
 export function summary(state) {
   const g = kb(state);
   if (g.cur && !g.cur.mine) return { badge: 'wait', text: 'Sechs Karten' };
-  if (g.cur) return { badge: 'off', text: 'Wartet auf Antwort' };
+  if (g.cur) return { badge: 'off', text: 'Unterwegs' };
   if (g.turn === 'me') {
     return g.hist.length
       ? { badge: 'wait', text: 'Du teilst aus' }

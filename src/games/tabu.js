@@ -208,7 +208,7 @@ export function summary(state) {
   const g = tb(state);
   if (g.offen) return { badge: 'wait', text: 'Auflösung da' };
   if (g.cur?.by === 'them') return { badge: 'wait', text: 'Du bist dran' };
-  if (g.cur?.by === 'me') return { badge: 'off', text: 'Wartet auf Antwort' };
+  if (g.cur?.by === 'me') return { badge: 'off', text: 'Unterwegs' };
   const n = g.hist.length;
   if (g.turn === 'me') {
     return n ? { badge: 'wait', text: 'Du erklärst' } : { badge: null, text: 'Du fängst an' };

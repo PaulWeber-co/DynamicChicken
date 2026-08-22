@@ -333,7 +333,7 @@ export function gameSummary(state, g) {
   if (typeof g.summary === 'function') return g.summary(state);
   const d = duel(state, g.meta.id);
   if (d.theirs && !d.mine) return { badge: 'wait', text: 'Du bist dran' };
-  if (d.mine && !d.theirs) return { badge: 'off', text: 'Wartet auf Antwort' };
+  if (d.mine && !d.theirs) return { badge: 'off', text: 'Unterwegs' };
   const total = d.wins.me + d.wins.them + d.wins.draw;
   if (!total) return { badge: null, text: 'Neu' };
   return { badge: null, text: `${d.wins.me}–${d.wins.them}` };

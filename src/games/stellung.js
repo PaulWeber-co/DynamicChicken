@@ -270,7 +270,7 @@ export function summary(state) {
   const g = sp(state);
   if (g.offen && !g.offen.seen) return { badge: 'wait', text: 'Aufgedeckt' };
   if (g.cur?.theirs && !g.cur?.mine) return { badge: 'wait', text: 'Du bist dran' };
-  if (g.cur?.mine) return { badge: 'off', text: 'Wartet auf Antwort' };
+  if (g.cur?.mine) return { badge: 'off', text: 'Unterwegs' };
   const t = g.liste.filter((e) => e.merk).length;
   if (t) return { badge: null, text: `${t}× einig` };
   return g.liste.length ? { badge: null, text: `${g.liste.length} benotet` } : { badge: null, text: 'Neu' };

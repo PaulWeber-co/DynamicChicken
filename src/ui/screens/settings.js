@@ -144,8 +144,9 @@ export function render(root, ctx) {
         </button>
         <button class="li" data-toggle="spicy">
           <div class="li-ico">${icon('flame', { size: 19 })}</div>
-          <div class="grow"><div class="li-title">Spicy Frage des Tages</div>
-            <div class="li-sub">Freizügigerer Fragenkatalog — schaltet nur bei dir um</div></div>
+          <div class="grow"><div class="li-title">Freizügige Inhalte</div>
+            <div class="li-sub">Spicy Frage des Tages, die heißen Kribbeln-Karten und die
+              Stellungsprobe — schaltet nur bei dir um</div></div>
           <span class="switch" role="switch" aria-checked="${!!s.settings.spicy}"></span>
         </button>
         <button class="li" data-theme>

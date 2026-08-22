@@ -116,6 +116,15 @@ const TTL = 15 * 60 * 1000;
  * Aktuelles Wetter plus Tagesausblick.
  * @returns {Promise<{temp,feels,code,isDay,wind,max,min,sunrise,sunset,at}|null>}
  */
+/**
+ * Eine Zahl — oder nichts.
+ *
+ * Der Wetterdienst lässt einzelne Felder auch mal weg oder schickt `null`.
+ * Ohne diese Hürde landet das als `NaN` in `Math.round` und steht dann
+ * wörtlich auf dem Bildschirm.
+ */
+const zahl = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+
 export async function forecast(lat, lon, { fresh = false } = {}) {
   if (lat == null || lon == null) return null;
   const key = `${coarse(lat)},${coarse(lon)}`;
@@ -132,13 +141,15 @@ export async function forecast(lat, lon, { fresh = false } = {}) {
     const c = d.current || {};
     const day = d.daily || {};
     const out = {
-      temp: c.temperature_2m,
-      feels: c.apparent_temperature,
-      code: c.weather_code,
+      temp: zahl(c.temperature_2m),
+      // Fehlt die gefühlte Temperatur, ist die gemessene die beste Antwort —
+      // besser als „gefühlt NaN°“, was der Dienst schon geliefert hat.
+      feels: zahl(c.apparent_temperature) ?? zahl(c.temperature_2m),
+      code: zahl(c.weather_code) ?? 0,
       isDay: c.is_day !== 0,
-      wind: c.wind_speed_10m,
-      max: day.temperature_2m_max?.[0],
-      min: day.temperature_2m_min?.[0],
+      wind: zahl(c.wind_speed_10m),
+      max: zahl(day.temperature_2m_max?.[0]),
+      min: zahl(day.temperature_2m_min?.[0]),
       sunrise: day.sunrise?.[0] || '',
       sunset: day.sunset?.[0] || '',
       at: Date.now()

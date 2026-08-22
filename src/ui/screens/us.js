@@ -95,7 +95,7 @@ export function render(root, ctx) {
       <div class="row-between">
         <div>
           <div class="title-lg">Wir</div>
-          <div class="subtitle">${esc(st.me.name || 'Du')} &amp; ${esc(p.name)}${st.bond.since ? ` · seit ${daysBetween(new Date(st.bond.since).toISOString().slice(0, 10), dayKey())} Tagen` : ''}</div>
+          <div class="subtitle">${esc(st.me.name || 'Du')} &amp; ${esc(p.name)}${st.bond.since ? ` · ${seitWann(st.bond.since)}` : ''}</div>
         </div>
         <div class="streak-pill" title="Tage in Folge">${icon('flame', { size: 20 })}<b>${st.bond.streak}</b></div>
       </div>`;
@@ -165,7 +165,7 @@ export function render(root, ctx) {
         <div class="bond">
           <div class="bond-row">
             <span>Bond-Level <b>${st.bond.level}</b></span>
-            <span class="tiny muted">${Math.round(st.bond.xp - bondPrev)} / ${Math.round(bondNext - bondPrev)}</span>
+            <span class="tiny muted">${Math.round(bondFrac * (bondNext - bondPrev))} / ${Math.round(bondNext - bondPrev)}</span>
           </div>
           <div class="stat-track"><span class="stat-fill" style="width:${bondFrac * 100}%;background:var(--love)"></span></div>
         </div>
@@ -243,24 +243,27 @@ export function render(root, ctx) {
       <div class="wx-main">
         <div class="wx-ico">${icon(w ? d.icon : 'wCloud', { size: 62 })}</div>
         <div class="wx-body">
-          <div class="wx-place">${icon('pin', { size: 13 })} ${esc(theirs.name)}${theirs.country ? `, ${esc(theirs.country)}` : ''}</div>
+          <div class="wx-place">${icon('pin', { size: 13 })} ${esc(theirs.name || p.name)}${theirs.name && theirs.country ? `, ${esc(theirs.country)}` : ''}</div>
           ${w ? `
             <div class="wx-temp">${Math.round(w.temp)}<span>°</span></div>
-            <div class="wx-desc">${esc(d.label)} · gefühlt ${Math.round(w.feels)}°</div>
+            <div class="wx-desc">${esc(d.label)}${
+              w.feels != null && Math.round(w.feels) !== Math.round(w.temp)
+                ? ` · gefühlt ${Math.round(w.feels)}°` : ''}</div>
           ` : `<div class="wx-desc">${wx.failed ? 'Wetterdienst nicht erreichbar' : 'Wetter lädt …'}</div>`}
         </div>
       </div>
       ${w ? `
         <div class="wx-strip">
-          <span>${icon('thermo', { size: 15 })} ${Math.round(w.min)}° / ${Math.round(w.max)}°</span>
-          <span>${icon('wWind', { size: 15 })} ${Math.round(w.wind)} km/h</span>
+          ${w.min != null && w.max != null
+            ? `<span>${icon('thermo', { size: 15 })} ${Math.round(w.min)}° / ${Math.round(w.max)}°</span>` : ''}
+          ${w.wind != null ? `<span>${icon('wWind', { size: 15 })} ${Math.round(w.wind)} km/h</span>` : ''}
           ${w.sunset ? `<span>${icon('sunrise', { size: 15 })} ${clockOf(w.sunset)}</span>` : ''}
         </div>
         <div class="wx-tip">${esc(advice(w))}</div>
       ` : ''}
       ${mine && wx.mine ? `<div class="wx-mine">
         ${icon(describe(wx.mine.code, wx.mine.isDay).icon, { size: 20 })}
-        <span>Bei dir in ${esc(mine.name)}: ${Math.round(wx.mine.temp)}°</span>
+        <span>${mine.name ? `Bei dir in ${esc(mine.name)}` : 'Bei dir'}: ${Math.round(wx.mine.temp)}°</span>
         ${w ? `<b>${diffWord(wx.mine.temp, w.temp)}</b>` : ''}
       </div>` : `<button class="btn btn-ghost btn-block" data-place style="margin-top:10px">Eigenen Ort setzen</button>`}
     </div>`;
@@ -271,6 +274,24 @@ export function render(root, ctx) {
     return `<div class="wx-line">${icon(d.icon, { size: 26 })}
       <span>${esc(who)}: ${esc(d.label)}, ${Math.round(w.temp)}°</span></div>`;
   };
+
+  /**
+   * „seit 0 Tagen“ ist keine Zeitangabe, sondern ein Rechenergebnis.
+   *
+   * Am ersten Tag steht da sonst eine Null, und ab dem 366. Tag eine
+   * vierstellige Zahl, die niemand mehr im Kopf umrechnet.
+   */
+  function seitWann(since) {
+    const tage = daysBetween(new Date(since).toISOString().slice(0, 10), dayKey());
+    if (!(tage > 0)) return 'seit heute';
+    if (tage === 1) return 'seit gestern';
+    if (tage < 365) return `seit ${tage} Tagen`;
+    const jahre = Math.floor(tage / 365);
+    const rest = tage - jahre * 365;
+    return rest < 30
+      ? `seit ${jahre} ${jahre === 1 ? 'Jahr' : 'Jahren'}`
+      : `seit ${jahre} ${jahre === 1 ? 'Jahr' : 'Jahren'} und ${Math.floor(rest / 30)} Monaten`;
+  }
 
   const diffWord = (a, b) => {
     const d = Math.round(a - b);
