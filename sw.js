@@ -1,5 +1,5 @@
 /* Knuddl Service Worker — offline-first für eine reine Static-Site. */
-const VERSION = 'knuddl-v18';
+const VERSION = 'knuddl-v19';
 const SHELL = [
   './',
   './index.html',
@@ -54,6 +54,9 @@ const SHELL = [
   './src/ui/screens/shop.js',
   './src/ui/screens/us.js',
   './src/util/codec.js',
+  './src/util/orte.js',
+  './src/util/reise.js',
+  './src/util/standort.js',
   './src/util/crypto.js',
   './src/util/dom.js',
   './src/util/feedback.js',

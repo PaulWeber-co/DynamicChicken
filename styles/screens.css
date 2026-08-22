@@ -681,9 +681,8 @@
   font-size: 12.5px;
   font-weight: 700;
   color: var(--ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .wx-temp {
   font-size: 40px;
@@ -1151,6 +1150,60 @@
   font-weight: 800;
   color: var(--ink-2);
 }
+/**
+ * Die Wege zueinander — eine Zeile je Verkehrsmittel.
+ *
+ * Der schnellste steht oben und ist hervorgehoben; alles darunter ist die
+ * Antwort auf „und wenn ich nicht fliege?". Die Zeiten sind rechtsbündig und
+ * mit Tabellenziffern gesetzt, damit die Spalte auch bei „7 Std. 05" neben
+ * „45 Min." nicht wackelt.
+ */
+.wege {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.weg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.weg.schnell {
+  background: var(--calm-soft);
+  color: var(--ink);
+  font-weight: 700;
+}
+.weg-ico { flex: none; display: grid; place-items: center; }
+.weg-zeit {
+  flex: none;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+.weg.schnell .weg-zeit { color: var(--calm); }
+
+/* Wie frisch der automatische Standort ist — klein, direkt am Ortsnamen */
+.wx-frisch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--grow-soft);
+  color: var(--grow);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
 .dist-row { display: flex; align-items: center; gap: 14px; }
 .dist-num {
   flex: none;
