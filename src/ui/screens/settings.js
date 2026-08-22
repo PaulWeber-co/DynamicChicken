@@ -11,6 +11,19 @@ import CONFIG from '../../../config.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
 import { openPlaceSheet } from '../placeSheet.js';
+import { setAutoOrt, meldeStandort, standortVerfolgen, standortStoppen } from '../actions.js';
+import * as standort from '../../util/standort.js';
+
+/** Was unter „Standort automatisch" steht — je nachdem, wie es steht. */
+function ortStatus(s) {
+  if (!s.settings.autoOrt) {
+    return 'Aus. Dein Mensch sieht nur den Ort, den du selbst einträgst.';
+  }
+  const at = s.me.place?.at;
+  return at
+    ? `An · zuletzt ${relTime(at)} aktualisiert`
+    : 'An · wartet auf die erste Position';
+}
 
 const MODES = [
   {
@@ -57,9 +70,17 @@ export function render(root, ctx) {
         <button class="li" data-edit-place>
           <div class="li-ico">${icon('pin', { size: 19 })}</div>
           <div class="grow"><div class="li-title">Dein Ort</div>
-            <div class="li-sub">Nur fürs Wetter — grob gerundet, keine Adresse</div></div>
+            <div class="li-sub">${s.settings.autoOrt
+              ? 'Läuft automatisch mit — hier von Hand überschreiben'
+              : 'Fürs Wetter und die Entfernung — grob gerundet, keine Adresse'}</div></div>
           <span class="li-val">${esc(s.me.place?.name || 'nicht gesetzt')}</span>
           <span class="li-chev">${icon('chevron', { size: 15 })}</span>
+        </button>
+        <button class="li" data-toggle-auto>
+          <div class="li-ico">${icon('rotate', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Standort automatisch</div>
+            <div class="li-sub">${ortStatus(s)}</div></div>
+          <span class="switch" role="switch" aria-checked="${!!s.settings.autoOrt}"></span>
         </button>
       </div>
 
@@ -288,6 +309,31 @@ export function render(root, ctx) {
     });
 
     q('[data-edit-place]').onclick = () => openPlaceSheet(() => paint());
+    q('[data-toggle-auto]').onclick = async () => {
+      const st2 = get();
+      if (st2.settings.autoOrt) {
+        setAutoOrt(false);
+        standortStoppen();
+        toast('Standort bleibt stehen, wo er ist', 'pin');
+        paint();
+        return;
+      }
+      if (!standort.verfuegbar()) { toast('Dieses Gerät gibt keinen Standort her'); return; }
+      try {
+        // Erst die Position holen, dann einschalten: Wer den Browserdialog
+        // wegklickt, soll keinen Schalter sehen, hinter dem nichts passiert.
+        const fix = await standort.position({ warten: 15000 });
+        setAutoOrt(true);
+        meldeStandort(fix);
+        standortVerfolgen();
+        fx('pop');
+        toast('Standort wird geteilt', 'pin');
+      } catch {
+        setAutoOrt(false);
+        toast('Kein Standort bekommen — im Browser erlauben und noch mal');
+      }
+      paint();
+    };
 
     q('[data-copy-code]').onclick = () => copy(myInvite(), 'Einladung kopiert');
     q('[data-share-code]').onclick = () => shareText(

@@ -694,6 +694,39 @@ const ICONS = {
     <path d="M16 4.6v3.4M7.4 8 9.8 10.4M24.6 8 22.2 10.4" stroke="${C.yolkD}" stroke-width="2" stroke-linecap="round"/>
     <path d="M4 22.4h24" stroke="${C.wood}" stroke-width="2.4" stroke-linecap="round"/>`,
 
+  /* ── Wege zueinander ─────────────────────────────────── */
+  /* Auto von der Seite: Dach, Fenster, zwei Räder */
+  wegAuto: () => `<path d="M9.4 12.6 12 7.8a2.4 2.4 0 0 1 2.1-1.2h3.8a2.4 2.4 0 0 1 2.1 1.2l2.6 4.8z" fill="${C.sky}"/>
+    <path d="M4.6 19.6c0-2.4 1.4-4.4 3.6-5.4l1.6-.8h12.4l1.6.8c2.2 1 3.6 3 3.6 5.4v2.2a1.8 1.8 0 0 1-1.8 1.8H6.4a1.8 1.8 0 0 1-1.8-1.8z" fill="${C.rose}"/>
+    <path d="M11 8.6h4v4h-6z" fill="${C.cream}" opacity=".85"/>
+    <path d="M17 8.6h1.6l2.2 4H17z" fill="${C.cream}" opacity=".85"/>
+    <circle cx="9.6" cy="23.4" r="3.4" fill="${C.cocoa}"/>
+    <circle cx="9.6" cy="23.4" r="1.3" fill="${C.cream}"/>
+    <circle cx="22.4" cy="23.4" r="3.4" fill="${C.cocoa}"/>
+    <circle cx="22.4" cy="23.4" r="1.3" fill="${C.cream}"/>`,
+  /* Zug von vorn: Stirnfenster, Scheinwerfer, Schiene */
+  wegZug: () => `<path d="M7.4 8.4A4.4 4.4 0 0 1 11.8 4h8.4a4.4 4.4 0 0 1 4.4 4.4v13.2a2.6 2.6 0 0 1-2.6 2.6H10a2.6 2.6 0 0 1-2.6-2.6z" fill="${C.lav}"/>
+    <path d="M9.8 9.4a2 2 0 0 1 2-2h8.4a2 2 0 0 1 2 2v4.8H9.8z" fill="${C.cream}"/>
+    <circle cx="12.2" cy="19.4" r="1.9" fill="${C.yolk}"/>
+    <circle cx="19.8" cy="19.4" r="1.9" fill="${C.yolk}"/>
+    <path d="M10.6 26.6 8 29.4M21.4 26.6 24 29.4" stroke="${C.lavD}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M4.6 28.6h22.8" stroke="${C.wood}" stroke-width="2.2" stroke-linecap="round"/>`,
+  /* Flugzeug im Steigflug */
+  wegFlug: () => `<path d="M27.4 4.6c1 1 .8 2.4-.6 3.8l-4.6 4.6 2 11.4-2.4 2.4-4.6-9.6-4.4 4.4.4 3.8-1.9 1.9-2.3-4.4-4.4-2.3 1.9-1.9 3.8.4 4.4-4.4-9.6-4.6L7.5 7.7l11.4 2 4.6-4.6c1.4-1.4 2.9-1.5 3.9-.5z" fill="${C.sky}"/>
+    <path d="M27.4 4.6c1 1 .8 2.4-.6 3.8l-4.6 4.6 2 11.4-2.4 2.4-4.6-9.6z" fill="${C.skyD}" opacity=".55"/>`,
+  /* Fahrrad von der Seite */
+  wegRad: () => `<circle cx="8" cy="21.4" r="6" fill="none" stroke="${C.leafD}" stroke-width="2.2"/>
+    <circle cx="24" cy="21.4" r="6" fill="none" stroke="${C.leafD}" stroke-width="2.2"/>
+    <path d="M8 21.4 13.4 12h5.2l5.4 9.4M13.4 12h6.8" fill="none" stroke="${C.leaf}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 21.4 13.4 12" stroke="${C.leaf}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M18 9.4h3.4" stroke="${C.cocoa}" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="16" cy="21.4" r="1.6" fill="${C.leafD}"/>`,
+  /* Schrittfolge — zwei Fußabdrücke */
+  wegFuss: () => `<ellipse cx="10.6" cy="12" rx="3.6" ry="5.4" transform="rotate(-12 10.6 12)" fill="${C.beak}"/>
+    <ellipse cx="9" cy="6.4" rx="1.5" ry="1.5" fill="${C.beak}"/>
+    <ellipse cx="21.4" cy="21.4" rx="3.6" ry="5.4" transform="rotate(8 21.4 21.4)" fill="${C.beakD}"/>
+    <ellipse cx="23.2" cy="15.8" rx="1.5" ry="1.5" fill="${C.beakD}"/>`,
+
   /* ── Gemeinsames Nest ────────────────────────────────── */
   tabNest: () => `<path d="M16 4.6 28 14v12.4a2.6 2.6 0 0 1-2.6 2.6H6.6A2.6 2.6 0 0 1 4 26.4V14z" fill="${C.beak}"/>
     <path d="M16 4.6 28 14v12.4a2.6 2.6 0 0 1-2.6 2.6H16z" fill="${C.beakD}" opacity=".35"/>

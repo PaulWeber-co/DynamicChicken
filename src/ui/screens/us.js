@@ -32,6 +32,7 @@ import {
 import { sendEvent, partnerOnline } from '../../sync/index.js';
 import { dayKey, localTimeIn, tzOffsetHours, hourIn, relTime, daysBetween } from '../../util/time.js';
 import { forecast, describe, advice, clockOf, distanceKm, formatKm, distanceLine } from '../../util/weather.js';
+import { reiseZeilen, dauer } from '../../util/reise.js';
 import { toast } from '../toast.js';
 import { sheet, closeSheet } from '../sheet.js';
 import { openPlaceSheet } from '../placeSheet.js';
@@ -51,7 +52,7 @@ export function setUsTab(id) {
 }
 
 /** Wetter wird pro Screen einmal geholt und dann nur noch nachgezeichnet. */
-let wx = { mine: null, theirs: null, at: 0, failed: false };
+let wx = { mine: null, theirs: null, at: 0, failed: false, stelle: '' };
 
 export function render(root, ctx) {
   const s = get();
@@ -243,7 +244,8 @@ export function render(root, ctx) {
       <div class="wx-main">
         <div class="wx-ico">${icon(w ? d.icon : 'wCloud', { size: 62 })}</div>
         <div class="wx-body">
-          <div class="wx-place">${icon('pin', { size: 13 })} ${esc(theirs.name || p.name)}${theirs.name && theirs.country ? `, ${esc(theirs.country)}` : ''}</div>
+          <div class="wx-place">${icon('pin', { size: 13 })} ${esc(theirs.name || p.name)}${theirs.name && theirs.country ? `, ${esc(theirs.country)}` : ''}${
+            theirs.auto && theirs.at ? `<span class="wx-frisch">${icon('rotate', { size: 11, cls: 'ic-inline' })} ${esc(relTime(theirs.at))}</span>` : ''}</div>
           ${w ? `
             <div class="wx-temp">${Math.round(w.temp)}<span>°</span></div>
             <div class="wx-desc">${esc(d.label)}${
@@ -316,6 +318,8 @@ export function render(root, ctx) {
       </div>`;
     }
 
+    const wege = km != null ? reiseZeilen(km) : [];
+
     return `<div class="card dist-card">
       ${km != null ? `
         <div class="dist-row">
@@ -329,7 +333,19 @@ export function render(root, ctx) {
           <span class="dist-end">${renderChicken(st.me.pet.look, { mood: 'happy', size: 34, shadow: false })}</span>
           <span class="dist-line"><i></i></span>
           <span class="dist-end">${renderChicken(p.pet.look, { mood: 'love', size: 34, shadow: false })}</span>
-        </div>` : ''}
+        </div>
+        ${wege.length ? `
+          <div class="wege">
+            ${wege.map((w, i) => `<div class="weg ${i === 0 ? 'schnell' : ''}">
+              <span class="weg-ico">${icon(w.icon, { size: 20 })}</span>
+              <span class="grow">${esc(w.label)}</span>
+              <span class="weg-zeit">${esc(dauer(w.min))}</span>
+            </div>`).join('')}
+          </div>
+          <p class="tiny muted center" style="margin:8px 4px 0">
+            Geschätzt aus der Luftlinie — keine echte Route, also ohne Fähre,
+            Stau und Umleitung.
+          </p>` : ''}` : ''}
 
       ${r ? `
         <button class="reunion ${tage <= 0 ? 'now' : ''}" data-reunion>
@@ -798,7 +814,7 @@ export function render(root, ctx) {
 
     host.querySelectorAll('[data-place]').forEach((b) => {
       b.onclick = () => openPlaceSheet((place) => {
-        wx = { mine: null, theirs: wx.theirs, at: 0, failed: false };
+        wx = { mine: null, theirs: wx.theirs, at: 0, failed: false, stelle: '' };
         if (place) loadWeather(true); else paint();
       });
     });
@@ -1197,10 +1213,27 @@ export function render(root, ctx) {
   }
 
   /* ── Wetter holen ── */
+  /** Welche zwei Punkte gerade gefragt sind — ändert sich der, wird nachgeladen. */
+  function stelleJetzt() {
+    const st = get();
+    const m = st.me.place, t = st.partner?.place;
+    return `${m?.lat},${m?.lon}|${t?.lat},${t?.lon}`;
+  }
+
   async function loadWeather(force = false) {
     const st = get();
     const mine = st.me.place, theirs = st.partner?.place;
     if (!mine && !theirs) return;
+    /**
+     * Ein neuer Ort schlägt die Wartezeit.
+     *
+     * Ohne diese Zeile stünde nach einem Umzug — oder nach einer Zugfahrt,
+     * wenn der Standort automatisch mitläuft — bis zu zehn Minuten lang das
+     * Wetter der alten Stadt da. Die Zehn-Minuten-Sperre ist gegen zu viele
+     * Abfragen gedacht, nicht gegen richtige Antworten.
+     */
+    if (stelleJetzt() !== wx.stelle) force = true;
+    wx.stelle = stelleJetzt();
     if (!force && Date.now() - wx.at < 10 * 60 * 1000) return;
     wx.at = Date.now();
     const [a, b] = await Promise.all([
@@ -1215,7 +1248,13 @@ export function render(root, ctx) {
 
   paint();
   loadWeather();
-  const unsub = subscribe(paint);
+  const unsub = subscribe(() => {
+    paint();
+    // Ein Ortswechsel ist der einzige Grund, sofort nachzuladen — sonst
+    // stünde nach einer Zugfahrt bis zu einer halben Minute lang das Wetter
+    // der Stadt da, aus der der andere längst abgefahren ist.
+    if (stelleJetzt() !== wx.stelle) loadWeather();
+  });
   const timer = setInterval(() => { paint(); loadWeather(); }, 30_000);
   return () => {
     unsub();

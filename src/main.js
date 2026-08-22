@@ -14,13 +14,15 @@ import { initShell, go, refresh } from './ui/shell.js';
 import { applyTheme } from './ui/screens/settings.js';
 import { setUsTab } from './ui/screens/us.js';
 import { applyBondUnlocks } from './ui/screens/shop.js';
-import { sendNudge, careAction } from './ui/actions.js';
+import { sendNudge, careAction, meldeStandort, setAutoOrt, standortVerfolgen } from './ui/actions.js';
+import * as standort from './util/standort.js';
 import { openGame } from './ui/gameHost.js';
 import { initSync, publishProfile, sendEvent, pairWith } from './sync/index.js';
 import { sheet, closeSheet } from './ui/sheet.js';
 import { toast } from './ui/toast.js';
 import { renderChicken, BODY_COLORS, defaultLook } from './pet/chicken.js';
 import { esc } from './util/dom.js';
+import { icon } from './ui/icons.js';
 import CONFIG from '../config.js';
 
 boot();
@@ -48,6 +50,87 @@ async function boot() {
   startHeartbeat();
   registerServiceWorker();
   wireLifecycle();
+  wireStandort();
+}
+
+/* ── Standort ───────────────────────────────────────────── */
+
+/**
+ * Automatischer Standort — anschalten, wenn erlaubt, sonst einmal fragen.
+ *
+ * Die Frage kommt nicht sofort. Ein Browserdialog „Diese Seite möchte Ihren
+ * Standort wissen" gleich beim ersten Öffnen ist der schnellste Weg zu einem
+ * Nein, weil niemand weiß, wofür. Also erst ein paar Sekunden Ruhe, dann
+ * eine Erklärung in der App, und den Browserdialog nur, wenn jemand darauf
+ * Ja getippt hat.
+ *
+ * Ohne Partner wird gar nicht gefragt: Der Ort ist dafür da, dass der andere
+ * ihn sieht. Solo hätte er keinen Empfänger.
+ */
+function wireStandort() {
+  const s = get();
+  if (!standort.verfuegbar()) return;
+
+  if (s.settings.autoOrt) { standortVerfolgen(); return; }
+  if (s.settings.ortGefragt || !s.partner?.linked) return;
+
+  setTimeout(async () => {
+    const st = get();
+    if (st.settings.autoOrt || st.settings.ortGefragt || !st.partner?.linked) return;
+    // Wer die Erlaubnis schon erteilt hat, braucht keine Werbung mehr
+    if (await standort.erlaubnis() === 'granted') {
+      setAutoOrt(true);
+      standortVerfolgen();
+      return;
+    }
+    fragNachStandort(st.partner.name);
+  }, 6000);
+}
+
+function fragNachStandort(partnerName) {
+  sheet({
+    title: 'Standort teilen?',
+    body: `
+      <p class="tiny muted" style="margin:0 0 14px">
+        Dann sieht ${esc(partnerName)} immer, in welcher Stadt du gerade bist —
+        und das Wetter auf der „Wir“-Seite zieht mit. Umgekehrt genauso.
+      </p>
+      <div class="list" style="margin-bottom:14px">
+        <div class="li"><div class="li-ico">${icon('pin', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Nur die Stadt</div>
+            <div class="li-sub">Gerundet auf etwa einen Kilometer — keine Adresse, kein Verlauf</div></div></div>
+        <div class="li"><div class="li-ico">${icon('lock', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Nur an deinen Menschen</div>
+            <div class="li-sub">Verschlüsselt wie alles andere; kein fremder Dienst wird gefragt</div></div></div>
+        <div class="li"><div class="li-ico">${icon('rotate', { size: 19 })}</div>
+          <div class="grow"><div class="li-title">Jederzeit wieder aus</div>
+            <div class="li-sub">Unter „Mehr“ mit einem Tipp</div></div></div>
+      </div>
+      <button class="btn btn-primary btn-block" data-ja>Standort teilen</button>
+      <button class="btn btn-ghost btn-block" data-nein>Lieber selbst eintragen</button>`,
+    onClose: () => {
+      // Weggewischt zählt als Nein — aber als eines, das nicht nachfragt
+      const st = get();
+      if (!st.settings.ortGefragt) { st.settings.ortGefragt = true; commit('settings'); }
+    },
+    onMount: (body) => {
+      body.querySelector('[data-ja]').onclick = async () => {
+        closeSheet();
+        try {
+          const fix = await standort.position({ warten: 15000 });
+          setAutoOrt(true);
+          meldeStandort(fix);
+          standortVerfolgen();
+          toast('Standort wird geteilt', 'pin');
+          refresh();
+        } catch {
+          setAutoOrt(false);
+          toast('Kein Standort bekommen — du kannst ihn unter „Mehr“ eintragen');
+        }
+      };
+      body.querySelector('[data-nein]').onclick = () => { setAutoOrt(false); closeSheet(); };
+    }
+  });
 }
 
 /* ── Aktionen aus einem Banner ──────────────────────────── */

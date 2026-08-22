@@ -66,7 +66,16 @@ export function createState() {
       cloudUrl: '',
       soloName: 'Mila',
       /** Zweiter, freizügigerer Fragenkatalog — nur auf Wunsch. */
-      spicy: false
+      spicy: false,
+      /**
+       * Standort automatisch mitführen.
+       *
+       * Aus, bis jemand aktiv Ja sagt. `ortGefragt` merkt sich, dass die
+       * Frage schon gestellt wurde — einmal abgelehnt heißt abgelehnt,
+       * nicht „bei jedem Start noch mal".
+       */
+      autoOrt: false,
+      ortGefragt: false
     }
   };
 }
@@ -385,12 +394,20 @@ export function validPlace(p) {
   const lat = Number(p.lat), lon = Number(p.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  const at = Number(p.at);
   return {
     name: String(p.name || '').slice(0, 60),
     region: String(p.region || '').slice(0, 60),
     country: String(p.country || '').slice(0, 60),
+    // Zwei Nachkommastellen, egal woher der Ort kommt. Beim automatischen
+    // Standort ist das keine Bequemlichkeit, sondern die Grenze: gut einen
+    // Kilometer genau reist auch dann, wenn das Gerät es auf drei Meter
+    // wüsste.
     lat: Math.round(lat * 100) / 100,
-    lon: Math.round(lon * 100) / 100
+    lon: Math.round(lon * 100) / 100,
+    // Woher er kommt und wie frisch er ist — beides zeigt die Karte an
+    auto: !!p.auto,
+    at: Number.isFinite(at) && at > 0 ? at : 0
   };
 }
 

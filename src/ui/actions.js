@@ -11,7 +11,9 @@ import {
   rateCreate, rateSubmit, rewardShared, KIND_ICON
 } from '../state/shared.js';
 import { NUDGES, nudgeByKey, moodByKey, activityByKey } from '../pet/moods.js';
-import { sendEvent } from '../sync/index.js';
+import { sendEvent, publishProfile } from '../sync/index.js';
+import { ortFuer } from '../util/orte.js';
+import * as standort from '../util/standort.js';
 import { fx, burst, confetti } from '../util/feedback.js';
 import { toast } from './toast.js';
 import { $$ } from '../util/dom.js';
@@ -283,6 +285,66 @@ export function setPlace(place) {
   const s = get();
   s.me.place = validPlace(place);
   commit('place');
-  sendEvent('profile', { place: s.me.place });
+  sendEvent('profile', { place: s.me.place }, { ersetzt: 'profile:place' });
   return s.me.place;
+}
+
+/**
+ * Eine frische Position vom Gerät verarbeiten.
+ *
+ * Zwei Entscheidungen stecken hier drin. Erstens der Name: Er kommt aus dem
+ * eingebauten Städteverzeichnis, nicht von einem Dienst — sonst wüsste bei
+ * jedem Ortswechsel ein Fremder Bescheid. Zweitens die Sparsamkeit:
+ * Gespeichert wird jede Position (damit „zuletzt gesehen" stimmt), verschickt
+ * nur, wenn sie sich lohnt.
+ *
+ * @returns {{ort:object, geschickt:boolean}}
+ */
+export function meldeStandort({ lat, lon }) {
+  const s = get();
+  const alt = s.me.place;
+  const roh = ortFuer(lat, lon);
+  const ort = validPlace({ ...roh, auto: true, at: Date.now() });
+  const schicken = standort.lohntSich(alt?.auto ? alt : null, ort, alt?.at || 0);
+
+  s.me.place = ort;
+  commit('place');
+  if (schicken) {
+    sendEvent('profile', { place: ort }, { ersetzt: 'profile:place' });
+    publishProfile();
+  }
+  return { ort, geschickt: schicken };
+}
+
+/**
+ * Den automatischen Standort ein- oder ausschalten.
+ *
+ * Beim Ausschalten bleibt der zuletzt bekannte Ort stehen — ihn verschwinden
+ * zu lassen wäre eine Überraschung, und wer ihn loswerden will, entfernt ihn
+ * unter „Dein Ort". Aber er verliert die Markierung „automatisch", damit
+ * drüben nicht länger „gerade eben" darunter steht.
+ */
+export function standortVerfolgen() {
+  standort.starte(
+    (fix) => meldeStandort(fix),
+    (err) => {
+      // Code 1 heißt: Erlaubnis verweigert oder zurückgezogen. Dann hilft
+      // Weiterfragen nichts — der Schalter geht aus, alles andere bleibt.
+      if (err && err.code === 1) { setAutoOrt(false); standort.stoppe(); }
+    }
+  );
+}
+
+export const standortStoppen = () => standort.stoppe();
+
+export function setAutoOrt(an) {
+  const s = get();
+  s.settings.autoOrt = !!an;
+  s.settings.ortGefragt = true;
+  if (!an && s.me.place?.auto) {
+    s.me.place = validPlace({ ...s.me.place, auto: false });
+    sendEvent('profile', { place: s.me.place }, { ersetzt: 'profile:place' });
+  }
+  commit('settings');
+  return s.settings.autoOrt;
 }

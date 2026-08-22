@@ -123,11 +123,28 @@ export function sendEvent(type, data, opts = {}) {
     t: type,
     at: Date.now(),
     from: s.me.code,
-    d: data
+    d: data,
+    // Nachrichten, von denen nur die neueste zählt, tragen denselben
+    // Schlüssel — siehe unten.
+    ...(opts.ersetzt ? { k: opts.ersetzt } : {})
   };
 
   // Für den Brieftauben-Modus (und als Notnagel, falls die Cloud klemmt)
   if (!opts.volatile) {
+    /**
+     * Manche Nachrichten überholen sich selbst.
+     *
+     * Der automatische Standort meldet sich alle paar Kilometer. Ohne diese
+     * Zeile stünden in einem Brieftauben-Code irgendwann vierzig Positionen
+     * derselben Fahrt — und die vierzig Spielzüge, die eigentlich hinein
+     * gehörten, wären hinausgedrängt. Nur die letzte Meldung ist etwas
+     * wert, also fliegen die älteren mit demselben Schlüssel raus.
+     */
+    if (opts.ersetzt) {
+      for (let i = s.outbox.length - 1; i >= 0; i--) {
+        if (s.outbox[i].k === opts.ersetzt) s.outbox.splice(i, 1);
+      }
+    }
     s.outbox.push(ev);
     if (s.outbox.length > 60) s.outbox.splice(0, s.outbox.length - 60);
     commit('outbox');
